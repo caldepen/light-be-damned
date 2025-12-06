@@ -56,24 +56,24 @@ export const [GameProvider, useGame] = createContextHook(() => {
     }
   }, []);
 
-  const saveGameState = useCallback(async () => {
-    try {
-      await db.saveParty(party);
-      await db.saveCemetery(cemetery);
-      await db.saveGameState(position, dungeonLevel, combatState);
-    } catch (error) {
-      console.log('Error saving game state:', error);
-    }
-  }, [party, cemetery, position, dungeonLevel, combatState]);
-
   useEffect(() => {
     loadGameState();
-  }, []);
+  }, [loadGameState]);
 
   useEffect(() => {
-    if (isLoaded) {
-      saveGameState();
-    }
+    if (!isLoaded) return;
+    
+    const saveData = async () => {
+      try {
+        await db.saveParty(party);
+        await db.saveCemetery(cemetery);
+        await db.saveGameState(position, dungeonLevel, combatState);
+      } catch (error) {
+        console.log('Error saving game state:', error);
+      }
+    };
+    
+    saveData();
   }, [isLoaded, party, cemetery, position, dungeonLevel, combatState]);
 
   const createCharacter = useCallback((name: string, characterClass: CharacterClass): Character => {
