@@ -25,40 +25,40 @@ export const [GameProvider, useGame] = createContextHook(() => {
   const [combatState, setCombatState] = useState<CombatState | null>(null);
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
 
-  const loadGameState = useCallback(async () => {
-    try {
-      await db.initDatabase();
-      const loadedParty = await db.getParty();
-      const loadedCemetery = await db.getCemetery();
-      const gameState = await db.getGameState();
-      
-      if (loadedParty.length > 0) {
-        setParty(loadedParty);
-      }
-      
-      if (loadedCemetery.length > 0) {
-        setCemetery(loadedCemetery);
-      }
-      
-      if (gameState) {
-        setPosition(gameState.position);
-        if (gameState.dungeonLevel) {
-          setDungeonLevel(gameState.dungeonLevel);
-        }
-        if (gameState.combatState) {
-          setCombatState(gameState.combatState);
-        }
-      }
-    } catch (error) {
-      console.log('Error loading game state:', error);
-    } finally {
-      setIsLoaded(true);
-    }
-  }, []);
-
   useEffect(() => {
+    const loadGameState = async () => {
+      try {
+        await db.initDatabase();
+        const loadedParty = await db.getParty();
+        const loadedCemetery = await db.getCemetery();
+        const gameState = await db.getGameState();
+        
+        if (loadedParty.length > 0) {
+          setParty(loadedParty);
+        }
+        
+        if (loadedCemetery.length > 0) {
+          setCemetery(loadedCemetery);
+        }
+        
+        if (gameState) {
+          setPosition(gameState.position);
+          if (gameState.dungeonLevel) {
+            setDungeonLevel(gameState.dungeonLevel);
+          }
+          if (gameState.combatState) {
+            setCombatState(gameState.combatState);
+          }
+        }
+      } catch (error) {
+        console.log('Error loading game state:', error);
+      } finally {
+        setIsLoaded(true);
+      }
+    };
+    
     loadGameState();
-  }, [loadGameState]);
+  }, []);
 
   useEffect(() => {
     if (!isLoaded) return;
