@@ -1,7 +1,9 @@
 import React from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
+import { Image } from 'expo-image';
 import { DungeonLevel, Position } from '@/types/game';
 import { getViewDescription } from '@/utils/dungeon';
+import { wallImages } from '@/assets/dungeon/walls';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const DUNGEON_HEIGHT = 400;
@@ -99,25 +101,45 @@ export default function DungeonRenderer({ dungeonLevel, position, inCombat }: Du
       <>
         {view.hasLeftWall && (
           <View style={styles.leftWallContainer}>
-            {depth >= 2 && (
+            {depth >= 2 && wallImages.left.far && (
+              <Image source={wallImages.left.far} style={styles.leftWallFar} contentFit="cover" />
+            )}
+            {depth >= 2 && !wallImages.left.far && (
               <View style={[styles.leftWallFar, { backgroundColor: '#3a3a3a' }]} />
             )}
-            {depth >= 1 && (
+            {depth >= 1 && wallImages.left.mid && (
+              <Image source={wallImages.left.mid} style={styles.leftWallMid} contentFit="cover" />
+            )}
+            {depth >= 1 && !wallImages.left.mid && (
               <View style={[styles.leftWallMid, { backgroundColor: '#3a3a3a' }]} />
             )}
-            <View style={[styles.leftWallClose, { backgroundColor: '#3a3a3a' }]} />
+            {wallImages.left.close ? (
+              <Image source={wallImages.left.close} style={styles.leftWallClose} contentFit="cover" />
+            ) : (
+              <View style={[styles.leftWallClose, { backgroundColor: '#3a3a3a' }]} />
+            )}
           </View>
         )}
         
         {view.hasRightWall && (
           <View style={styles.rightWallContainer}>
-            {depth >= 2 && (
+            {depth >= 2 && wallImages.right.far && (
+              <Image source={wallImages.right.far} style={styles.rightWallFar} contentFit="cover" />
+            )}
+            {depth >= 2 && !wallImages.right.far && (
               <View style={[styles.rightWallFar, { backgroundColor: '#3a3a3a' }]} />
             )}
-            {depth >= 1 && (
+            {depth >= 1 && wallImages.right.mid && (
+              <Image source={wallImages.right.mid} style={styles.rightWallMid} contentFit="cover" />
+            )}
+            {depth >= 1 && !wallImages.right.mid && (
               <View style={[styles.rightWallMid, { backgroundColor: '#3a3a3a' }]} />
             )}
-            <View style={[styles.rightWallClose, { backgroundColor: '#3a3a3a' }]} />
+            {wallImages.right.close ? (
+              <Image source={wallImages.right.close} style={styles.rightWallClose} contentFit="cover" />
+            ) : (
+              <View style={[styles.rightWallClose, { backgroundColor: '#3a3a3a' }]} />
+            )}
           </View>
         )}
       </>
