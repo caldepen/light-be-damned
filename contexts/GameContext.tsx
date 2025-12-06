@@ -73,7 +73,11 @@ export const [GameProvider, useGame] = createContextHook(() => {
       }
     };
     
-    saveData();
+    const timeoutId = setTimeout(() => {
+      saveData();
+    }, 500);
+    
+    return () => clearTimeout(timeoutId);
   }, [isLoaded, party, cemetery, position, dungeonLevel, combatState]);
 
   const createCharacter = useCallback((name: string, characterClass: CharacterClass): Character => {
