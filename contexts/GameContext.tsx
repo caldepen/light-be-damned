@@ -68,13 +68,13 @@ export const [GameProvider, useGame] = createContextHook(() => {
 
   useEffect(() => {
     loadGameState();
-  }, [loadGameState]);
+  }, []);
 
   useEffect(() => {
     if (isLoaded) {
       saveGameState();
     }
-  }, [isLoaded, saveGameState]);
+  }, [isLoaded, party, cemetery, position, dungeonLevel, combatState]);
 
   const createCharacter = useCallback((name: string, characterClass: CharacterClass): Character => {
     const classData = CHARACTER_CLASSES[characterClass];
