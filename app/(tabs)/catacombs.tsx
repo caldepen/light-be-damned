@@ -275,16 +275,25 @@ function MonsterCard({ monster, isSelected, onPress }: MonsterCardProps) {
   const [imageAsset, setImageAsset] = React.useState<string | null>(null);
 
   React.useEffect(() => {
+    if (Platform.OS === 'web') {
+      return;
+    }
+    
+    let isMounted = true;
+    
     const loadImage = async () => {
-      if (Platform.OS === 'web') {
-        setImageAsset(null);
-        return;
-      }
       const { getMonsterImage } = await import('@/lib/database');
       const asset = await getMonsterImage(monster.type);
-      setImageAsset(asset);
+      if (isMounted) {
+        setImageAsset(asset);
+      }
     };
+    
     loadImage();
+    
+    return () => {
+      isMounted = false;
+    };
   }, [monster.type]);
 
   return (
