@@ -1,8 +1,6 @@
-import leftWallClose from '@/assets/images/left-wall-close.png';
-
 export const wallImages = {
   left: {
-    close: leftWallClose,
+    close: require('@/assets/images/left-wall-close.png'),
     mid: null,
     far: null,
   },
