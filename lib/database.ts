@@ -297,7 +297,7 @@ export async function saveGameState(
       position.facing,
       dungeonLevel.level,
       JSON.stringify(dungeonLevel),
-      JSON.stringify(combatState)
+      combatState ? JSON.stringify(combatState) : null
     ]
   );
   
