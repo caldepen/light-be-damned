@@ -21,10 +21,10 @@ export async function initDatabase(): Promise<any> {
   console.log('Initializing SQLite database...');
   db = await SQLite.openDatabaseAsync('wizardry.db');
   
+  await db.execAsync('PRAGMA journal_mode = WAL');
+  await db.execAsync('PRAGMA foreign_keys = ON');
+  
   await db.execAsync(`
-    PRAGMA journal_mode = WAL;
-    PRAGMA foreign_keys = ON;
-    
     CREATE TABLE IF NOT EXISTS characters (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
@@ -45,20 +45,26 @@ export async function initDatabase(): Promise<any> {
       items TEXT,
       created_at INTEGER DEFAULT (unixepoch()),
       updated_at INTEGER DEFAULT (unixepoch())
-    );
-    
+    )`
+  );
+  
+  await db.execAsync(`
     CREATE TABLE IF NOT EXISTS party (
       character_id TEXT PRIMARY KEY,
       position INTEGER NOT NULL,
       FOREIGN KEY (character_id) REFERENCES characters(id) ON DELETE CASCADE
-    );
-    
+    )`
+  );
+  
+  await db.execAsync(`
     CREATE TABLE IF NOT EXISTS cemetery (
       character_id TEXT PRIMARY KEY,
       died_at INTEGER DEFAULT (unixepoch()),
       FOREIGN KEY (character_id) REFERENCES characters(id) ON DELETE CASCADE
-    );
-    
+    )`
+  );
+  
+  await db.execAsync(`
     CREATE TABLE IF NOT EXISTS game_state (
       id INTEGER PRIMARY KEY CHECK (id = 1),
       position_x INTEGER DEFAULT 0,
@@ -68,8 +74,10 @@ export async function initDatabase(): Promise<any> {
       dungeon_data TEXT,
       combat_state TEXT,
       updated_at INTEGER DEFAULT (unixepoch())
-    );
-    
+    )`
+  );
+  
+  await db.execAsync(`
     CREATE TABLE IF NOT EXISTS monsters (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
@@ -82,24 +90,26 @@ export async function initDatabase(): Promise<any> {
       canCallAllies INTEGER DEFAULT 0,
       imageAsset TEXT,
       created_at INTEGER DEFAULT (unixepoch())
-    );
-    
+    )`
+  );
+  
+  await db.execAsync(`
     CREATE TABLE IF NOT EXISTS dungeon_walls (
       id TEXT PRIMARY KEY,
       position TEXT NOT NULL,
       imageAsset TEXT NOT NULL,
       created_at INTEGER DEFAULT (unixepoch())
-    );
-    
-    CREATE INDEX IF NOT EXISTS idx_party_position ON party(position);
-    CREATE INDEX IF NOT EXISTS idx_characters_class ON characters(class);
-    CREATE INDEX IF NOT EXISTS idx_characters_level ON characters(level);
-    CREATE INDEX IF NOT EXISTS idx_cemetery_died_at ON cemetery(died_at);
-    CREATE INDEX IF NOT EXISTS idx_monsters_name ON monsters(name);
-    CREATE INDEX IF NOT EXISTS idx_dungeon_walls_position ON dungeon_walls(position);
-    
-    INSERT OR IGNORE INTO game_state (id) VALUES (1);
-  `);
+    )`
+  );
+  
+  await db.execAsync('CREATE INDEX IF NOT EXISTS idx_party_position ON party(position)');
+  await db.execAsync('CREATE INDEX IF NOT EXISTS idx_characters_class ON characters(class)');
+  await db.execAsync('CREATE INDEX IF NOT EXISTS idx_characters_level ON characters(level)');
+  await db.execAsync('CREATE INDEX IF NOT EXISTS idx_cemetery_died_at ON cemetery(died_at)');
+  await db.execAsync('CREATE INDEX IF NOT EXISTS idx_monsters_name ON monsters(name)');
+  await db.execAsync('CREATE INDEX IF NOT EXISTS idx_dungeon_walls_position ON dungeon_walls(position)');
+  
+  await db.runAsync('INSERT OR IGNORE INTO game_state (id) VALUES (1)');
   
   console.log('Database initialized successfully');
   return db;
@@ -333,20 +343,21 @@ export async function resetDatabase(): Promise<void> {
   if (Platform.OS === 'web') return;
   const database = await getDatabase();
   
-  await database.execAsync(`
-    DELETE FROM party;
-    DELETE FROM cemetery;
-    DELETE FROM characters;
-    UPDATE game_state SET 
+  await database.execAsync('DELETE FROM party');
+  await database.execAsync('DELETE FROM cemetery');
+  await database.execAsync('DELETE FROM characters');
+  await database.runAsync(
+    `UPDATE game_state SET 
       position_x = 0,
       position_y = 0,
-      facing = 'north',
+      facing = ?,
       dungeon_level = 1,
       dungeon_data = NULL,
       combat_state = NULL,
       updated_at = unixepoch()
-    WHERE id = 1;
-  `);
+    WHERE id = 1`,
+    ['north']
+  );
   
   console.log('Database reset successfully');
 }
