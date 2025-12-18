@@ -114,7 +114,13 @@ export default function DungeonRenderer({ dungeonLevel, position, inCombat }: Du
               <View style={[styles.leftWallMid, { backgroundColor: '#3a3a3a' }]} />
             )}
             {wallImages.left.close ? (
-              <Image source={wallImages.left.close} style={styles.leftWallClose} contentFit="cover" />
+              <Image 
+                source={wallImages.left.close} 
+                style={styles.leftWallClose} 
+                contentFit="cover"
+                onLoad={() => console.log('Left wall image loaded successfully')}
+                onError={(error) => console.log('Left wall image error:', error)}
+              />
             ) : (
               <View style={[styles.leftWallClose, { backgroundColor: '#3a3a3a' }]} />
             )}

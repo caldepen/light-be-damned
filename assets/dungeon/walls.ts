@@ -1,6 +1,9 @@
+const leftWallCloseImage = require('@/assets/images/left-wall-close.png');
+console.log('Left wall close image loaded:', leftWallCloseImage);
+
 export const wallImages = {
   left: {
-    close: require('@/assets/images/left-wall-close.png'),
+    close: leftWallCloseImage,
     mid: null,
     far: null,
   },
