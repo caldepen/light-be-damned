@@ -73,7 +73,7 @@ A script error during a headless run can leave Godot running instead of exiting;
 - Every rule implemented gets a GUT test with a fixed seed.
 - Keep a headless entry point (`tools/run_battle.gd`, see Commands below) that plays a seeded battle with AI heroes and prints the event log.
 - Placeholder art only (coloured rectangles, text labels) until the rules feel right.
-- The project is a git repository (branch `main`). Commit everything when a milestone is complete, with the message "Milestone N complete", so there is always a working version to go back to.
+- Git: `main` on https://github.com/caldepen/light-be-damned. Commit and push at the end of each milestone ("Milestone N complete") and whenever the user asks; never force-push or rewrite history. The old gargoyle roguelite lives on the `gargoyle-roguelite` branch and `gargoyle-final` tag. Pushing from the agent shell needs `$env:GCM_INTERACTIVE = 'always'; $env:GIT_TERMINAL_PROMPT = '1'` so Git Credential Manager can sign in.
 
 ## Balance baseline (Godot engine batch runner)
 
@@ -107,6 +107,8 @@ The `witch` encounter is left out: her Bone Storm extra turn is built (ruling #4
 - Milestone 1: battle engine for rules v0.5, with rulings #1-45 recorded in `docs/RULES.md` and none open; 154 GUT tests.
 - Milestone 2: battle scene with board, hand and Provoke track, click to play for every decision type, the party choosing hero order, the event log, and toggles for AI heroes and auto-continue.
 - Most of Milestone 3: `SimpleAiProvider` heroes and the batch runner with three DM modes (baseline above).
+- Latest rule changes (all in RULES.md, OPEN_QUESTIONS.md #38-45): Provoke per point landed or healed; the party chooses hero turn order each round (`DecisionRequest.NEXT_HERO`); Stunned and toad figures lose their turn without a slot in the alternation; extra turns (Bone Storm) come just before the end of the round.
+- Git: Milestones 1-2 are committed and pushed to `main` (see Working agreements).
 
 **Next**
 - Finish Milestone 3: stronger hero AI (heuristics can be ported from `reference/`) and fuller balance reports.
@@ -115,6 +117,7 @@ The `witch` encounter is left out: her Bone Storm extra turn is built (ruling #4
 **Known quirks and follow-ups**
 - Witch: Bone Ward isn't built. Since her extra turn landed she beats a level 1 party 82% / 94% / 99% of the time (automated / standard / ruthless DM). Re-check her against a level 3 party with items once Milestone 5 exists, then add her to the baseline.
 - Campaign balance: the baseline is per battle. Once runs and camping exist (Milestones 4-5), re-check balance over whole runs under the standard DM, the intended default for play.
+- As designed, not a bug: the goblin Shortbow targets the *lowest*-Provoke hero (its card overrides §6), and ties at 0 go to the bottom of the start stack, so early on it usually hits the Wizard.
 - The battle scene redraws when the engine pauses instead of animating from events, and it has no automated tests (checked by screenshots).
 
 ## Milestones
