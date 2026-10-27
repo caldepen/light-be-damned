@@ -1,0 +1,676 @@
+{
+  "_doc": "Enemy stat lines and shared action decks, rules v0.5. ai_value ranks cards for morale (higher = more damage).",
+  "enemies": {
+    "goblin": {
+      "name": "Goblin",
+      "armor": 1,
+      "hd": 4,
+      "draw": 1,
+      "size": [
+        1,
+        1
+      ],
+      "undead": false,
+      "ai": "melee",
+      "notes": "Weak alone, dangerous in groups",
+      "deck": [
+        {
+          "id": "rusty_blade",
+          "name": "Rusty Blade",
+          "qty": 3,
+          "text": "Melee 1 · Throw 1",
+          "ai_value": 1,
+          "effects": [
+            {
+              "op": "attack",
+              "melee": 1,
+              "throw": 1
+            }
+          ]
+        },
+        {
+          "id": "spear",
+          "name": "Spear",
+          "qty": 3,
+          "text": "Melee 2 · Throw 1",
+          "ai_value": 2,
+          "effects": [
+            {
+              "op": "attack",
+              "melee": 2,
+              "throw": 1
+            }
+          ]
+        },
+        {
+          "id": "goblin_shortbow",
+          "name": "Shortbow",
+          "qty": 2,
+          "text": "Ranged: 1 damage to the hero with the lowest Provoke",
+          "ai_value": 1,
+          "effects": [
+            {
+              "op": "attack",
+              "ranged": 1,
+              "target": "lowest_provoke"
+            }
+          ]
+        },
+        {
+          "id": "gang_up",
+          "name": "Gang Up",
+          "qty": 1,
+          "text": "Melee 1, +1 for each other goblin in the fight · Throw 1",
+          "ai_value": "1 + other goblins",
+          "effects": [
+            {
+              "op": "attack",
+              "melee": 1,
+              "throw": 1,
+              "melee_bonus_per_ally": "goblin"
+            }
+          ]
+        },
+        {
+          "id": "scurry",
+          "name": "Scurry",
+          "qty": 1,
+          "text": "Move to an empty square in its front row, then Melee 1 · Throw 1",
+          "ai_value": 1,
+          "effects": [
+            {
+              "op": "move",
+              "mode": "along_own_front_row"
+            },
+            {
+              "op": "attack",
+              "melee": 1,
+              "throw": 1
+            }
+          ]
+        },
+        {
+          "id": "cower",
+          "name": "Cower",
+          "qty": 1,
+          "text": "Guard 1; no attack",
+          "ai_value": 0,
+          "effects": [
+            {
+              "op": "guard",
+              "amount": 1,
+              "target": "self"
+            }
+          ]
+        },
+        {
+          "id": "flee",
+          "name": "Flee",
+          "qty": 1,
+          "text": "If half or more of its Hd are marked, it runs away (no loot); otherwise Melee 1 · Throw 1",
+          "ai_value": "1, or -1 when it would flee",
+          "effects": [
+            {
+              "op": "flee_if",
+              "condition": "hd_marked_at_least_half",
+              "otherwise": [
+                {
+                  "op": "attack",
+                  "melee": 1,
+                  "throw": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "shriek",
+          "name": "Shriek",
+          "qty": 1,
+          "text": "If it is the last goblin, one more goblin joins the fight; otherwise Melee 1 · Throw 1",
+          "ai_value": 1,
+          "effects": [
+            {
+              "op": "summon_if_last",
+              "type": "goblin",
+              "count": 1,
+              "otherwise": [
+                {
+                  "op": "attack",
+                  "melee": 1,
+                  "throw": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "disarm",
+          "name": "Disarm",
+          "qty": 1,
+          "text": "Melee 1 · Throw 1, and the target discards a random playable card (never a Wound), replaced at the start of their next turn. This discard never knocks a hero Down",
+          "ai_value": 1,
+          "effects": [
+            {
+              "op": "attack",
+              "melee": 1,
+              "throw": 1
+            },
+            {
+              "op": "discard_random",
+              "count": 1,
+              "never_wounds": true,
+              "replace_next_turn": true,
+              "cannot_down": true
+            }
+          ],
+          "tag": "top"
+        },
+        {
+          "id": "vault",
+          "name": "Vault",
+          "qty": 1,
+          "text": "Leap over a front-row hero into the empty middle-row square directly behind them on the heroes' board, then Melee 1 to a hero within 1 square",
+          "ai_value": 1.5,
+          "effects": [
+            {
+              "op": "move",
+              "mode": "vault_to_hero_middle_row"
+            },
+            {
+              "op": "attack",
+              "melee": 1
+            }
+          ],
+          "tag": "top"
+        }
+      ],
+      "deck_size": 15
+    },
+    "ogre": {
+      "name": "Ogre",
+      "armor": 3,
+      "hd": 5,
+      "draw": 2,
+      "size": [
+        2,
+        2
+      ],
+      "undead": false,
+      "ai": "melee",
+      "notes": "Slow, brutal, can stumble",
+      "deck": [
+        {
+          "id": "backhand",
+          "name": "Backhand",
+          "qty": 3,
+          "text": "Melee 1",
+          "ai_value": 1,
+          "effects": [
+            {
+              "op": "attack",
+              "melee": 1
+            }
+          ]
+        },
+        {
+          "id": "club_swing",
+          "name": "Club Swing",
+          "qty": 4,
+          "text": "Melee 3",
+          "ai_value": 3,
+          "effects": [
+            {
+              "op": "attack",
+              "melee": 3
+            }
+          ]
+        },
+        {
+          "id": "crushing_blow",
+          "name": "Crushing Blow",
+          "qty": 2,
+          "text": "Melee 5",
+          "ai_value": 5,
+          "effects": [
+            {
+              "op": "attack",
+              "melee": 5
+            }
+          ]
+        },
+        {
+          "id": "stomp",
+          "name": "Stomp",
+          "qty": 3,
+          "text": "2 damage to every hero within 1 square",
+          "ai_value": "2 per hero in reach",
+          "effects": [
+            {
+              "op": "attack_area",
+              "amount": 2,
+              "area": "heroes_within_1"
+            }
+          ]
+        },
+        {
+          "id": "grab_and_throw",
+          "name": "Grab and Throw",
+          "qty": 1,
+          "text": "Melee 2 + Stun",
+          "ai_value": 2,
+          "effects": [
+            {
+              "op": "attack",
+              "melee": 2
+            },
+            {
+              "op": "stun",
+              "area": "same"
+            }
+          ]
+        },
+        {
+          "id": "rampage",
+          "name": "Rampage",
+          "qty": 1,
+          "text": "Melee 4 to its target and 2 to one hero next to the target",
+          "ai_value": 6,
+          "effects": [
+            {
+              "op": "attack",
+              "melee": 4
+            },
+            {
+              "op": "splash",
+              "amount": 2,
+              "area": "one_hero_next_to_target"
+            }
+          ]
+        },
+        {
+          "id": "lumber",
+          "name": "Lumber",
+          "qty": 1,
+          "text": "Shift one lane sideways, then Melee 3",
+          "ai_value": 3,
+          "effects": [
+            {
+              "op": "move",
+              "mode": "shift_lane"
+            },
+            {
+              "op": "attack",
+              "melee": 3
+            }
+          ]
+        },
+        {
+          "id": "roar",
+          "name": "Roar",
+          "qty": 1,
+          "text": "Every hero within 1 square discards 1 card",
+          "ai_value": 0.5,
+          "effects": [
+            {
+              "op": "discard",
+              "count": 1,
+              "area": "heroes_within_1",
+              "never_wounds": true,
+              "cannot_down": true
+            }
+          ]
+        },
+        {
+          "id": "thick_hide",
+          "name": "Thick Hide",
+          "qty": 1,
+          "text": "Clear 2 marked armor slots; no attack",
+          "ai_value": 0,
+          "effects": [
+            {
+              "op": "repair_self_armor",
+              "amount": 2
+            }
+          ]
+        },
+        {
+          "id": "dim_witted",
+          "name": "Dim-witted",
+          "qty": 1,
+          "text": "It stumbles and does nothing",
+          "ai_value": 0,
+          "effects": []
+        },
+        {
+          "id": "rage",
+          "name": "Rage",
+          "qty": 1,
+          "text": "All its attacks deal +1 damage for the rest of the battle",
+          "ai_value": 0,
+          "effects": [
+            {
+              "op": "status",
+              "name": "rage",
+              "damage_bonus": 1,
+              "duration": "battle"
+            }
+          ],
+          "tag": "phase"
+        },
+        {
+          "id": "throw_goblin",
+          "name": "Throw Goblin",
+          "qty": 1,
+          "text": "Throw a goblin into an empty back-row square on the heroes' board; it lands with 1 damage to a hero within 1 square. With no goblin, it hurls a rock: Ranged 2",
+          "ai_value": 2,
+          "effects": [
+            {
+              "op": "throw_ally",
+              "type": "goblin",
+              "to": "hero_back_row",
+              "landing_damage": 1,
+              "fallback": [
+                {
+                  "op": "attack",
+                  "ranged": 2,
+                  "target": "top_provoke"
+                }
+              ]
+            }
+          ],
+          "tag": "top"
+        }
+      ],
+      "deck_size": 20
+    },
+    "skeleton": {
+      "name": "Skeleton",
+      "armor": 1,
+      "hd": 3,
+      "draw": 1,
+      "size": [
+        1,
+        1
+      ],
+      "undead": true,
+      "ai": "melee",
+      "notes": "Undead",
+      "deck": [
+        {
+          "id": "bone_blade",
+          "name": "Bone Blade",
+          "qty": 4,
+          "text": "Melee 2",
+          "ai_value": 2,
+          "effects": [
+            {
+              "op": "attack",
+              "melee": 2
+            }
+          ]
+        },
+        {
+          "id": "rattle",
+          "name": "Rattle",
+          "qty": 2,
+          "text": "Guard 1; no attack",
+          "ai_value": 0,
+          "effects": [
+            {
+              "op": "guard",
+              "amount": 1,
+              "target": "self"
+            }
+          ]
+        },
+        {
+          "id": "clatter_forward",
+          "name": "Clatter Forward",
+          "qty": 2,
+          "text": "Move 1 square, then Melee 1",
+          "ai_value": 1,
+          "effects": [
+            {
+              "op": "move",
+              "mode": "step_toward_top_provoke"
+            },
+            {
+              "op": "attack",
+              "melee": 1
+            }
+          ]
+        },
+        {
+          "id": "reassemble",
+          "name": "Reassemble",
+          "qty": 2,
+          "text": "Clear 1 marked Hd",
+          "ai_value": 0.2,
+          "effects": [
+            {
+              "op": "heal_hd",
+              "amount": 1,
+              "target": "self"
+            }
+          ]
+        }
+      ],
+      "deck_size": 10
+    },
+    "witch": {
+      "name": "Witch",
+      "armor": 2,
+      "hd": 18,
+      "draw": 3,
+      "size": [
+        1,
+        1
+      ],
+      "undead": false,
+      "ai": "ranged_stay_back",
+      "boss": true,
+      "start_square": "enemy_back_centre",
+      "rules": [
+        "Bone ward: while any skeleton stands she cannot be targeted or hit by any attack or area.",
+        "Starts the fight with 3 skeletons."
+      ],
+      "deck": [
+        {
+          "id": "raise_skeletons",
+          "name": "Raise Skeletons",
+          "qty": 3,
+          "text": "Place 2 skeletons on empty squares of her board",
+          "ai_value": 2.5,
+          "effects": [
+            {
+              "op": "summon",
+              "type": "skeleton",
+              "count": 2,
+              "where": "own_board_front_first"
+            }
+          ]
+        },
+        {
+          "id": "fire_flask",
+          "name": "Fire Flask",
+          "qty": 3,
+          "text": "Ranged, Area 2x2: 3 damage to every hero in the area",
+          "ai_value": 3,
+          "effects": [
+            {
+              "op": "attack_area",
+              "amount": 3,
+              "area": "area2x2_most_heroes",
+              "range": "ranged"
+            }
+          ]
+        },
+        {
+          "id": "frost_draught",
+          "name": "Frost Draught",
+          "qty": 2,
+          "text": "Ranged: 3 damage + Stun",
+          "ai_value": 3,
+          "effects": [
+            {
+              "op": "attack",
+              "ranged": 3,
+              "target": "top_provoke"
+            },
+            {
+              "op": "stun",
+              "area": "same"
+            }
+          ]
+        },
+        {
+          "id": "poison_vial",
+          "name": "Poison Vial",
+          "qty": 2,
+          "text": "Ranged: 2 damage + Bleed 2",
+          "ai_value": 2.5,
+          "effects": [
+            {
+              "op": "attack",
+              "ranged": 2,
+              "target": "top_provoke"
+            },
+            {
+              "op": "bleed",
+              "rounds": 2,
+              "area": "same"
+            }
+          ]
+        },
+        {
+          "id": "hex",
+          "name": "Hex",
+          "qty": 2,
+          "text": "Ranged: the target discards 2 playable cards, replaced at the start of their next turn",
+          "ai_value": 2,
+          "effects": [
+            {
+              "op": "discard_random",
+              "count": 2,
+              "never_wounds": true,
+              "replace_next_turn": true,
+              "cannot_down": true,
+              "target": "top_provoke"
+            }
+          ]
+        },
+        {
+          "id": "healing_brew",
+          "name": "Healing Brew",
+          "qty": 2,
+          "text": "Clear 3 marked Hd from herself or a skeleton",
+          "ai_value": 1,
+          "effects": [
+            {
+              "op": "heal_hd",
+              "amount": 3,
+              "target": "most_damaged_ally"
+            }
+          ]
+        },
+        {
+          "id": "cackle",
+          "name": "Cackle",
+          "qty": 2,
+          "text": "Every hero moves 2 down the Provoke track",
+          "ai_value": 0.5,
+          "effects": [
+            {
+              "op": "provoke_all_heroes",
+              "amount": -2
+            }
+          ]
+        },
+        {
+          "id": "polymorph",
+          "name": "Polymorph",
+          "qty": 1,
+          "text": "Ranged: the target becomes a toad and skips their next 2 turns",
+          "ai_value": 4,
+          "effects": [
+            {
+              "op": "polymorph",
+              "turns": 2,
+              "target": "top_provoke"
+            }
+          ],
+          "tag": "top"
+        },
+        {
+          "id": "bone_storm",
+          "name": "Bone Storm",
+          "qty": 1,
+          "text": "Place 3 skeletons. From now on she takes two turns each round: her normal turn, and an extra turn just before the end of the round",
+          "ai_value": 5,
+          "effects": [
+            {
+              "op": "summon",
+              "type": "skeleton",
+              "count": 3,
+              "where": "own_board_front_first"
+            },
+            {
+              "op": "status",
+              "name": "extra_turn_each_round",
+              "duration": "battle"
+            }
+          ],
+          "tag": "phase"
+        }
+      ],
+      "deck_size": 18
+    }
+  },
+  "encounters": {
+    "standard": [
+      {
+        "type": "goblin",
+        "count": 5
+      }
+    ],
+    "tough": [
+      {
+        "type": "ogre",
+        "count": 1
+      },
+      {
+        "type": "goblin",
+        "count": 4
+      }
+    ],
+    "skeleton_band": [
+      {
+        "type": "skeleton",
+        "count": 5
+      }
+    ],
+    "wandering": [
+      {
+        "type": "goblin",
+        "count": 3
+      }
+    ],
+    "bones_stir": [
+      {
+        "type": "skeleton",
+        "count": 3
+      }
+    ],
+    "witch": [
+      {
+        "type": "witch",
+        "count": 1
+      },
+      {
+        "type": "skeleton",
+        "count": 3
+      }
+    ]
+  }
+}

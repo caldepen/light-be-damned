@@ -1,0 +1,1686 @@
+{
+  "_doc": "Hero definitions and starting decks, rules v0.5. Effects use the ops in docs/DATA_SCHEMA.md.",
+  "heroes": {
+    "fighter": {
+      "name": "Fighter",
+      "type": "strength",
+      "role": "Tank: holds Provoke, soaks hits, repairs armor",
+      "hand_size": 6,
+      "starting_gear": {
+        "weapon": "longsword",
+        "armor": "chainmail",
+        "offhand": "wooden_shield"
+      },
+      "deck": [
+        {
+          "id": "raise_shield",
+          "name": "Raise Shield",
+          "qty": 3,
+          "skill": 5,
+          "tier": "basic",
+          "level": 1,
+          "exhaust": false,
+          "text": "Guard 2",
+          "effects": [
+            {
+              "op": "guard",
+              "amount": 2,
+              "target": "self"
+            }
+          ]
+        },
+        {
+          "id": "brace",
+          "name": "Brace",
+          "qty": 2,
+          "skill": 3,
+          "tier": "basic",
+          "level": 1,
+          "exhaust": false,
+          "text": "Guard 3",
+          "effects": [
+            {
+              "op": "guard",
+              "amount": 3,
+              "target": "self"
+            }
+          ]
+        },
+        {
+          "id": "taunt",
+          "name": "Taunt",
+          "qty": 2,
+          "skill": 2,
+          "tier": "basic",
+          "level": 1,
+          "exhaust": false,
+          "text": "Taunt: Provoke +3, Guard 1",
+          "effects": [
+            {
+              "op": "provoke",
+              "amount": 3
+            },
+            {
+              "op": "guard",
+              "amount": 1,
+              "target": "self"
+            }
+          ]
+        },
+        {
+          "id": "iron_skin",
+          "name": "Iron Skin",
+          "qty": 1,
+          "skill": 4,
+          "tier": "basic",
+          "level": 1,
+          "exhaust": true,
+          "text": "Ignore the next attack. Exhaust",
+          "effects": [
+            {
+              "op": "status",
+              "name": "ignore_next_attack",
+              "duration": "until_triggered"
+            }
+          ]
+        },
+        {
+          "id": "challenge",
+          "name": "Challenge",
+          "qty": 2,
+          "skill": 2,
+          "tier": "basic",
+          "level": 1,
+          "exhaust": false,
+          "text": "Provoke +3",
+          "effects": [
+            {
+              "op": "provoke",
+              "amount": 3
+            }
+          ]
+        },
+        {
+          "id": "war_cry",
+          "name": "War Cry",
+          "qty": 2,
+          "skill": 3,
+          "tier": "basic",
+          "level": 1,
+          "exhaust": false,
+          "text": "Provoke +5",
+          "effects": [
+            {
+              "op": "provoke",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "id": "berserk",
+          "name": "Berserk",
+          "qty": 1,
+          "skill": 5,
+          "tier": "signature",
+          "level": 1,
+          "exhaust": true,
+          "text": "For the rest of the battle, always attack the strongest enemy you can reach; all your attacks +1 damage. Exhaust",
+          "effects": [
+            {
+              "op": "status",
+              "name": "berserk",
+              "duration": "battle",
+              "damage_bonus": 1,
+              "forced_target": "strongest_in_reach"
+            }
+          ]
+        },
+        {
+          "id": "battle_cry",
+          "name": "Battle Cry",
+          "qty": 1,
+          "skill": 3,
+          "tier": "top",
+          "level": 1,
+          "exhaust": true,
+          "text": "All heroes gain Guard 1; Provoke +5. Exhaust",
+          "effects": [
+            {
+              "op": "guard",
+              "amount": 1,
+              "target": "all_heroes"
+            },
+            {
+              "op": "provoke",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "id": "shield_wall",
+          "name": "Shield Wall",
+          "qty": 1,
+          "skill": 2,
+          "tier": "top",
+          "level": 1,
+          "exhaust": true,
+          "text": "You and one other hero gain Guard 2. Exhaust",
+          "effects": [
+            {
+              "op": "guard",
+              "amount": 2,
+              "target": "self"
+            },
+            {
+              "op": "guard",
+              "amount": 2,
+              "target": "ally"
+            }
+          ]
+        },
+        {
+          "id": "charge",
+          "name": "Charge",
+          "qty": 1,
+          "skill": 5,
+          "tier": "top",
+          "level": 1,
+          "exhaust": true,
+          "text": "Move up to 2 squares, including onto the enemy board, then 2 damage; Provoke +2. Exhaust",
+          "effects": [
+            {
+              "op": "move",
+              "mode": "up_to",
+              "squares": 2,
+              "allow_enemy_board": true
+            },
+            {
+              "op": "damage",
+              "amount": 2,
+              "range": "melee",
+              "area": "single"
+            },
+            {
+              "op": "provoke",
+              "amount": 2
+            }
+          ]
+        },
+        {
+          "id": "quake",
+          "name": "Quake",
+          "qty": 1,
+          "skill": 4,
+          "tier": "top",
+          "level": 1,
+          "exhaust": true,
+          "text": "Enemy front row: 1 damage + Stun; Provoke +2. Exhaust",
+          "effects": [
+            {
+              "op": "damage",
+              "amount": 1,
+              "area": "row",
+              "row": "enemy_front"
+            },
+            {
+              "op": "stun",
+              "area": "same"
+            },
+            {
+              "op": "provoke",
+              "amount": 2
+            }
+          ]
+        },
+        {
+          "id": "thorns",
+          "name": "Thorns",
+          "qty": 1,
+          "skill": 1,
+          "tier": "basic",
+          "level": 1,
+          "exhaust": false,
+          "text": "For the rest of the battle, any enemy that damages you takes the same damage",
+          "effects": [
+            {
+              "op": "status",
+              "name": "thorns",
+              "duration": "battle"
+            }
+          ]
+        },
+        {
+          "id": "calculated_retreat",
+          "name": "Calculated Retreat",
+          "qty": 1,
+          "skill": 1,
+          "tier": "basic",
+          "level": 1,
+          "exhaust": false,
+          "text": "Move to any empty square on your own board",
+          "effects": [
+            {
+              "op": "move",
+              "mode": "teleport_own_board"
+            }
+          ]
+        },
+        {
+          "id": "cleave",
+          "name": "Cleave",
+          "qty": 3,
+          "skill": 4,
+          "tier": "basic",
+          "level": 1,
+          "exhaust": false,
+          "text": "Adjacent: 1 damage + Bleed 2; Provoke +2",
+          "effects": [
+            {
+              "op": "damage",
+              "amount": 1,
+              "range": "melee",
+              "area": "adjacent"
+            },
+            {
+              "op": "bleed",
+              "rounds": 2,
+              "area": "same"
+            },
+            {
+              "op": "provoke",
+              "amount": 2
+            }
+          ]
+        },
+        {
+          "id": "bash",
+          "name": "Bash",
+          "qty": 3,
+          "skill": 6,
+          "tier": "basic",
+          "level": 1,
+          "exhaust": false,
+          "text": "2 damage",
+          "effects": [
+            {
+              "op": "damage",
+              "amount": 2,
+              "range": "melee",
+              "area": "single"
+            }
+          ]
+        },
+        {
+          "id": "steady_strike",
+          "name": "Steady Strike",
+          "qty": 2,
+          "skill": 6,
+          "tier": "basic",
+          "level": 1,
+          "exhaust": false,
+          "text": "3 damage",
+          "effects": [
+            {
+              "op": "damage",
+              "amount": 3,
+              "range": "melee",
+              "area": "single"
+            }
+          ]
+        },
+        {
+          "id": "fix_armor",
+          "name": "Fix Armor",
+          "qty": 2,
+          "skill": 1,
+          "tier": "basic",
+          "level": 1,
+          "exhaust": false,
+          "text": "Remove 1 armor damage. Between battles: remove all your armor damage",
+          "effects": [
+            {
+              "op": "repair_armor",
+              "amount": 1,
+              "target": "self",
+              "between_battles_amount": "all"
+            }
+          ]
+        },
+        {
+          "id": "second_wind",
+          "name": "Second Wind",
+          "qty": 1,
+          "skill": 1,
+          "tier": "recovery",
+          "level": 1,
+          "exhaust": false,
+          "text": "Shuffle up to 3 cards from your discard pile into your deck",
+          "effects": [
+            {
+              "op": "recover",
+              "amount": 3,
+              "to": "deck",
+              "target": "self"
+            }
+          ]
+        }
+      ],
+      "advancement": [
+        {
+          "id": "shield_bash",
+          "name": "Shield Bash",
+          "qty": 1,
+          "skill": 6,
+          "tier": "advancement",
+          "level": 2,
+          "exhaust": false,
+          "text": "2 damage + Stun",
+          "effects": [
+            {
+              "op": "damage",
+              "amount": 2,
+              "range": "melee",
+              "area": "single"
+            },
+            {
+              "op": "stun",
+              "area": "same"
+            }
+          ]
+        },
+        {
+          "id": "hold_the_line",
+          "name": "Hold the Line",
+          "qty": 1,
+          "skill": 5,
+          "tier": "advancement",
+          "level": 2,
+          "exhaust": false,
+          "text": "Guard 2; Provoke +3",
+          "effects": [
+            {
+              "op": "guard",
+              "amount": 2,
+              "target": "self"
+            },
+            {
+              "op": "provoke",
+              "amount": 3
+            }
+          ]
+        },
+        {
+          "id": "whirlwind",
+          "name": "Whirlwind",
+          "qty": 1,
+          "skill": 5,
+          "tier": "advancement",
+          "level": 3,
+          "exhaust": false,
+          "text": "Adjacent: 2 damage; Provoke +2",
+          "effects": [
+            {
+              "op": "damage",
+              "amount": 2,
+              "range": "melee",
+              "area": "adjacent"
+            },
+            {
+              "op": "provoke",
+              "amount": 2
+            }
+          ]
+        },
+        {
+          "id": "rally",
+          "name": "Rally",
+          "qty": 1,
+          "skill": 4,
+          "tier": "advancement",
+          "level": 3,
+          "exhaust": false,
+          "text": "Every hero within 1 square removes 1 Wound",
+          "effects": [
+            {
+              "op": "heal_wound",
+              "amount": 1,
+              "target": "heroes_within_1"
+            }
+          ]
+        }
+      ]
+    },
+    "cleric": {
+      "name": "Cleric",
+      "type": "spirit",
+      "role": "Healer: Wounds, armor, radiant damage",
+      "hand_size": 5,
+      "starting_gear": {
+        "weapon": "mace",
+        "armor": "chainmail",
+        "offhand": "holy_symbol"
+      },
+      "deck": [
+        {
+          "id": "mend",
+          "name": "Mend",
+          "qty": 4,
+          "skill": 4,
+          "tier": "basic",
+          "level": 1,
+          "exhaust": false,
+          "text": "Remove 1 Wound from an adjacent hero's hand",
+          "effects": [
+            {
+              "op": "heal_wound",
+              "amount": 1,
+              "target": "hero_adjacent"
+            }
+          ]
+        },
+        {
+          "id": "healing_word",
+          "name": "Healing Word",
+          "qty": 4,
+          "skill": 3,
+          "tier": "basic",
+          "level": 1,
+          "exhaust": false,
+          "text": "Remove 1 Wound from any hero",
+          "effects": [
+            {
+              "op": "heal_wound",
+              "amount": 1,
+              "target": "hero_any"
+            }
+          ]
+        },
+        {
+          "id": "lay_on_hands",
+          "name": "Lay on Hands",
+          "qty": 1,
+          "skill": 1,
+          "tier": "basic",
+          "level": 1,
+          "exhaust": false,
+          "text": "Take up to 2 Wounds from an ally's hand into yours",
+          "effects": [
+            {
+              "op": "transfer_wounds",
+              "amount": 2,
+              "to": "self",
+              "from": "ally"
+            }
+          ]
+        },
+        {
+          "id": "party_heal",
+          "name": "Party Heal",
+          "qty": 1,
+          "skill": 6,
+          "tier": "signature",
+          "level": 1,
+          "exhaust": true,
+          "text": "Remove 1 Wound from every hero's hand. Exhaust",
+          "effects": [
+            {
+              "op": "heal_wound",
+              "amount": 1,
+              "target": "all_heroes"
+            }
+          ]
+        },
+        {
+          "id": "greater_heal",
+          "name": "Greater Heal",
+          "qty": 1,
+          "skill": 4,
+          "tier": "top",
+          "level": 1,
+          "exhaust": true,
+          "text": "Remove 3 Wounds from one hero; they draw 1 extra. Exhaust",
+          "effects": [
+            {
+              "op": "heal_wound",
+              "amount": 3,
+              "target": "hero_any"
+            },
+            {
+              "op": "draw",
+              "amount": 1,
+              "target": "same"
+            }
+          ]
+        },
+        {
+          "id": "sanctify_armor",
+          "name": "Sanctify Armor",
+          "qty": 1,
+          "skill": 2,
+          "tier": "top",
+          "level": 1,
+          "exhaust": true,
+          "text": "Remove all armor and shield damage from a hero. Exhaust",
+          "effects": [
+            {
+              "op": "repair_armor",
+              "amount": "all",
+              "target": "hero_any"
+            }
+          ]
+        },
+        {
+          "id": "sanctuary",
+          "name": "Sanctuary",
+          "qty": 1,
+          "skill": 3,
+          "tier": "top",
+          "level": 1,
+          "exhaust": true,
+          "text": "All heroes gain Guard 1. Exhaust",
+          "effects": [
+            {
+              "op": "guard",
+              "amount": 1,
+              "target": "all_heroes"
+            }
+          ]
+        },
+        {
+          "id": "consecrate",
+          "name": "Consecrate",
+          "qty": 1,
+          "skill": 5,
+          "tier": "top",
+          "level": 1,
+          "exhaust": true,
+          "text": "Ranged, Area 2x2 on either board, or straddling both front rows: enemies take 2 radiant damage (double vs undead); heroes remove 1 Wound or 1 armor damage. Exhaust",
+          "effects": [
+            {
+              "op": "consecrate",
+              "range": "ranged",
+              "area": "area2x2",
+              "boards": "either_or_straddle",
+              "enemy_damage": 2,
+              "undead_multiplier": 2,
+              "hero_cleanse": 1
+            }
+          ]
+        },
+        {
+          "id": "lesser_cleanse",
+          "name": "Lesser Cleanse",
+          "qty": 1,
+          "skill": 1,
+          "tier": "basic",
+          "level": 1,
+          "exhaust": false,
+          "text": "Remove 1 Wound or 1 armor damage from a hero",
+          "effects": [
+            {
+              "op": "cleanse",
+              "amount": 1,
+              "target": "hero_any",
+              "kinds": [
+                "wound",
+                "armor"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "cleanse_armor",
+          "name": "Cleanse Armor",
+          "qty": 1,
+          "skill": 1,
+          "tier": "basic",
+          "level": 1,
+          "exhaust": false,
+          "text": "Remove 2 from a hero, any mix of Wounds and armor damage",
+          "effects": [
+            {
+              "op": "cleanse",
+              "amount": 2,
+              "target": "hero_any",
+              "kinds": [
+                "wound",
+                "armor"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "shield_of_faith",
+          "name": "Shield of Faith",
+          "qty": 2,
+          "skill": 2,
+          "tier": "basic",
+          "level": 1,
+          "exhaust": false,
+          "text": "One hero gains Guard 2",
+          "effects": [
+            {
+              "op": "guard",
+              "amount": 2,
+              "target": "hero_any"
+            }
+          ]
+        },
+        {
+          "id": "smite",
+          "name": "Smite",
+          "qty": 4,
+          "skill": 5,
+          "tier": "basic",
+          "level": 1,
+          "exhaust": false,
+          "text": "2 radiant damage",
+          "effects": [
+            {
+              "op": "damage",
+              "amount": 2,
+              "range": "melee",
+              "area": "single",
+              "radiant": true
+            }
+          ]
+        },
+        {
+          "id": "divine_light",
+          "name": "Divine Light",
+          "qty": 4,
+          "skill": 6,
+          "tier": "basic",
+          "level": 1,
+          "exhaust": false,
+          "text": "Ranged: 2 damage, double vs undead",
+          "effects": [
+            {
+              "op": "damage",
+              "amount": 2,
+              "range": "ranged",
+              "area": "single",
+              "radiant": true,
+              "undead_multiplier": 2
+            }
+          ]
+        },
+        {
+          "id": "turn_undead",
+          "name": "Turn Undead",
+          "qty": 1,
+          "skill": 2,
+          "tier": "basic",
+          "level": 1,
+          "exhaust": false,
+          "text": "Undead in the enemy front row skip their next turn",
+          "effects": [
+            {
+              "op": "stun",
+              "area": "row",
+              "row": "enemy_front",
+              "only": "undead"
+            }
+          ]
+        },
+        {
+          "id": "bless",
+          "name": "Bless",
+          "qty": 1,
+          "skill": 2,
+          "tier": "basic",
+          "level": 1,
+          "exhaust": false,
+          "text": "An ally's next damage or Guard card gets +2",
+          "effects": [
+            {
+              "op": "buff_next",
+              "amount": 2,
+              "target": "ally",
+              "applies_to": "damage_or_guard"
+            }
+          ]
+        },
+        {
+          "id": "detect_evil",
+          "name": "Detect Evil",
+          "qty": 1,
+          "skill": 1,
+          "tier": "basic",
+          "level": 1,
+          "exhaust": false,
+          "text": "Look at the top card of an enemy type's deck",
+          "effects": [
+            {
+              "op": "peek",
+              "count": 1,
+              "reorder": false
+            }
+          ]
+        },
+        {
+          "id": "renewal",
+          "name": "Renewal",
+          "qty": 1,
+          "skill": 1,
+          "tier": "recovery",
+          "level": 1,
+          "exhaust": false,
+          "text": "Any hero shuffles up to 3 cards from their discard pile into their deck",
+          "effects": [
+            {
+              "op": "recover",
+              "amount": 3,
+              "to": "deck",
+              "target": "hero_any"
+            }
+          ]
+        }
+      ],
+      "advancement": [
+        {
+          "id": "prayer",
+          "name": "Prayer",
+          "qty": 1,
+          "skill": 5,
+          "tier": "advancement",
+          "level": 2,
+          "exhaust": false,
+          "text": "Remove 2 Wounds from any hero",
+          "effects": [
+            {
+              "op": "heal_wound",
+              "amount": 2,
+              "target": "hero_any"
+            }
+          ]
+        },
+        {
+          "id": "holy_strike",
+          "name": "Holy Strike",
+          "qty": 1,
+          "skill": 4,
+          "tier": "advancement",
+          "level": 2,
+          "exhaust": false,
+          "text": "3 radiant damage",
+          "effects": [
+            {
+              "op": "damage",
+              "amount": 3,
+              "range": "melee",
+              "area": "single",
+              "radiant": true
+            }
+          ]
+        },
+        {
+          "id": "radiant_burst",
+          "name": "Radiant Burst",
+          "qty": 1,
+          "skill": 5,
+          "tier": "advancement",
+          "level": 3,
+          "exhaust": false,
+          "text": "Ranged, Area 2x2: 2 radiant damage",
+          "effects": [
+            {
+              "op": "damage",
+              "amount": 2,
+              "range": "ranged",
+              "area": "area2x2",
+              "radiant": true
+            }
+          ]
+        },
+        {
+          "id": "blessed_ward",
+          "name": "Blessed Ward",
+          "qty": 1,
+          "skill": 6,
+          "tier": "advancement",
+          "level": 3,
+          "exhaust": false,
+          "text": "All heroes gain Guard 1",
+          "effects": [
+            {
+              "op": "guard",
+              "amount": 1,
+              "target": "all_heroes"
+            }
+          ]
+        }
+      ]
+    },
+    "thief": {
+      "name": "Thief",
+      "type": "agility",
+      "role": "Burst damage, mobility, locks and traps",
+      "hand_size": 5,
+      "starting_gear": {
+        "weapon": "daggers",
+        "armor": "leather",
+        "offhand": "shortbow_white"
+      },
+      "deck": [
+        {
+          "id": "stab",
+          "name": "Stab",
+          "qty": 5,
+          "skill": 4,
+          "tier": "basic",
+          "level": 1,
+          "exhaust": false,
+          "text": "2 damage",
+          "effects": [
+            {
+              "op": "damage",
+              "amount": 2,
+              "range": "melee",
+              "area": "single"
+            }
+          ]
+        },
+        {
+          "id": "twin_daggers",
+          "name": "Twin Daggers",
+          "qty": 2,
+          "skill": 2,
+          "tier": "basic",
+          "level": 1,
+          "exhaust": false,
+          "text": "Move to the nearest square in melee reach, then 1 damage to each of two enemies, or 2 to one",
+          "effects": [
+            {
+              "op": "move",
+              "mode": "to_melee_reach"
+            },
+            {
+              "op": "damage_choice",
+              "options": [
+                {
+                  "amount": 1,
+                  "targets": 2
+                },
+                {
+                  "amount": 2,
+                  "targets": 1
+                }
+              ],
+              "range": "melee"
+            }
+          ]
+        },
+        {
+          "id": "shortbow",
+          "name": "Shortbow",
+          "qty": 4,
+          "skill": 3,
+          "tier": "basic",
+          "level": 1,
+          "exhaust": false,
+          "text": "Ranged: 2 damage",
+          "effects": [
+            {
+              "op": "damage",
+              "amount": 2,
+              "range": "ranged",
+              "area": "single"
+            }
+          ]
+        },
+        {
+          "id": "poisoned_blade",
+          "name": "Poisoned Blade",
+          "qty": 3,
+          "skill": 1,
+          "tier": "basic",
+          "level": 1,
+          "exhaust": false,
+          "text": "1 damage + Bleed 2",
+          "effects": [
+            {
+              "op": "damage",
+              "amount": 1,
+              "range": "melee",
+              "area": "single"
+            },
+            {
+              "op": "bleed",
+              "rounds": 2,
+              "area": "same"
+            }
+          ]
+        },
+        {
+          "id": "feint",
+          "name": "Feint",
+          "qty": 2,
+          "skill": 5,
+          "tier": "basic",
+          "level": 1,
+          "exhaust": false,
+          "text": "Your next attack this battle deals +2",
+          "effects": [
+            {
+              "op": "buff_next",
+              "amount": 2,
+              "target": "self",
+              "applies_to": "attack",
+              "scope": "battle"
+            }
+          ]
+        },
+        {
+          "id": "dodge",
+          "name": "Dodge",
+          "qty": 2,
+          "skill": 5,
+          "tier": "basic",
+          "level": 1,
+          "exhaust": false,
+          "text": "Guard 2",
+          "effects": [
+            {
+              "op": "guard",
+              "amount": 2,
+              "target": "self"
+            }
+          ]
+        },
+        {
+          "id": "vanish",
+          "name": "Vanish",
+          "qty": 2,
+          "skill": 6,
+          "tier": "basic",
+          "level": 1,
+          "exhaust": false,
+          "text": "Provoke -3",
+          "effects": [
+            {
+              "op": "provoke",
+              "amount": -3
+            }
+          ]
+        },
+        {
+          "id": "pick_lock",
+          "name": "Pick Lock",
+          "qty": 2,
+          "skill": 6,
+          "tier": "basic",
+          "level": 1,
+          "exhaust": false,
+          "text": "Draw 1 card",
+          "effects": [
+            {
+              "op": "draw",
+              "amount": 1,
+              "target": "self"
+            }
+          ]
+        },
+        {
+          "id": "caltrops",
+          "name": "Caltrops",
+          "qty": 2,
+          "skill": 2,
+          "tier": "basic",
+          "level": 1,
+          "exhaust": false,
+          "text": "Enemy front row: 1 damage",
+          "effects": [
+            {
+              "op": "damage",
+              "amount": 1,
+              "area": "row",
+              "row": "enemy_front"
+            }
+          ]
+        },
+        {
+          "id": "backstab",
+          "name": "Backstab",
+          "qty": 1,
+          "skill": 6,
+          "tier": "signature",
+          "level": 1,
+          "exhaust": true,
+          "text": "Move to the nearest square in melee reach, then 6 damage; halve your Provoke (round up). Exhaust",
+          "effects": [
+            {
+              "op": "move",
+              "mode": "to_melee_reach"
+            },
+            {
+              "op": "damage",
+              "amount": 6,
+              "range": "melee",
+              "area": "single"
+            },
+            {
+              "op": "provoke_halve",
+              "rounding": "up"
+            }
+          ]
+        },
+        {
+          "id": "ambush",
+          "name": "Ambush",
+          "qty": 1,
+          "skill": 5,
+          "tier": "top",
+          "level": 1,
+          "exhaust": true,
+          "text": "Move into melee reach of the weakest enemy, then 6 damage to it. Exhaust",
+          "effects": [
+            {
+              "op": "move",
+              "mode": "to_melee_reach",
+              "of": "weakest_enemy"
+            },
+            {
+              "op": "damage",
+              "amount": 6,
+              "range": "melee",
+              "area": "single",
+              "target": "weakest_enemy"
+            }
+          ]
+        },
+        {
+          "id": "hamstring",
+          "name": "Hamstring",
+          "qty": 1,
+          "skill": 3,
+          "tier": "top",
+          "level": 1,
+          "exhaust": true,
+          "text": "1 damage + Bleed 2 + Stun. Exhaust",
+          "effects": [
+            {
+              "op": "damage",
+              "amount": 1,
+              "range": "melee",
+              "area": "single"
+            },
+            {
+              "op": "bleed",
+              "rounds": 2,
+              "area": "same"
+            },
+            {
+              "op": "stun",
+              "area": "same"
+            }
+          ]
+        },
+        {
+          "id": "reveal_weakness",
+          "name": "Reveal Weakness",
+          "qty": 1,
+          "skill": 1,
+          "tier": "top",
+          "level": 1,
+          "exhaust": true,
+          "text": "Look at the top 3 cards of an enemy type's deck and put them back in any order. Exhaust",
+          "effects": [
+            {
+              "op": "peek",
+              "count": 3,
+              "reorder": true
+            }
+          ]
+        },
+        {
+          "id": "smoke_bomb",
+          "name": "Smoke Bomb",
+          "qty": 1,
+          "skill": 2,
+          "tier": "top",
+          "level": 1,
+          "exhaust": true,
+          "text": "Move to any empty square on your board; enemies next to your old square are Stunned. Exhaust",
+          "effects": [
+            {
+              "op": "stun",
+              "area": "adjacent_to_self"
+            },
+            {
+              "op": "move",
+              "mode": "teleport_own_board"
+            }
+          ]
+        },
+        {
+          "id": "scavenge",
+          "name": "Scavenge",
+          "qty": 1,
+          "skill": 1,
+          "tier": "recovery",
+          "level": 1,
+          "exhaust": false,
+          "text": "Return 1 card from your discard pile to your hand",
+          "effects": [
+            {
+              "op": "recover",
+              "amount": 1,
+              "to": "hand",
+              "target": "self"
+            }
+          ]
+        }
+      ],
+      "advancement": [
+        {
+          "id": "deadly_shot",
+          "name": "Deadly Shot",
+          "qty": 1,
+          "skill": 5,
+          "tier": "advancement",
+          "level": 2,
+          "exhaust": false,
+          "text": "Ranged: 4 damage",
+          "effects": [
+            {
+              "op": "damage",
+              "amount": 4,
+              "range": "ranged",
+              "area": "single"
+            }
+          ]
+        },
+        {
+          "id": "flurry",
+          "name": "Flurry",
+          "qty": 1,
+          "skill": 6,
+          "tier": "advancement",
+          "level": 2,
+          "exhaust": false,
+          "text": "3 damage",
+          "effects": [
+            {
+              "op": "damage",
+              "amount": 3,
+              "range": "melee",
+              "area": "single"
+            }
+          ]
+        },
+        {
+          "id": "shadow_strike",
+          "name": "Shadow Strike",
+          "qty": 1,
+          "skill": 6,
+          "tier": "advancement",
+          "level": 3,
+          "exhaust": false,
+          "text": "4 damage",
+          "effects": [
+            {
+              "op": "damage",
+              "amount": 4,
+              "range": "melee",
+              "area": "single"
+            }
+          ]
+        },
+        {
+          "id": "evasion",
+          "name": "Evasion",
+          "qty": 1,
+          "skill": 5,
+          "tier": "advancement",
+          "level": 3,
+          "exhaust": false,
+          "text": "Guard 3",
+          "effects": [
+            {
+              "op": "guard",
+              "amount": 3,
+              "target": "self"
+            }
+          ]
+        }
+      ]
+    },
+    "wizard": {
+      "name": "Wizard",
+      "type": "wits",
+      "role": "Ranged and area magic; fragile",
+      "hand_size": 4,
+      "starting_gear": {
+        "weapon": "staff",
+        "armor": "robes",
+        "offhand": "spellbook"
+      },
+      "deck": [
+        {
+          "id": "fire_bolt",
+          "name": "Fire Bolt",
+          "qty": 4,
+          "skill": 5,
+          "tier": "basic",
+          "level": 1,
+          "exhaust": false,
+          "text": "Ranged: 3 damage",
+          "effects": [
+            {
+              "op": "damage",
+              "amount": 3,
+              "range": "ranged",
+              "area": "single",
+              "element": "fire"
+            }
+          ]
+        },
+        {
+          "id": "frost_ray",
+          "name": "Frost Ray",
+          "qty": 4,
+          "skill": 4,
+          "tier": "basic",
+          "level": 1,
+          "exhaust": false,
+          "text": "Step back 1 square if able, then Ranged: 2 damage; the target's next attack deals 1 less",
+          "effects": [
+            {
+              "op": "move",
+              "mode": "step_back",
+              "optional": true
+            },
+            {
+              "op": "damage",
+              "amount": 2,
+              "range": "ranged",
+              "area": "single",
+              "element": "frost"
+            },
+            {
+              "op": "weaken_next_attack",
+              "amount": 1,
+              "area": "same"
+            }
+          ]
+        },
+        {
+          "id": "spark",
+          "name": "Spark",
+          "qty": 4,
+          "skill": 3,
+          "tier": "basic",
+          "level": 1,
+          "exhaust": false,
+          "text": "Ranged: 1 damage to each of two enemies",
+          "effects": [
+            {
+              "op": "damage",
+              "amount": 1,
+              "range": "ranged",
+              "area": "split",
+              "targets": 2,
+              "element": "lightning"
+            }
+          ]
+        },
+        {
+          "id": "burn",
+          "name": "Burn",
+          "qty": 3,
+          "skill": 2,
+          "tier": "basic",
+          "level": 1,
+          "exhaust": false,
+          "text": "Ranged: Bleed 2",
+          "effects": [
+            {
+              "op": "bleed",
+              "rounds": 2,
+              "range": "ranged",
+              "element": "fire"
+            }
+          ]
+        },
+        {
+          "id": "mage_light",
+          "name": "Mage Light",
+          "qty": 1,
+          "skill": 1,
+          "tier": "basic",
+          "level": 1,
+          "exhaust": false,
+          "text": "Ranged, Area 2x2: 1 damage",
+          "effects": [
+            {
+              "op": "damage",
+              "amount": 1,
+              "range": "ranged",
+              "area": "area2x2"
+            }
+          ]
+        },
+        {
+          "id": "arcane_shield",
+          "name": "Arcane Shield",
+          "qty": 2,
+          "skill": 1,
+          "tier": "basic",
+          "level": 1,
+          "exhaust": false,
+          "text": "Guard 2",
+          "effects": [
+            {
+              "op": "guard",
+              "amount": 2,
+              "target": "self"
+            }
+          ]
+        },
+        {
+          "id": "blink",
+          "name": "Blink",
+          "qty": 2,
+          "skill": 2,
+          "tier": "basic",
+          "level": 1,
+          "exhaust": false,
+          "text": "Teleport to any empty square on your board; Provoke -3",
+          "effects": [
+            {
+              "op": "move",
+              "mode": "teleport_own_board"
+            },
+            {
+              "op": "provoke",
+              "amount": -3
+            }
+          ]
+        },
+        {
+          "id": "study",
+          "name": "Study",
+          "qty": 3,
+          "skill": 6,
+          "tier": "basic",
+          "level": 1,
+          "exhaust": false,
+          "text": "Draw 1 card",
+          "effects": [
+            {
+              "op": "draw",
+              "amount": 1,
+              "target": "self"
+            }
+          ]
+        },
+        {
+          "id": "detect_magic",
+          "name": "Detect Magic",
+          "qty": 1,
+          "skill": 6,
+          "tier": "basic",
+          "level": 1,
+          "exhaust": false,
+          "text": "Look at the top 2 cards of an enemy type's deck",
+          "effects": [
+            {
+              "op": "peek",
+              "count": 2,
+              "reorder": false
+            }
+          ]
+        },
+        {
+          "id": "wizard_signature",
+          "name": "Signature",
+          "qty": 1,
+          "skill": 6,
+          "tier": "signature",
+          "level": 1,
+          "exhaust": true,
+          "text": "Choose at each campfire: Fireball, Chain Lightning or Frost Spike. Exhaust",
+          "effects": [
+            {
+              "op": "signature_choice",
+              "options": [
+                {
+                  "id": "fireball",
+                  "name": "Fireball",
+                  "text": "Ranged, Area 2x2: 3 damage",
+                  "effects": [
+                    {
+                      "op": "damage",
+                      "amount": 3,
+                      "range": "ranged",
+                      "area": "area2x2",
+                      "element": "fire"
+                    }
+                  ]
+                },
+                {
+                  "id": "chain_lightning",
+                  "name": "Chain Lightning",
+                  "text": "Ranged, Chain: 2 damage to up to 5 enemies",
+                  "effects": [
+                    {
+                      "op": "damage",
+                      "amount": 2,
+                      "range": "ranged",
+                      "area": "chain",
+                      "targets": 5,
+                      "element": "lightning"
+                    }
+                  ]
+                },
+                {
+                  "id": "frost_spike",
+                  "name": "Frost Spike",
+                  "text": "Ranged: 5 damage + Stun",
+                  "effects": [
+                    {
+                      "op": "damage",
+                      "amount": 5,
+                      "range": "ranged",
+                      "area": "single",
+                      "element": "frost"
+                    },
+                    {
+                      "op": "stun",
+                      "area": "same"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "elemental_missile",
+          "name": "Elemental Missile",
+          "qty": 1,
+          "skill": 4,
+          "tier": "top",
+          "level": 1,
+          "exhaust": true,
+          "text": "Ranged: three bolts of 2 damage, split among up to 3 enemies. Exhaust",
+          "effects": [
+            {
+              "op": "damage",
+              "amount": 2,
+              "range": "ranged",
+              "area": "split",
+              "targets": 3,
+              "bolts": 3
+            }
+          ]
+        },
+        {
+          "id": "lightning_orb",
+          "name": "Lightning Orb",
+          "qty": 1,
+          "skill": 3,
+          "tier": "top",
+          "level": 1,
+          "exhaust": true,
+          "text": "Guard 2; for two rounds, 1 damage to each enemy in melee with you at the end of each round. Exhaust",
+          "effects": [
+            {
+              "op": "guard",
+              "amount": 2,
+              "target": "self"
+            },
+            {
+              "op": "status",
+              "name": "lightning_orb",
+              "duration_rounds": 2,
+              "end_of_round_damage": 1
+            }
+          ]
+        },
+        {
+          "id": "frost_wall",
+          "name": "Frost Wall",
+          "qty": 1,
+          "skill": 1,
+          "tier": "top",
+          "level": 1,
+          "exhaust": true,
+          "text": "Ranged, Row: 2 damage + Stun. Exhaust",
+          "effects": [
+            {
+              "op": "damage",
+              "amount": 2,
+              "range": "ranged",
+              "area": "row",
+              "element": "frost"
+            },
+            {
+              "op": "stun",
+              "area": "same"
+            }
+          ]
+        },
+        {
+          "id": "arcane_surge",
+          "name": "Arcane Surge",
+          "qty": 1,
+          "skill": 5,
+          "tier": "top",
+          "level": 1,
+          "exhaust": true,
+          "text": "Draw 2 cards; your next spell this battle deals +2 damage. Exhaust",
+          "effects": [
+            {
+              "op": "draw",
+              "amount": 2,
+              "target": "self"
+            },
+            {
+              "op": "buff_next",
+              "amount": 2,
+              "target": "self",
+              "applies_to": "attack",
+              "scope": "battle"
+            }
+          ]
+        },
+        {
+          "id": "recall",
+          "name": "Recall",
+          "qty": 1,
+          "skill": 1,
+          "tier": "recovery",
+          "level": 1,
+          "exhaust": false,
+          "text": "Return 1 card from your discard pile to your hand",
+          "effects": [
+            {
+              "op": "recover",
+              "amount": 1,
+              "to": "hand",
+              "target": "self"
+            }
+          ]
+        }
+      ],
+      "advancement": [
+        {
+          "id": "greater_bolt",
+          "name": "Greater Bolt",
+          "qty": 1,
+          "skill": 6,
+          "tier": "advancement",
+          "level": 2,
+          "exhaust": false,
+          "text": "Ranged: 4 damage",
+          "effects": [
+            {
+              "op": "damage",
+              "amount": 4,
+              "range": "ranged",
+              "area": "single",
+              "element": "fire"
+            }
+          ]
+        },
+        {
+          "id": "firestorm",
+          "name": "Firestorm",
+          "qty": 1,
+          "skill": 4,
+          "tier": "advancement",
+          "level": 2,
+          "exhaust": false,
+          "text": "Ranged, Area 2x2: 2 damage",
+          "effects": [
+            {
+              "op": "damage",
+              "amount": 2,
+              "range": "ranged",
+              "area": "area2x2",
+              "element": "fire"
+            }
+          ]
+        },
+        {
+          "id": "ice_lance",
+          "name": "Ice Lance",
+          "qty": 1,
+          "skill": 5,
+          "tier": "advancement",
+          "level": 3,
+          "exhaust": false,
+          "text": "Ranged: 4 damage",
+          "effects": [
+            {
+              "op": "damage",
+              "amount": 4,
+              "range": "ranged",
+              "area": "single",
+              "element": "frost"
+            }
+          ]
+        },
+        {
+          "id": "mana_shield",
+          "name": "Mana Shield",
+          "qty": 1,
+          "skill": 6,
+          "tier": "advancement",
+          "level": 3,
+          "exhaust": false,
+          "text": "Guard 3",
+          "effects": [
+            {
+              "op": "guard",
+              "amount": 3,
+              "target": "self"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

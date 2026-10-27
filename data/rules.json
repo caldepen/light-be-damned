@@ -1,0 +1,118 @@
+{
+  "_doc": "Rule constants, rules v0.5. Keep tunable numbers here, not in code.",
+  "party_size": 4,
+  "hero_order": [
+    "fighter",
+    "cleric",
+    "thief",
+    "wizard"
+  ],
+  "default_formation": {
+    "thief": [
+      0,
+      0
+    ],
+    "fighter": [
+      0,
+      1
+    ],
+    "cleric": [
+      0,
+      2
+    ],
+    "wizard": [
+      2,
+      1
+    ]
+  },
+  "_formation_doc": "[row, lane] on the hero board; row 0 = front, lane 0 = the players' left (shared by both boards)",
+  "battle": {
+    "round_cap": 30,
+    "_round_cap_doc": "Digital engine only: a battle still running after this many rounds ends as a draw"
+  },
+  "board": {
+    "rows": 3,
+    "lanes": 3
+  },
+  "provoke": {
+    "track_max": 20,
+    "per_point_landed_or_healed": 1,
+    "minimum_per_card_that_damages_or_heals": 1,
+    "bleed_counts": false,
+    "thorns_counts": false,
+    "ties": "last token to arrive is on top"
+  },
+  "guard": {
+    "max_cards_in_play_per_hero": 1,
+    "lasts": "until end of next round"
+  },
+  "hand": {
+    "draw_to_replace": true,
+    "healed_wound_draws": true,
+    "no_draw_while_at_or_above_size": true
+  },
+  "empty_deck": "finish the battle with your hand, then sit out battles until a campfire",
+  "morale": {
+    "bold": "marked_hd < half",
+    "timid": "marked_hd >= half",
+    "desperate": "exactly 1 hd unmarked (overrides timid)"
+  },
+  "dm_modes": {
+    "automated": 0,
+    "standard_extra_flips": 1,
+    "ruthless_extra_flips": 3
+  },
+  "skill_rolls": {
+    "off_type_penalty": -2,
+    "minimum": 1,
+    "teamwork_above": 6,
+    "difficulty": {
+      "easy": 2,
+      "normal": 4,
+      "hard": 5,
+      "very_hard": 6
+    },
+    "failure_hut_track": 1,
+    "xp_for_hard_or_better": 1
+  },
+  "after_battle": {
+    "bandage_wounds": 2,
+    "bandage_revives_down": true,
+    "loot": 1,
+    "loot_if_draw2_monster": 2,
+    "xp": 1
+  },
+  "camping": {
+    "rations_per_hero": 1,
+    "hut_track": 1,
+    "wandering_monster_chance": 0.5,
+    "wandering_encounter": "wandering",
+    "lifts_curses": true
+  },
+  "run": {
+    "rations": 8,
+    "xp_for_walking_out": 2
+  },
+  "loot": {
+    "chest": 2,
+    "locked_chest": 3,
+    "extra_draw_from_hut_track": 5,
+    "party_pack_size": 4
+  },
+  "wipe": {
+    "lose_items_found_this_run": true,
+    "armor_reverts_to_white": true,
+    "keep_xp": true
+  },
+  "levels": {
+    "xp_thresholds": {
+      "2": 6,
+      "3": 14,
+      "4": 24,
+      "5": 36
+    },
+    "advancement_cards_per_level": 2,
+    "may_remove_one_starting_card_per_card_added": true,
+    "min_deck_size": 30
+  }
+}

@@ -1,0 +1,565 @@
+{
+  "_doc": "Equipment and loot, rules v0.5. White = starting gear. The loot deck = loot + consumables, by copies.",
+  "white": [
+    {
+      "id": "longsword",
+      "name": "Longsword",
+      "rarity": "white",
+      "slot": "weapon",
+      "types": [
+        "strength"
+      ],
+      "text": "No bonus",
+      "effects": [],
+      "copies": 1
+    },
+    {
+      "id": "mace",
+      "name": "Mace",
+      "rarity": "white",
+      "slot": "weapon",
+      "types": [
+        "spirit"
+      ],
+      "text": "No bonus",
+      "effects": [],
+      "copies": 1
+    },
+    {
+      "id": "daggers",
+      "name": "Daggers",
+      "rarity": "white",
+      "slot": "weapon",
+      "types": [
+        "agility"
+      ],
+      "text": "No bonus",
+      "effects": [],
+      "copies": 1
+    },
+    {
+      "id": "staff",
+      "name": "Staff",
+      "rarity": "white",
+      "slot": "weapon",
+      "types": [
+        "wits"
+      ],
+      "text": "No bonus",
+      "effects": [],
+      "copies": 1
+    },
+    {
+      "id": "chainmail",
+      "name": "Chainmail",
+      "rarity": "white",
+      "slot": "armor",
+      "types": [
+        "strength",
+        "spirit"
+      ],
+      "text": "4 armor slots",
+      "effects": [
+        {
+          "op": "armor_slots",
+          "amount": 4
+        }
+      ],
+      "copies": 1
+    },
+    {
+      "id": "leather",
+      "name": "Leather",
+      "rarity": "white",
+      "slot": "armor",
+      "types": [
+        "agility"
+      ],
+      "text": "2 armor slots",
+      "effects": [
+        {
+          "op": "armor_slots",
+          "amount": 2
+        }
+      ],
+      "copies": 1
+    },
+    {
+      "id": "robes",
+      "name": "Robes",
+      "rarity": "white",
+      "slot": "armor",
+      "types": [
+        "wits"
+      ],
+      "text": "0 armor slots",
+      "effects": [
+        {
+          "op": "armor_slots",
+          "amount": 0
+        }
+      ],
+      "copies": 1
+    },
+    {
+      "id": "wooden_shield",
+      "name": "Shield",
+      "rarity": "white",
+      "slot": "offhand",
+      "types": [
+        "strength"
+      ],
+      "text": "1 shield slot",
+      "effects": [
+        {
+          "op": "shield_slots",
+          "amount": 1
+        }
+      ],
+      "copies": 1
+    },
+    {
+      "id": "holy_symbol",
+      "name": "Holy symbol",
+      "rarity": "white",
+      "slot": "offhand",
+      "types": [
+        "spirit"
+      ],
+      "text": "No bonus",
+      "effects": [],
+      "copies": 1
+    },
+    {
+      "id": "shortbow_white",
+      "name": "Shortbow",
+      "rarity": "white",
+      "slot": "offhand",
+      "types": [
+        "agility"
+      ],
+      "text": "No bonus",
+      "effects": [],
+      "copies": 1
+    },
+    {
+      "id": "spellbook",
+      "name": "Spellbook",
+      "rarity": "white",
+      "slot": "offhand",
+      "types": [
+        "wits"
+      ],
+      "text": "No bonus",
+      "effects": [],
+      "copies": 1
+    }
+  ],
+  "loot": [
+    {
+      "id": "keen_longsword",
+      "name": "Keen Longsword",
+      "rarity": "green",
+      "slot": "weapon",
+      "types": [
+        "strength"
+      ],
+      "text": "Once per battle: +2 damage to one melee attack",
+      "effects": [
+        {
+          "op": "once_per_battle",
+          "effect": {
+            "op": "buff_next",
+            "amount": 2,
+            "applies_to": "melee_attack"
+          }
+        }
+      ],
+      "copies": 2
+    },
+    {
+      "id": "studded_leather",
+      "name": "Studded Leather",
+      "rarity": "green",
+      "slot": "armor",
+      "types": [
+        "agility"
+      ],
+      "text": "3 armor slots",
+      "effects": [
+        {
+          "op": "armor_slots",
+          "amount": 3
+        }
+      ],
+      "copies": 2
+    },
+    {
+      "id": "iron_banded_shield",
+      "name": "Iron-banded Shield",
+      "rarity": "green",
+      "slot": "offhand",
+      "types": [
+        "strength"
+      ],
+      "text": "2 shield slots",
+      "effects": [
+        {
+          "op": "shield_slots",
+          "amount": 2
+        }
+      ],
+      "copies": 2
+    },
+    {
+      "id": "healers_satchel",
+      "name": "Healer's Satchel",
+      "rarity": "green",
+      "slot": "offhand",
+      "types": [
+        "spirit"
+      ],
+      "text": "Once per battle: your next heal removes 1 extra Wound",
+      "effects": [
+        {
+          "op": "once_per_battle",
+          "effect": {
+            "op": "heal_bonus",
+            "amount": 1
+          }
+        }
+      ],
+      "copies": 2
+    },
+    {
+      "id": "wand_of_sparks",
+      "name": "Wand of Sparks",
+      "rarity": "green",
+      "slot": "offhand",
+      "types": [
+        "wits"
+      ],
+      "text": "Spark hits up to three enemies",
+      "effects": [
+        {
+          "op": "card_modifier",
+          "card": "spark",
+          "targets": 3
+        }
+      ],
+      "copies": 2
+    },
+    {
+      "id": "thieves_tools",
+      "name": "Thieves' Tools",
+      "rarity": "green",
+      "slot": "trinket",
+      "types": [
+        "agility"
+      ],
+      "text": "+1 to Agility rolls",
+      "effects": [
+        {
+          "op": "skill_bonus",
+          "type": "agility",
+          "amount": 1
+        }
+      ],
+      "copies": 2
+    },
+    {
+      "id": "pilgrims_charm",
+      "name": "Pilgrim's Charm",
+      "rarity": "green",
+      "slot": "trinket",
+      "types": [
+        "spirit"
+      ],
+      "text": "+1 to Spirit rolls",
+      "effects": [
+        {
+          "op": "skill_bonus",
+          "type": "spirit",
+          "amount": 1
+        }
+      ],
+      "copies": 2
+    },
+    {
+      "id": "ring_of_warding",
+      "name": "Ring of Warding",
+      "rarity": "green",
+      "slot": "trinket",
+      "types": [
+        "any"
+      ],
+      "text": "Start each battle with Guard 1",
+      "effects": [
+        {
+          "op": "battle_start",
+          "effect": {
+            "op": "guard",
+            "amount": 1,
+            "target": "self"
+          }
+        }
+      ],
+      "copies": 2
+    },
+    {
+      "id": "plate_armor",
+      "name": "Plate Armor",
+      "rarity": "blue",
+      "slot": "armor",
+      "types": [
+        "strength"
+      ],
+      "text": "6 armor slots; -1 to all skill rolls",
+      "effects": [
+        {
+          "op": "armor_slots",
+          "amount": 6
+        },
+        {
+          "op": "skill_bonus",
+          "type": "all",
+          "amount": -1
+        }
+      ],
+      "copies": 1
+    },
+    {
+      "id": "elven_chain",
+      "name": "Elven Chain",
+      "rarity": "blue",
+      "slot": "armor",
+      "types": [
+        "any"
+      ],
+      "text": "4 armor slots",
+      "effects": [
+        {
+          "op": "armor_slots",
+          "amount": 4
+        }
+      ],
+      "copies": 1
+    },
+    {
+      "id": "bow_of_the_hunter",
+      "name": "Bow of the Hunter",
+      "rarity": "blue",
+      "slot": "offhand",
+      "types": [
+        "agility"
+      ],
+      "text": "Ranged attacks deal +1 damage",
+      "effects": [
+        {
+          "op": "damage_bonus",
+          "range": "ranged",
+          "amount": 1
+        }
+      ],
+      "copies": 1
+    },
+    {
+      "id": "staff_of_embers",
+      "name": "Staff of Embers",
+      "rarity": "blue",
+      "slot": "weapon",
+      "types": [
+        "wits"
+      ],
+      "text": "Fire Bolt and Burn deal +1 damage",
+      "effects": [
+        {
+          "op": "card_modifier",
+          "cards": [
+            "fire_bolt",
+            "burn"
+          ],
+          "damage_bonus": 1
+        }
+      ],
+      "copies": 1
+    },
+    {
+      "id": "boots_of_striding",
+      "name": "Boots of Striding",
+      "rarity": "blue",
+      "slot": "trinket",
+      "types": [
+        "any"
+      ],
+      "text": "Once per battle: move 1 square before playing a card",
+      "effects": [
+        {
+          "op": "once_per_battle",
+          "effect": {
+            "op": "move",
+            "mode": "step",
+            "squares": 1
+          }
+        }
+      ],
+      "copies": 1
+    },
+    {
+      "id": "ring_of_vigor",
+      "name": "Ring of Vigor",
+      "rarity": "blue",
+      "slot": "trinket",
+      "types": [
+        "any"
+      ],
+      "text": "+1 hand size",
+      "effects": [
+        {
+          "op": "hand_size",
+          "amount": 1
+        }
+      ],
+      "copies": 1
+    },
+    {
+      "id": "hungering_blade",
+      "name": "Hungering Blade",
+      "rarity": "blue",
+      "slot": "weapon",
+      "types": [
+        "strength"
+      ],
+      "text": "All melee attacks +1 damage",
+      "effects": [
+        {
+          "op": "damage_bonus",
+          "range": "melee",
+          "amount": 1
+        }
+      ],
+      "copies": 1,
+      "cursed": true,
+      "curse": {
+        "text": "Start each battle with 1 Wound in hand",
+        "effects": [
+          {
+            "op": "battle_start",
+            "effect": {
+              "op": "add_wound",
+              "amount": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "hand_of_glory",
+      "name": "Hand of Glory",
+      "rarity": "blue",
+      "slot": "trinket",
+      "types": [
+        "any"
+      ],
+      "text": "+2 to Wits rolls",
+      "effects": [
+        {
+          "op": "skill_bonus",
+          "type": "wits",
+          "amount": 2
+        }
+      ],
+      "copies": 1,
+      "cursed": true,
+      "curse": {
+        "text": "Hut track +1 at each campfire",
+        "effects": [
+          {
+            "op": "on_campfire",
+            "effect": {
+              "op": "hut_track",
+              "amount": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "dragonscale_mail",
+      "name": "Dragonscale Mail",
+      "rarity": "gold",
+      "slot": "armor",
+      "types": [
+        "strength",
+        "spirit"
+      ],
+      "text": "6 armor slots, no skill penalty",
+      "effects": [
+        {
+          "op": "armor_slots",
+          "amount": 6
+        }
+      ],
+      "copies": 1
+    },
+    {
+      "id": "shadowfang",
+      "name": "Shadowfang",
+      "rarity": "gold",
+      "slot": "weapon",
+      "types": [
+        "agility"
+      ],
+      "text": "Once per battle, Backstab returns to your hand instead of being Exhausted",
+      "effects": [
+        {
+          "op": "once_per_battle",
+          "effect": {
+            "op": "return_to_hand",
+            "card": "backstab"
+          }
+        }
+      ],
+      "copies": 1
+    }
+  ],
+  "consumables": [
+    {
+      "id": "healing_potion",
+      "name": "Healing Potion",
+      "rarity": "consumable",
+      "slot": "none",
+      "types": [
+        "any"
+      ],
+      "text": "Outside battle: remove 2 Wounds from one hero",
+      "effects": [
+        {
+          "op": "heal_wound",
+          "amount": 2,
+          "target": "hero_any",
+          "when": "out_of_battle"
+        }
+      ],
+      "copies": 14
+    },
+    {
+      "id": "ration",
+      "name": "Ration",
+      "rarity": "consumable",
+      "slot": "none",
+      "types": [
+        "any"
+      ],
+      "text": "+1 ration",
+      "effects": [
+        {
+          "op": "rations",
+          "amount": 1
+        }
+      ],
+      "copies": 8
+    }
+  ],
+  "loot_deck_size": 48
+}
