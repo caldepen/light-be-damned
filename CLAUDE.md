@@ -114,19 +114,18 @@ The `witch` encounter is left out: her Bone Storm extra turn is built (ruling #4
 
 ## Current status (2026-10-28)
 
-**Done**
-- Milestone 1: battle engine for rules v0.5, with rulings #1-45 recorded in `docs/RULES.md` and none open.
-- Milestone 2: battle scene with board, hand and Provoke track, click to play for every decision type, the party choosing hero order, the event log, and toggles for AI heroes and auto-continue.
-- Milestone 3: `TacticalAiProvider` heroes (default in the batch runner and the scene's "AI plays heroes"), the batch runner with three DM modes, `--detail` reports and `--ai simple` for comparison (baseline above); 163 GUT tests. The tactical AI: `ThreatModel` works out each enemy's expected damage from its own deck and who it will hit (top-Provoke hero, or the highest one a melee enemy can reach); `TacticalScorer` predicts where a play leaves the Provoke track and scores the change in the party's danger, values Guard the same way and heals whoever is closest to Down; the provider looks one hero turn ahead when choosing who acts next, and aims damage at the most threat removed. Weights were tuned by batch (comments in the files say what was tried).
-- Latest rule changes (all in RULES.md, OPEN_QUESTIONS.md #38-45): Provoke per point landed or healed; the party chooses hero turn order each round (`DecisionRequest.NEXT_HERO`); Stunned and toad figures lose their turn without a slot in the alternation; extra turns (Bone Storm) come just before the end of the round.
-- Git: Milestones 1-2 are committed and pushed to `main` (see Working agreements).
+**Done** (Milestones 1-3 complete, 2026-10-28)
+- Milestone 1: headless battle engine for rules v0.5 (rulings #1-45 in `docs/RULES.md`, none open), data-driven effects, seeded RNG, event log, GUT tests.
+- Milestone 2: battle scene (`scenes/battle.tscn`) with board, hands, Provoke track, click to play for every decision, the party choosing hero order, event log, AI-heroes and auto-continue toggles.
+- Milestone 3: `TacticalAiProvider` hero AI (threat model, Provoke-aware scoring, one-turn look-ahead for hero order; `--ai simple` keeps the old heuristics) and the batch balance runner with automated / standard / ruthless DM modes and `--detail` reports; 163 GUT tests; baseline above.
 
 **Next**
-- Milestone 4: exploration.
+- Milestone 4: exploration. It is being redesigned (room tiles placed on a map board); a new spec will come with the Milestone 4 prompt. Don't start on exploration until then.
 
-**Known quirks and follow-ups**
-- Witch: Bone Ward isn't built. She beats a level 1 party with the tactical AI 80% / 92% / 99% of the time (automated / standard / ruthless DM). Re-check her against a level 3 party with items once Milestone 5 exists, then add her to the baseline.
-- Campaign balance: the baseline is per battle. Once runs and camping exist (Milestones 4-5), re-check balance over whole runs under the standard DM, the intended default for play.
+**Known follow-ups**
+- Standard DM is the intended default. Re-check campaign balance (wipes, runs to beat the witch) under standard DM once exploration and runs exist; the baseline above is per battle.
+- The witch stays out of the baseline until Bone Ward is built and the batch can use a level 3 party with items. For reference she currently beats a level 1 party 80% / 92% / 99% of the time (automated / standard / ruthless DM).
+- Digital UI: show the party's total armor prominently and warn when most of it is damaged ("armor gone means leave").
 - As designed, not a bug: the goblin Shortbow targets the *lowest*-Provoke hero (its card overrides §6), and ties at 0 go to the bottom of the start stack, so early on it usually hits the Wizard.
 - The tactical AI doesn't foresee where a card moves its hero (Backstab, Charge and Twin Daggers step into enemy reach) and treats a kill as not changing who the enemies hit. These are candidates if the AI needs to get stronger still.
 - The battle scene redraws when the engine pauses instead of animating from events, and it has no automated tests (checked by screenshots).
@@ -136,7 +135,7 @@ The `witch` encounter is left out: her Bone Storm extra turn is built (ruling #4
 1. Battle engine, headless, with tests (no UI).
 2. Minimal battle UI: boards, hands, Provoke track, click to play.
 3. Hero AI + headless balance runner (thousands of seeded battles, summary stats).
-4. Exploration: tiles, rooms, skill rolls, Hut track, camping.
+4. Exploration: tiles, rooms, skill rolls, Hut track, camping (being redesigned: room tiles on a map board; spec to come).
 5. Loot, equipment, levels, runs, town, wipes.
 6. The witch boss and the full Witch's Hut module.
 7. Later: export card data to printable sheets for the tabletop version.
