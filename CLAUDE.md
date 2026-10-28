@@ -52,6 +52,13 @@ Godot 4.7.2 with GUT 9.7.0 (`addons/gut`). Use the console exe for headless runs
 
 # Batch options: --battles N, --seed S (first seed), encounter names, --dm automated|standard|ruthless
 & "C:\Program Files\Godot4_7_2\Godot_v4.7.2-stable_win64_console.exe" --headless --path . --script tools/run_battle.gd '--' --batch --battles 2000 --dm ruthless standard tough
+
+# Per-hero and per-enemy-type tables under each encounter (Down %, damage taken and dealt, share of
+# party damage taken, healing, play/flip/pass mix, most-played cards; enemy kills and damage)
+& "C:\Program Files\Godot4_7_2\Godot_v4.7.2-stable_win64_console.exe" --headless --path . --script tools/run_battle.gd '--' --batch --detail --dm standard tough
+
+# Hero AI: --ai tactical (default) or --ai simple (the old heuristics, for comparison); works on single battles too
+& "C:\Program Files\Godot4_7_2\Godot_v4.7.2-stable_win64_console.exe" --headless --path . --script tools/run_battle.gd '--' --batch --ai simple
 ```
 
 Battle scene for playtesting (`scenes/battle.tscn`, the main scene): press F5 in the editor, or run the editor exe without `--headless`:
@@ -62,7 +69,9 @@ Battle scene for playtesting (`scenes/battle.tscn`, the main scene): press F5 in
 
 The scene runs the engine on a worker thread (`scripts/ui/battle_session.gd`) that pauses for each human decision (`HumanDecisionProvider`) and after enemy turns; the scene reads state only while it is paused.
 
-`--dm` also works on single battles. A batch of 500 for every encounter takes about 40 seconds.
+`--dm` also works on single battles. A batch of 500 for every encounter takes about 3.5 minutes with the tactical AI (about 40 seconds with `--ai simple`); pass encounter names to run fewer.
+
+GUT leaves a test file that fails to parse out of its totals instead of failing, so check that the test count went up after adding tests.
 
 A script error during a headless run can leave Godot running instead of exiting; stop it if a run hangs.
 
@@ -77,47 +86,49 @@ A script error during a headless run can leave Godot running instead of exiting;
 
 ## Balance baseline (Godot engine batch runner)
 
-The Godot engine is the balance baseline; re-run the batch after rule or data changes and compare. Recorded 2026-10-26, rules v0.5 with Provoke per point (ruling #38) and the party choosing hero turn order (ruling #39; the AI picks the hero with the best-scoring play) and lost turns taking no place in the alternation for both sides (#42), `run_battle.gd --batch` (500 seeds per encounter, seeds 1-500), SimpleAiProvider heroes, level 1 party in White gear, default formation (Thief, Fighter, Cleric in front; Wizard back centre). DM modes use the greedy policy (highest-damage playable card). Standard DM is the intended default for play.
+The Godot engine is the balance baseline; re-run the batch after rule or data changes and compare. Recorded 2026-10-28, rules v0.5 with rulings #1-45, `run_battle.gd --batch` (500 seeds per encounter, seeds 1-500), `TacticalAiProvider` heroes (Milestone 3 AI, see `scripts/ai/`), level 1 party in White gear, default formation (Thief, Fighter, Cleric in front; Wizard back centre). DM modes use the greedy policy (highest-damage playable card). Standard DM is the intended default for play.
+
+The previous baseline (2026-10-26, `SimpleAiProvider`, still available as `--ai simple`) is in git history. The tactical AI is stronger in every cell, most on `tough`: wins 99.0 / 93.2 / 80.8% became 100 / 97.4 / 87.4% (automated / standard / ruthless), and Downs 37.6 / 59.8 / 76.8% became 13.0 / 33.2 / 65.4%.
 
 Down = battles where any hero went Down. Wounds (from damage), armor damage left and cards Exhausted are party totals per battle, averaged. No battle hit the 30-round cap.
 
 | Encounter | DM | Party wins | Down | Rounds | Wounds | Armor left | Exhausted |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 5 goblins (`standard`) | automated | 100% | 5.6% | 3.77 | 2.96 | 5.63 | 3.48 |
-| | standard | 100% | 23.4% | 3.85 | 5.31 | 6.49 | 3.46 |
-| | ruthless | 99.2% | 50.0% | 4.00 | 7.99 | 7.26 | 3.43 |
-| Ogre + 4 goblins (`tough`) | automated | 99.0% | 37.6% | 4.82 | 8.22 | 8.48 | 4.23 |
-| | standard | 93.2% | 59.8% | 4.96 | 11.05 | 9.31 | 4.10 |
-| | ruthless | 80.8% | 76.8% | 5.06 | 13.97 | 9.92 | 4.02 |
-| 5 skeletons (`skeleton_band`) | automated | 100% | 0% | 2.97 | 0.78 | 4.50 | 2.58 |
-| | standard | 100% | 3.0% | 2.94 | 1.59 | 5.54 | 2.58 |
-| | ruthless | 100% | 9.2% | 2.90 | 2.94 | 6.49 | 2.59 |
-| `wandering` | automated | 100% | 0% | 2.35 | 0.30 | 2.59 | 2.21 |
-| | standard | 100% | 0% | 2.35 | 0.50 | 3.25 | 2.20 |
-| | ruthless | 100% | 0% | 2.37 | 0.91 | 3.91 | 2.20 |
-| `bones_stir` | automated | 100% | 0% | 1.81 | 0.02 | 2.07 | 1.49 |
-| | standard | 100% | 0% | 1.72 | 0.08 | 2.73 | 1.45 |
-| | ruthless | 100% | 0% | 1.67 | 0.20 | 3.33 | 1.41 |
+| 5 goblins (`standard`) | automated | 100% | 1.2% | 3.59 | 2.91 | 5.96 | 3.07 |
+| | standard | 100% | 10.2% | 3.67 | 4.92 | 7.03 | 3.21 |
+| | ruthless | 99.6% | 32.0% | 3.89 | 7.54 | 7.97 | 3.35 |
+| Ogre + 4 goblins (`tough`) | automated | 100% | 13.0% | 4.44 | 6.42 | 8.47 | 3.87 |
+| | standard | 97.4% | 33.2% | 4.76 | 9.89 | 9.41 | 4.05 |
+| | ruthless | 87.4% | 65.4% | 5.08 | 13.78 | 10.10 | 4.06 |
+| 5 skeletons (`skeleton_band`) | automated | 100% | 0.2% | 2.78 | 0.77 | 4.49 | 2.26 |
+| | standard | 100% | 0.6% | 2.78 | 1.40 | 5.80 | 2.28 |
+| | ruthless | 100% | 3.4% | 2.84 | 2.60 | 6.98 | 2.42 |
+| `wandering` | automated | 100% | 0% | 2.19 | 0.32 | 2.73 | 1.89 |
+| | standard | 100% | 0% | 2.18 | 0.55 | 3.41 | 1.91 |
+| | ruthless | 100% | 0.4% | 2.21 | 0.94 | 4.14 | 1.93 |
+| `bones_stir` | automated | 100% | 0% | 1.71 | 0.01 | 2.07 | 1.34 |
+| | standard | 100% | 0% | 1.66 | 0.09 | 2.76 | 1.29 |
+| | ruthless | 100% | 0% | 1.64 | 0.19 | 3.58 | 1.28 |
 
 The `witch` encounter is left out: her Bone Storm extra turn is built (ruling #45) but Bone Ward isn't, and the batch uses the level 1 party rather than a level 3 party with items. The old Python simulator in `reference/` is prototype quality and no longer the baseline; it is still useful for porting AI heuristics.
 
-## Current status (2026-10-27)
+## Current status (2026-10-28)
 
 **Done**
-- Milestone 1: battle engine for rules v0.5, with rulings #1-45 recorded in `docs/RULES.md` and none open; 154 GUT tests.
+- Milestone 1: battle engine for rules v0.5, with rulings #1-45 recorded in `docs/RULES.md` and none open.
 - Milestone 2: battle scene with board, hand and Provoke track, click to play for every decision type, the party choosing hero order, the event log, and toggles for AI heroes and auto-continue.
-- Most of Milestone 3: `SimpleAiProvider` heroes and the batch runner with three DM modes (baseline above).
+- Milestone 3: `TacticalAiProvider` heroes (default in the batch runner and the scene's "AI plays heroes"), the batch runner with three DM modes, `--detail` reports and `--ai simple` for comparison (baseline above); 163 GUT tests. The tactical AI: `ThreatModel` works out each enemy's expected damage from its own deck and who it will hit (top-Provoke hero, or the highest one a melee enemy can reach); `TacticalScorer` predicts where a play leaves the Provoke track and scores the change in the party's danger, values Guard the same way and heals whoever is closest to Down; the provider looks one hero turn ahead when choosing who acts next, and aims damage at the most threat removed. Weights were tuned by batch (comments in the files say what was tried).
 - Latest rule changes (all in RULES.md, OPEN_QUESTIONS.md #38-45): Provoke per point landed or healed; the party chooses hero turn order each round (`DecisionRequest.NEXT_HERO`); Stunned and toad figures lose their turn without a slot in the alternation; extra turns (Bone Storm) come just before the end of the round.
 - Git: Milestones 1-2 are committed and pushed to `main` (see Working agreements).
 
 **Next**
-- Finish Milestone 3: stronger hero AI (heuristics can be ported from `reference/`) and fuller balance reports.
-- Then Milestone 4: exploration.
+- Milestone 4: exploration.
 
 **Known quirks and follow-ups**
-- Witch: Bone Ward isn't built. Since her extra turn landed she beats a level 1 party 82% / 94% / 99% of the time (automated / standard / ruthless DM). Re-check her against a level 3 party with items once Milestone 5 exists, then add her to the baseline.
+- Witch: Bone Ward isn't built. She beats a level 1 party with the tactical AI 80% / 92% / 99% of the time (automated / standard / ruthless DM). Re-check her against a level 3 party with items once Milestone 5 exists, then add her to the baseline.
 - Campaign balance: the baseline is per battle. Once runs and camping exist (Milestones 4-5), re-check balance over whole runs under the standard DM, the intended default for play.
 - As designed, not a bug: the goblin Shortbow targets the *lowest*-Provoke hero (its card overrides §6), and ties at 0 go to the bottom of the start stack, so early on it usually hits the Wizard.
+- The tactical AI doesn't foresee where a card moves its hero (Backstab, Charge and Twin Daggers step into enemy reach) and treats a kill as not changing who the enemies hit. These are candidates if the AI needs to get stronger still.
 - The battle scene redraws when the engine pauses instead of animating from events, and it has no automated tests (checked by screenshots).
 
 ## Milestones

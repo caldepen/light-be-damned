@@ -19,13 +19,13 @@ func test_every_turn_start_has_a_turn_end_and_listeners_see_every_entry():
     assert_false(battle.log.to_text().contains("\n  \n"), "turn_end markers print nothing")
 
 func test_a_session_answered_like_the_ai_plays_the_same_battle():
-    var direct: Battle = BattleSetup.create(BattleFixture.data(), _encounter("tough"), SEED, SimpleAiProvider.new())
+    var direct: Battle = BattleSetup.create(BattleFixture.data(), _encounter("tough"), SEED, TacticalAiProvider.new())
     direct.dm_mode = Battle.DM_STANDARD
     direct.run()
 
     var session := BattleSession.new()
     session.start(BattleFixture.data(), _encounter("tough"), SEED, Battle.DM_STANDARD)
-    var ai := SimpleAiProvider.new()
+    var ai := TacticalAiProvider.new()
     var decisions: int = 0
     var continues: int = 0
     var waited: int = 0
@@ -74,6 +74,6 @@ func test_ai_heroes_and_auto_continue_play_a_battle_with_no_answers():
         waited += 5
     assert_true(session.is_finished())
     session.abort()
-    var direct: Battle = BattleSetup.create(BattleFixture.data(), _encounter("standard"), SEED, SimpleAiProvider.new())
+    var direct: Battle = BattleSetup.create(BattleFixture.data(), _encounter("standard"), SEED, TacticalAiProvider.new())
     direct.run()
     assert_eq(session.battle.log.to_text(), direct.log.to_text())

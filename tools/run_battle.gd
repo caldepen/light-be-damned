@@ -4,10 +4,15 @@ extends SceneTree
 ##   godot --headless --path . --script tools/run_battle.gd                       # standard and tough, seed 1, full log
 ##   godot --headless --path . --script tools/run_battle.gd -- tough 42           # one encounter, one seed, full log
 ##   godot --headless --path . --script tools/run_battle.gd -- --batch            # 500 seeds per encounter, summary table
-## Batch options: --battles N (default 500), --seed S (first seed, default 1), encounter names (default all).
-## Either mode takes --dm automated|standard|ruthless (default automated).
+## Batch options: --battles N (default 500), --seed S (first seed, default 1), encounter names (default all),
+## --detail (per-hero and per-enemy-type tables under each encounter).
+## Either mode takes --dm automated|standard|ruthless (default automated) and --ai tactical|simple
+## (the hero AI, default tactical).
 
 const DEFAULT_BATTLES := 500
+const AI_TACTICAL := "tactical"
+const AI_SIMPLE := "simple"
+const AI_NAMES: Array[String] = [AI_TACTICAL, AI_SIMPLE]
 
 func _init() -> void:
     var loader := DataLoader.new()
@@ -33,7 +38,7 @@ func _init() -> void:
         _run_batch(data, encounter_names, options)
     else:
         for encounter_name in encounter_names:
-            var battle: Battle = _play(data, encounter_name, options["seed"], options["dm"])
+            var battle: Battle = _play(data, encounter_name, options["seed"], options)
             print(battle.log.to_text())
             print("")
     quit(0)
@@ -44,32 +49,44 @@ func _run_batch(data: Dictionary, encounter_names: Array, options: Dictionary) -
     var dm_label: String = options["dm"]
     if options["dm"] != Battle.DM_AUTOMATED:
         dm_label += " (%s policy)" % Battle.DM_POLICY_GREEDY
-    print("%d battles per encounter, seeds %d-%d, DM: %s. Wounds, armor and exhaust are party averages per battle." %
-        [count, first_seed, first_seed + count - 1, dm_label])
+    print("%d battles per encounter, seeds %d-%d, DM: %s, hero AI: %s. Wounds, armor and exhaust are party averages per battle." %
+        [count, first_seed, first_seed + count - 1, dm_label, options["ai"]])
     print(BatchStats.header())
     for encounter_name in encounter_names:
         var stats := BatchStats.new()
+        var detail := BatchDetail.new()
         for i in range(count):
-            stats.add(_play(data, encounter_name, first_seed + i, options["dm"]))
+            var battle: Battle = _play(data, encounter_name, first_seed + i, options)
+            stats.add(battle)
+            if options["detail"]:
+                detail.add(battle)
         print(stats.row(encounter_name))
+        if options["detail"]:
+            print("
+".join(detail.lines()))
+            print("")
 
-func _play(data: Dictionary, encounter_name: String, seed_value: int, dm_mode: String) -> Battle:
-    var battle: Battle = BattleSetup.create(data, data["encounters"][encounter_name], seed_value, SimpleAiProvider.new())
-    battle.dm_mode = dm_mode
+func _play(data: Dictionary, encounter_name: String, seed_value: int, options: Dictionary) -> Battle:
+    var provider: DecisionProvider = SimpleAiProvider.new() if options["ai"] == AI_SIMPLE else TacticalAiProvider.new()
+    var battle: Battle = BattleSetup.create(data, data["encounters"][encounter_name], seed_value, provider)
+    battle.dm_mode = options["dm"]
     battle.run()
     return battle
 
 ## Flags anywhere; the remaining words are encounter names, except that outside batch mode a
 ## second word is the seed (the old "tough 42" form).
 func _parse(args: PackedStringArray) -> Dictionary:
-    var options: Dictionary = {"batch": false, "battles": DEFAULT_BATTLES, "seed": 1, "dm": Battle.DM_AUTOMATED, "encounters": []}
+    var options: Dictionary = {"batch": false, "detail": false, "battles": DEFAULT_BATTLES, "seed": 1,
+        "dm": Battle.DM_AUTOMATED, "ai": AI_TACTICAL, "encounters": []}
     var words: Array = []
     var i: int = 0
     while i < args.size():
         var arg: String = args[i]
         if arg == "--batch":
             options["batch"] = true
-        elif arg in ["--battles", "--seed", "--dm"]:
+        elif arg == "--detail":
+            options["detail"] = true
+        elif arg in ["--battles", "--seed", "--dm", "--ai"]:
             if i + 1 >= args.size():
                 return {"error": "%s needs a value." % arg}
             i += 1
@@ -78,6 +95,10 @@ func _parse(args: PackedStringArray) -> Dictionary:
                 if not value in Battle.DM_MODES:
                     return {"error": "Unknown DM mode '%s'. Known: %s" % [value, ", ".join(PackedStringArray(Battle.DM_MODES))]}
                 options["dm"] = value
+            elif arg == "--ai":
+                if not value in AI_NAMES:
+                    return {"error": "Unknown hero AI '%s'. Known: %s" % [value, ", ".join(PackedStringArray(AI_NAMES))]}
+                options["ai"] = value
             elif not value.is_valid_int():
                 return {"error": "%s needs a whole number, got '%s'." % [arg, value]}
             else:

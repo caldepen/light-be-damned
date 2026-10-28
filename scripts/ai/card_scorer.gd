@@ -3,6 +3,7 @@ extends RefCounted
 
 ## Heuristic value of playing a card now, read from its effects (ported loosely from
 ## reference/sim.py `choose`). Higher is better; below FLIP_THRESHOLD the AI would rather flip.
+## An instance so that TacticalScorer can override the Provoke and healing parts.
 
 const KILL_BONUS := 3.0
 const PER_WOUND_HEALED := 3.0
@@ -15,7 +16,7 @@ static func tank(battle: Battle) -> HeroState:
             best = h
     return best
 
-static func score(battle: Battle, hero: HeroState, card: Card) -> float:
+func score(battle: Battle, hero: HeroState, card: Card) -> float:
     var effects: Array = CardRunner.effects_of(hero, card)
     var bonus: int = _expected_bonus(hero, effects)
     var is_top: bool = battle.top_hero() == hero
@@ -43,14 +44,8 @@ static func score(battle: Battle, hero: HeroState, card: Card) -> float:
                 total += 1.5 * maxf(1.0, float((handler as StunEffect).targets(ctx).size()))
             "guard":
                 total += _guard_score(battle, hero, e, is_top)
-            "provoke":
-                var amount: int = int(e.get("amount", 0))
-                if amount > 0:
-                    total += (0.8 if is_top else 4.0) if is_tank else -1.0
-                else:
-                    total += 2.5 if (is_top and not is_tank) else -0.5
-            "provoke_halve":
-                total += 0.5 if not is_tank else -1.0
+            "provoke", "provoke_halve":
+                total += _provoke_score(e, is_top, is_tank)
             "heal_wound":
                 total += _heal_score(battle, ctx, e, handler as HealWoundEffect)
             "cleanse":
@@ -79,6 +74,14 @@ static func score(battle: Battle, hero: HeroState, card: Card) -> float:
                 if mode == "teleport_own_board":
                     total += 2.0 if (is_top and not is_tank) else 0.2
     return total
+
+## The card's own Provoke effects: the tank wants to climb, everyone else to drop.
+func _provoke_score(e: Dictionary, is_top: bool, is_tank: bool) -> float:
+    if String(e.get("op", "")) == "provoke_halve":
+        return 0.5 if not is_tank else -1.0
+    if int(e.get("amount", 0)) > 0:
+        return (0.8 if is_top else 4.0) if is_tank else -1.0
+    return 2.5 if (is_top and not is_tank) else -0.5
 
 ## A rough worth of holding a card, used to pick what to discard (low = discard first).
 static func keep_value(card: Card) -> float:
@@ -138,7 +141,7 @@ static func _damage_score(battle: Battle, ctx: EffectContext, handler: DamageEff
             return float(hits * per_hit)
     return float(per_hit)
 
-static func _guard_score(battle: Battle, hero: HeroState, e: Dictionary, is_top: bool) -> float:
+func _guard_score(battle: Battle, hero: HeroState, e: Dictionary, is_top: bool) -> float:
     var amount: float = float(e.get("amount", 1))
     match String(e.get("target", "self")):
         "self":
@@ -147,7 +150,7 @@ static func _guard_score(battle: Battle, hero: HeroState, e: Dictionary, is_top:
             return 0.5 * amount * float(battle.standing_heroes().size())
     return amount * 0.9
 
-static func _heal_score(battle: Battle, ctx: EffectContext, e: Dictionary, handler: HealWoundEffect) -> float:
+func _heal_score(_battle: Battle, ctx: EffectContext, e: Dictionary, handler: HealWoundEffect) -> float:
     var amount: int = int(e.get("amount", 1))
     var target_kind: String = String(e.get("target", "hero_any"))
     var best: int = 0

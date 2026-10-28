@@ -7,10 +7,12 @@ extends DecisionProvider
 
 const FLIP_THRESHOLD := 1.0
 
+var scorer: CardScorer = CardScorer.new()
+
 func decide(request: DecisionRequest, battle: Battle) -> int:
     match request.kind:
         DecisionRequest.NEXT_HERO:
-            return _best_index(request.options, func(h: HeroState) -> float: return _best_play_score(battle, h))
+            return _choose_next_hero(request, battle)
         DecisionRequest.TURN:
             return _choose_turn(request, battle)
         DecisionRequest.TARGET, DecisionRequest.MOVE_TARGET:
@@ -48,7 +50,7 @@ func _choose_turn(request: DecisionRequest, battle: Battle) -> int:
         var option: TurnOption = request.options[i]
         match option.kind:
             TurnOption.PLAY:
-                var s: float = CardScorer.score(battle, request.hero, option.card)
+                var s: float = scorer.score(battle, request.hero, option.card)
                 if s > best_score:
                     best_score = s
                     best_index = i
@@ -66,10 +68,13 @@ func _choose_turn(request: DecisionRequest, battle: Battle) -> int:
 
 ## Who acts next: the hero whose best legal card scores highest (0 with none). Options come in the
 ## old fixed order and _best_index keeps the first of equal scores, so ties go to that order.
+func _choose_next_hero(request: DecisionRequest, battle: Battle) -> int:
+    return _best_index(request.options, func(h: HeroState) -> float: return _best_play_score(battle, h))
+
 func _best_play_score(battle: Battle, hero: HeroState) -> float:
     var best: float = 0.0
     for card in CardRunner.legal_hand_cards(battle, hero):
-        best = maxf(best, CardScorer.score(battle, hero, card))
+        best = maxf(best, scorer.score(battle, hero, card))
     return best
 
 func _choose_target(request: DecisionRequest, battle: Battle) -> int:

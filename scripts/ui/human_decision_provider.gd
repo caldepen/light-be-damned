@@ -5,7 +5,7 @@ extends DecisionProvider
 ## BattleSession's worker thread until the scene answers. When "AI plays heroes" is on (or the
 ## session is being restarted) the AI answers instead.
 
-var ai := SimpleAiProvider.new()
+var ai := TacticalAiProvider.new()
 var _session: WeakRef
 
 func _init(session: BattleSession) -> void:
