@@ -1,7 +1,7 @@
 class_name UiText
 extends RefCounted
 
-## Labels, prompts and colours for the battle scene. Read-only helpers; nothing here changes state.
+## Labels, prompts and colours for the table scene. Read-only helpers; nothing here changes state.
 
 const HERO_COLORS := {
     "fighter": Color(0.75, 0.25, 0.2),
@@ -20,6 +20,14 @@ static func figure_color(figure: FigureState) -> Color:
     if figure is HeroState:
         return HERO_COLORS.get((figure as HeroState).hero_id, Color(0.4, 0.4, 0.6))
     return ENEMY_COLORS.get((figure as EnemyState).enemy_type, Color(0.45, 0.4, 0.4))
+
+static func result_text(result: String) -> String:
+    match result:
+        Battle.RESULT_HEROES:
+            return "the heroes win"
+        Battle.RESULT_ENEMIES:
+            return "the party is defeated"
+    return "draw (round cap)"
 
 static func short_name(hero: HeroState) -> String:
     return hero.name.substr(0, 2)

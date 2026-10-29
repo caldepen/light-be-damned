@@ -61,10 +61,16 @@ Godot 4.7.2 with GUT 9.7.0 (`addons/gut`). Use the console exe for headless runs
 & "C:\Program Files\Godot4_7_2\Godot_v4.7.2-stable_win64_console.exe" --headless --path . --script tools/run_battle.gd '--' --batch --ai simple
 ```
 
-Battle scene for playtesting (`scenes/battle.tscn`, the main scene): press F5 in the editor, or run the editor exe without `--headless`:
+The playtest table (`scenes/table.tscn`, the main scene; single battles until exploration lands): press F5 in the editor, or run the editor exe without `--headless`:
 
 ```powershell
 & "C:\Program Files\Godot4_7_2\Godot_v4.7.2-stable_win64.exe" --path .
+```
+
+Screenshots of the table at chosen window sizes (needs a window, so the editor exe without `--headless`; writes `<prefix>_<size>_start.png` and `_mid.png`):
+
+```powershell
+& "C:\Program Files\Godot4_7_2\Godot_v4.7.2-stable_win64.exe" --path . --script tools/screenshot_table.gd '--' C:/temp/shot 1600x940 1280x720
 ```
 
 The scene runs the engine on a worker thread (`scripts/ui/battle_session.gd`) that pauses for each human decision (`HumanDecisionProvider`) and after enemy turns; the scene reads state only while it is paused.
@@ -122,6 +128,7 @@ The `witch` encounter is left out: her Bone Storm extra turn is built (ruling #4
 **In progress: Milestone 4, exploration** (spec `docs/EXPLORATION_SPEC.md`, rulings #46-65)
 - Step 0 done: RULES.md §8 and §10 rewritten for room tiles; `module_witch_hut.json` holds the tiles, specials, room types, four room decks, Hut track and 12 Whims, validated on load (26 bag tiles, 11 moons, doorways on tile edges); DATA_SCHEMA.md documents them.
 - Steps: 4.1 table layout (placeholder visuals, reusable scenes, one Theme) → 4.2 map and tile engine → 4.3 rooms, rolls, traps, camping, backtracking, Whims → 4.4 the run loop → 4.5 run decisions and exploration AI → 4.6 map UI → 4.7 run batch report. Commit each step as "M4.x: ...".
+- 4.1 done: `scenes/table.tscn` (`TableScreen`) follows the wireframe: top bar; left the Hut track / rations / party armor meter (warns past half damaged) over the map; centre the DM board, the Provoke strip, the player board (front rows facing); right the decks, discards and Exhausted piles and the collapsible event log; bottom the prompt and the hand. Built from `scenes/components/` (panel frame, board square, figure token, card, deck pile, tile) via `UiScenes`, styled by one Theme `ui/theme.tres` (custom-drawn pieces read their colours from it), `canvas_items` stretch. The map is `MapView`: a SubViewport with a Camera2D and five layers; `ink_in()` is the placement hook; dimmed during battle.
 - Exploration code lives in `scripts/core/explore/` (`TileGeometry` so far). Rotation: r quarter turns clockwise about the anchor, y up. The map has no fixed board (changed 2026-10-28): the Front Door is at [0,0] and coordinates can go negative; nothing fits / break-through / closed in stay as a rarely used safety net. Map UI (4.6): zoom to fit the whole map while keeping the party's room in view, optional drag pan and wheel zoom, a centre-on-party button, zoom toward the chosen doorway when placing; the 4.1 map panel hosts a SubViewport with a Camera2D for this. Art direction: an inked map on graph paper. The map view has separate layers, bottom to top: paper/grid, tiles, features, annotations (reserved, empty, UI only), overlay (doorway highlights, party marker, previews). Tile placement goes through an "ink in" hook (a short fade until Milestone 7). Decorations come from optional `features` on room types and tiles (DATA_SCHEMA "Map features"); placeholders until Milestone 7.
 
 **Known follow-ups**
@@ -130,7 +137,7 @@ The `witch` encounter is left out: her Bone Storm extra turn is built (ruling #4
 - Digital UI: show the party's total armor prominently and warn when most of it is damaged ("armor gone means leave").
 - As designed, not a bug: the goblin Shortbow targets the *lowest*-Provoke hero (its card overrides §6), and ties at 0 go to the bottom of the start stack, so early on it usually hits the Wizard.
 - The tactical AI doesn't foresee where a card moves its hero (Backstab, Charge and Twin Daggers step into enemy reach) and treats a kill as not changing who the enemies hit. These are candidates if the AI needs to get stronger still.
-- The battle scene redraws when the engine pauses instead of animating from events, and it has no automated tests (checked by screenshots).
+- The table scene redraws when the engine pauses instead of animating from events. Apart from the map view's layers (`tests/unit/test_map_view.gd`) it has no automated tests; check it with `tools/screenshot_table.gd` (see Commands).
 
 ## Milestones
 

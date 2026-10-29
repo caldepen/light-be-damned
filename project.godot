@@ -15,10 +15,16 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 [application]
 
 config/name="Light Be Damned"
-run/main_scene="res://scenes/battle.tscn"
+run/main_scene="res://scenes/table.tscn"
 config/features=PackedStringArray("4.7")
 
 [display]
 
 window/size/viewport_width=1600
 window/size/viewport_height=940
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+
+[gui]
+
+theme/custom="res://ui/theme.tres"

@@ -1,0 +1,168 @@
+[gd_resource type="Theme" load_steps=9 format=3]
+
+[sub_resource type="StyleBoxFlat" id="panel"]
+content_margin_left = 10.0
+content_margin_top = 8.0
+content_margin_right = 10.0
+content_margin_bottom = 10.0
+bg_color = Color(0.086, 0.365, 0.494, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.04, 0.16, 0.22, 1)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+
+[sub_resource type="StyleBoxFlat" id="bar"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(0.06, 0.22, 0.3, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="button"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(0.07, 0.45, 0.62, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.04, 0.16, 0.22, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="button_hover"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(0.1, 0.56, 0.76, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 0.85, 0.2, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="button_disabled"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(0.06, 0.25, 0.34, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="card"]
+content_margin_left = 6.0
+content_margin_top = 6.0
+content_margin_right = 6.0
+content_margin_bottom = 6.0
+bg_color = Color(0.93, 0.9, 0.82, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.2, 0.18, 0.15, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="card_hover"]
+content_margin_left = 6.0
+content_margin_top = 6.0
+content_margin_right = 6.0
+content_margin_bottom = 6.0
+bg_color = Color(1, 0.97, 0.88, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 0.75, 0.1, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="table"]
+bg_color = Color(0.05, 0.12, 0.16, 1)
+
+[resource]
+default_font_size = 14
+Button/styles/normal = SubResource("button")
+Button/styles/hover = SubResource("button_hover")
+Button/styles/pressed = SubResource("button_hover")
+Button/styles/disabled = SubResource("button_disabled")
+Button/styles/focus = SubResource("button_hover")
+Button/colors/font_color = Color(0.95, 0.97, 1, 1)
+Button/colors/font_disabled_color = Color(0.6, 0.68, 0.72, 1)
+OptionButton/styles/normal = SubResource("button")
+OptionButton/styles/hover = SubResource("button_hover")
+OptionButton/styles/pressed = SubResource("button_hover")
+PanelContainer/styles/panel = SubResource("panel")
+TableBackground/base_type = &"Panel"
+TableBackground/styles/panel = SubResource("table")
+TableBar/base_type = &"PanelContainer"
+TableBar/styles/panel = SubResource("bar")
+Label/colors/font_color = Color(0.92, 0.95, 0.97, 1)
+PanelTitle/base_type = &"Label"
+PanelTitle/colors/font_color = Color(0.95, 0.97, 1, 1)
+PanelTitle/font_sizes/font_size = 17
+CardView/base_type = &"Button"
+CardView/styles/normal = SubResource("card")
+CardView/styles/hover = SubResource("card_hover")
+CardView/styles/pressed = SubResource("card_hover")
+CardView/styles/focus = SubResource("card_hover")
+CardView/styles/disabled = SubResource("card")
+CardView/colors/font_color = Color(0.12, 0.1, 0.08, 1)
+CardView/colors/selected = Color(1, 0.85, 0.2, 1)
+CardView/colors/wound = Color(0.8, 0.35, 0.35, 1)
+CardView/colors/dimmed = Color(0.55, 0.53, 0.5, 1)
+BoardSquare/colors/empty = Color(0.063, 0.616, 0.843, 1)
+BoardSquare/colors/border = Color(0.04, 0.2, 0.3, 1)
+BoardSquare/colors/option = Color(1, 0.85, 0.2, 1)
+FigureToken/colors/text = Color(1, 1, 1, 1)
+FigureToken/colors/active = Color(1, 1, 1, 1)
+FigureToken/colors/option = Color(1, 0.85, 0.2, 1)
+FigureToken/colors/armor = Color(0.75, 0.75, 0.8, 1)
+FigureToken/colors/hit_die = Color(0.9, 0.85, 0.7, 1)
+FigureToken/colors/damage = Color(0.8, 0.15, 0.15, 1)
+FigureToken/colors/wound_text = Color(1, 0.65, 0.65, 1)
+FigureToken/colors/status_text = Color(1, 0.9, 0.6, 1)
+ProvokeTrack/colors/space = Color(0.12, 0.33, 0.44, 1)
+ProvokeTrack/colors/number = Color(0.75, 0.82, 0.86, 1)
+DeckPile/colors/card_back = Color(0.32, 0.22, 0.42, 1)
+DeckPile/colors/card_edge = Color(0.9, 0.88, 0.8, 1)
+DeckPile/colors/empty = Color(0.06, 0.25, 0.34, 1)
+MapPaper/colors/paper = Color(0.95, 0.93, 0.86, 1)
+MapPaper/colors/grid_minor = Color(0.62, 0.75, 0.85, 0.45)
+MapPaper/colors/grid_major = Color(0.45, 0.6, 0.75, 0.6)
+MapPaper/colors/ink = Color(0.12, 0.12, 0.18, 1)
+MapPaper/colors/room_fill = Color(0.95, 0.93, 0.86, 0.85)
+MapPaper/colors/doorway = Color(0.95, 0.93, 0.86, 1)
+MapPaper/colors/highlight = Color(1, 0.7, 0.1, 1)
+MapPaper/colors/moon = Color(0.3, 0.3, 0.55, 1)
+ArmorMeter/colors/ok = Color(0.75, 0.75, 0.8, 1)
+ArmorMeter/colors/damaged = Color(0.8, 0.15, 0.15, 1)
+ArmorMeter/colors/warning = Color(1, 0.55, 0.3, 1)
+HutTrack/colors/space = Color(0.12, 0.33, 0.44, 1)
+HutTrack/colors/filled = Color(0.55, 0.35, 0.75, 1)
+HutTrack/colors/marker = Color(1, 0.85, 0.2, 1)
