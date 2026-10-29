@@ -3,7 +3,7 @@ extends Control
 
 ## One side's 3x3 battle board, built from BoardSquare and FigureToken scenes. The DM board shows
 ## grid rows 0-2 and the player board rows 3-5; BoardOrientation places them so the two front rows
-## face each other (tall: across the Provoke strip; wide: side by side). refresh() copies what to
+## face each other (tall: one above the other; wide: side by side). refresh() copies what to
 ## draw while the engine is paused. Squares, rows and figures that answer the pending request are
 ## highlighted and clickable. The board scales to fit its rect, keeping the squares' shape.
 

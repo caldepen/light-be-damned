@@ -7,7 +7,7 @@ extends Control
 ##
 ##   top bar:  seed, encounter, DM, restart, AI toggles, the Layout menu and Reset layout
 ##   map:      Hut track / rations / party armor, then the map (dimmed during a battle)
-##   battle:   DM board, Provoke strip, player board, front rows facing (BattlefieldView, tall or wide)
+##   battle:   DM board, player board (front rows facing), Provoke strip (BattlefieldView, tall or wide)
 ##   side:     decks, discards and Exhausted cards; enemy decks; the event log (collapsible)
 ##   dock:     the prompt and buttons, and the active hero's hand
 ##

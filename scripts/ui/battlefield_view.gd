@@ -2,7 +2,7 @@ class_name BattlefieldView
 extends VBoxContainer
 
 ## The two battle boards and the Provoke strip, always kept together with the front rows facing:
-##   tall: DM board, Provoke strip, player board, top to bottom
+##   tall: DM board, player board, Provoke strip, top to bottom
 ##   wide: player board and DM board side by side, the Provoke strip along the top or bottom edge
 ## Changing the orientation only rearranges these pieces and the squares' direction (BoardOrientation).
 
@@ -52,11 +52,12 @@ func arrange(value: String, edge: String = EDGE_BOTTOM) -> void:
         if provoke_edge != EDGE_TOP:
             add_child(_track)
     else:
+        # The boards meet in the middle; the Provoke strip sits under the player board, as wide as it.
         (panels[order[0]] as Control).size_flags_vertical = Control.SIZE_EXPAND_FILL
         (panels[order[1]] as Control).size_flags_vertical = Control.SIZE_EXPAND_FILL
         add_child(panels[order[0]])
-        add_child(_track)
         add_child(panels[order[1]])
+        add_child(_track)
     dm_board.set_orientation(orientation)
     hero_board.set_orientation(orientation)
 
