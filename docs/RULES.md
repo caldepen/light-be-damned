@@ -1,6 +1,6 @@
 # Card RPG — Rules v0.5
 
-Version 0.5 · 25 October 2026
+Version 0.5 · 25 October 2026 · exploration (§8, §10) revised 28 October 2026: room tiles on a map board (`docs/EXPLORATION_SPEC.md`, rulings #46–65)
 
 ## 1. Overview
 
@@ -27,7 +27,7 @@ A party of four heroes delves into a shifting dungeon, fights with cards instead
 - Enemy cards (stats) and one action deck per enemy type: goblin, ogre, skeleton, witch
 - 2 battle boards of 3×3 squares (heroes and enemies)
 - The Provoke track (0–20) with 4 hero tokens
-- Map tiles and the tile bag; room decks; Hut Whim cards
+- The map board (7 × 9 squares), 29 room tiles (26 for the tile bag, plus the Front Door, Witch's Workshop and Inner Study) and the tile bag; 4 room decks (36 cards); 12 Hut Whim cards; wall tokens; the party marker
 - Tokens: Guard, damage markers, Bleed, Stun, toad; the Hut track; rations; the party XP track
 
 **Starting a campaign**
@@ -39,7 +39,7 @@ A party of four heroes delves into a shifting dungeon, fights with cards instead
 
 1. Each hero shuffles their deck and draws a hand: Fighter 6, Cleric 5, Thief 5, Wizard 4.
 2. Take 8 rations (two campfires for a party of four).
-3. Set up the module (see section 10): place the entrance tile, shuffle the tile bag, set the Hut track to 0.
+3. Set up the module (see section 10): clear the map board, place the Front Door, shuffle the tile bag, the room decks and the Hut Whims, set the Hut track to 0.
 
 ## 3. Heroes and cards
 
@@ -56,7 +56,7 @@ Each hero has one **Type**, which decides the cards they use and the skill rolls
 | --- | --- | --- |
 | Strength | Bash doors, lift portcullises, force chests, break free | Swords, axes, shields |
 | Agility | Pick locks, disarm traps, sneak, dodge a sprung trap | Daggers, bows |
-| Wits | Spot traps and hidden doors, read runes, lore, puzzles | Elemental magic |
+| Wits | Spot traps, read runes, lore, puzzles | Elemental magic |
 | Spirit | Resist curses, sense evil, persuade, purify cursed treasure | Radiant magic, maces, healing |
 
 **Card anatomy.** Every hero card has a name, an effect and a **skill value** from 1 to 6 (bottom right). The effect is used in battle; the skill value only matters for skill rolls when exploring. Each 30-card deck holds five cards of each skill value, so a flip rolls like a six-sided die.
@@ -103,10 +103,11 @@ Each hero has one **Type**, which decides the cards they use and the skill rolls
 
 **Out of battle**
 
-1. Move through an unexplored opening: reveal a tile, Hut track +1.
-2. Enter each room and resolve its card: battle, obstacle, treasure, event or empty.
-3. After a won battle: bandage (each hero removes 2 Wounds), draw loot, +1 XP.
-4. Camp in an Empty room when decks run low; leave by the entrance when it's time to go home.
+1. Pick an open doorway of your room (or backtrack to another room's doorway: a flip, maybe wandering monsters).
+2. Draw a room tile blind from the bag and place it at that doorway. A moon raises the Hut track.
+3. Enter and resolve the room: a Lair fight, a Dark card, a Vault, a Library lock, or the room's own rule.
+4. After a won battle: bandage (each hero removes 2 Wounds), draw loot, +1 XP (none from wandering monsters).
+5. Camp in an explored campsite when decks run low; walk back to the Front Door when it's time to go home. When your armor is gone, the next fight hits your hand.
 
 ## 5. Battle
 
@@ -126,7 +127,7 @@ Each hero has one **Type**, which decides the cards they use and the skill rolls
 - **Stun and toad together.** One lost turn uses up both: the Stun and one of the toad's turns. A toad with 2 turns left that is also Stunned loses 2 turns, not 3.
 - **Extra turns** (Bone Storm) come just before the end-of-round step, after every other figure has acted, in the order the figures gained them.
 - **Enemy order** is fixed at the start of each round. An enemy that moves keeps its place in the order, and a figure that joins mid-round (Shriek, Raise Skeletons, Throw Goblin) first acts next round.
-- **Round limit.** The tabletop game has none. The digital engine stops a battle after `battle.round_cap` rounds (`data/rules.json`) and records it as a draw, so simulations can count stalled fights.
+- **Round limit.** The tabletop game has none. The digital engine stops a battle after `battle.round_cap` rounds (`data/rules.json`) and records it as a draw, so simulations can count stalled fights. During a run, the remaining enemies withdraw: no loot or XP, and no wipe (ruling #65).
 
 **Your turn: play, flip or pass.** Play one card from your hand, flip the top card of your deck and play it blind, or pass. Flipping is how you dig past a hand clogged with Wounds or cards you can't use.
 
@@ -263,19 +264,68 @@ An enemy's **power** (unmarked armor + unmarked Hd) is what cards like Ambush us
 3. **Loot.** Draw 1 loot card (2 if a Draw 2 monster was in the fight). See section 9.
 4. **XP.** The party gains 1 XP.
 
-**The map.** The party explores a map of small tiles, at a much smaller scale than the battle boards. Fights move to the battle boards and return to the map afterwards.
+**Wandering monsters never pay.** Fights with wandering monsters give no loot and no XP: after backtracking, at a campfire, and from a Hut Whim (Bones Stir). Bandaging afterwards works as usual. Fights from room cards (a Lair, a Dark ambush, the Workshop's guardians, the extra Lair card once the Hut wakes) give loot and XP as normal (ruling #61).
 
-- **Tiles.** Each tile holds one, two or three rooms joined by corridors that enter on one edge and leave by another.
-- **Revealing.** Moving through an unexplored opening reveals a new tile. Solo or co-op: draw from the tile bag. DM mode: the DM holds 3 tiles and plays one.
-- **Rooms.** Each room shows a symbol: Monsters, Trap, Lock or Puzzle, Treasure, Event or Empty. Entering a room draws a card from the matching room deck (a DM chooses from a hand of room cards). Walking back through cleared rooms is free.
-- **Hidden doors.** A faint mark on a wall hides a door. A Wits roll against the number on the mark reveals it.
+**Battles in a run.** Heroes carry their hands, decks, discards, Exhausted cards, Wounds and armor damage from fight to fight; only the campfire resets them. Provoke, Guard, Bleed, Stun and other battle effects end with each battle. Enemy action decks are shuffled fresh for each battle. A hero with no cards in their deck sits out every battle until the party camps; if every hero is sitting out when a fight starts, the run is a wipe. Losing a battle (every hero Down) is a wipe (ruling #65).
 
-**Skill rolls.** Every obstacle shows a Type and a target, such as "Rusted portcullis: Strength 4". Attempting it is always the party's choice.
+### The map
 
-1. Choose a hero, usually the one whose Type matches. A hero of a different Type rolls at −2 (minimum 1).
+The party explores the Hut one room at a time on a **map board**, building it from room tiles drawn blind from a bag. **The party never chooses the room**; its only choice is the doorway. Fights move to the battle boards and come back to the map afterwards. The map is cleared between runs, so every run builds a new Hut.
+
+- **Map board.** 7 squares wide and 9 tall. Squares are named `[x, y]`: x is the column from the left (0–6), y the row up from the bottom edge (0–8). The entrance square is `[3, 0]`.
+- **Room tiles.** Each tile is a single room of one to four squares, with doorways on some of its edges. It shows its room type, and some show a **moon**. Section 10 lists the module's tiles.
+- **Open doorway.** A doorway of a placed tile whose neighbouring square is on the board and empty, and not closed by a wall token.
+- **Connections.** Two doorways that face each other connect, so the party can walk between those rooms. A door made by the Hut (a break-through, the Workshop, the Inner Study) also connects. A doorway that faces a wall or the board edge is simply closed.
+- **Party marker.** Shows the room the party is in.
+
+**Exploring (one room at a time)**
+
+1. **Pick a doorway.** Choose an open doorway of the room the party is in. If it has none left, or the party prefers another, it may **backtrack** to an open doorway of any other explored room instead (see Backtracking). (At the table this may be played loosely: draw the tile, then lay it at whichever doorway of the party's room fits best. The digital game always picks the doorway first.)
+2. **Draw** 1 tile from the bag and turn it face up.
+3. **Place it** so one of its doorways meets the chosen doorway, turning it to fit (any of 4 rotations). It must lie inside the board and not overlap another tile. If no rotation fits there, place it at another open doorway of the same room, or else of any explored room (the party chooses). That is the Hut's doing, not a backtrack: there is no backtracking check (ruling #46).
+4. **Moon.** If the tile shows a moon, the Hut track rises by 1. Anything that triggers (a Hut Whim, a special tile entering the bag, the Hut waking) resolves now, while the party is still in the room it came from (ruling #51).
+5. **Enter.** The party moves in and resolves the room (Room types, below).
+
+**Nothing fits.** If the drawn tile fits at no open doorway on the map, the Hut stirs: Hut track +1 (only once per exploration). Set the tile aside and draw again until one fits, then shuffle the set-aside tiles back into the bag.
+
+- **Break-through.** If nothing left in the bag fits, the party breaks through a wall with the **first tile set aside**: place it against any wall of an explored room where it fits (the party chooses; no doorway is needed, the Hut makes one). Then shuffle the other set-aside tiles back. No Hut +1 beyond the one stir (ruling #47).
+- **Closed in.** If even that is impossible, the Hut has closed in: no more exploring this run.
+- **Empty bag.** No more exploring either. Closed in or with an empty bag, the party can still camp at a known campsite, walk to a placed Inner Study, or leave (ruling #50).
+
+**Backtracking.** Choosing a doorway outside the party's current room costs time. The hero with the most cards in their deck flips the top card (if heroes tie, the party chooses among them). The card is spent as in a skill roll: discarded, or Exhausted if ▲ or ★. On a skill value of 1 or 2, wandering monsters spill out: fight 3 goblins before exploring. **This fight gives no loot and no XP.** Backtracking is meant to be a small cost the party can choose to pay, never something worth doing for its own sake. Only a doorway the party *chooses* outside its room is a backtrack (rulings #46, #59).
+
+**Walking and leaving.** Walking through explored rooms is otherwise free and triggers nothing: to a campsite to camp, to a placed Inner Study, or back to the Front Door. The party can walk out through the Front Door at any time to end the run (ruling #49).
+
+**DM mode at the table.** The DM holds 3 tiles and plays one onto the chosen doorway. (The digital game has no DM tile hand yet.)
+
+### Room types
+
+| Type | On entering |
+| --- | --- |
+| Lair | Draw a Lair card and fight it |
+| Dark room (?) | Draw a Dark card: a trap, an event or an ambush |
+| Vault | A dead end. Draw a Vault card |
+| Library | Draw a Library card: a lock or puzzle |
+| Shrine | Once per run, a Spirit 4 roll. Success: every hero removes 2 Wounds (drawing replacements) and repairs 1 armor damage. Failure: the usual failed-roll Hut +1 |
+| Pantry | Gain 1 ration. A campsite |
+| Empty chamber | A campsite |
+| Hearth | A campsite with no wandering-monster check |
+| Corridor | Nothing happens. No moon; not a campsite |
+| Front Door | The way in and out |
+| Witch's Workshop, Inner Study | See section 10 |
+
+- **Re-entering** an explored room never resolves it again.
+- **Optional rooms.** The party may decline the Shrine's roll, and the Strange font (a Dark card), and come back to use them later in the run; the Shrine is still once per run (ruling #56).
+- **Down outside battle.** A hero whose hand holds only Wounds outside battle (a trap, a failed font) is Down, as in §6. They stay Down until bandaged after the next won battle, healed by the Shrine, or reset at a campfire; meanwhile they sit out battles and can't make skill rolls. If every hero is Down, the run is a wipe (ruling #54).
+
+**Skill rolls.** Every obstacle shows a Type and a target, such as "Rune lock: Wits 4". Attempting it is always the party's choice, unless it comes from a Hut Whim.
+
+1. Choose a hero, usually the one whose Type matches. A hero of a different Type rolls at −2 (minimum 1). A hero with no cards in their deck can't roll.
 2. Flip the top card of that hero's deck and read its skill value.
-3. Equal or beat the target to succeed. Otherwise the failure text happens (a trap springs, a lock jams) and the Hut track rises by 1. Locks and puzzles may be retried with another flip.
+3. Equal or beat the target to succeed. Otherwise the failure text happens (a trap springs, a lock jams). **Every failed skill roll raises the Hut track by 1**: spotting, disarming, dodging, locks, the Shrine, Hut Whims (ruling #55).
 4. The flipped card is spent: discarded, or Exhausted if it is a ▲ or ★ card. About 1 flip in 6 burns one of your best cards.
+
+**Retries.** Library locks may be retried as often as the party likes, by any hero, each failure raising the Hut track. A locked chest allows one retry. Stopping leaves the lock shut for good, since the room won't resolve again (ruling #57).
 
 **Teamwork.** A target above 6 needs two heroes, who each flip and add the values ("Collapsed tunnel: Strength 8").
 
@@ -287,11 +337,23 @@ An enemy's **power** (unmarked armor + unmarked Hd) is what cards like Ambush us
 | Very hard | 6 | 1 in 6 |
 | Teamwork | 7–10 | 3 in 5 (7) to 1 in 6 (10) |
 
-Beating a Hard or harder obstacle earns 1 XP.
+Beating a Hard or harder obstacle (target 5 or more) earns 1 XP. Spotting and dodging traps never do.
 
-**Traps** start hidden. A Wits roll can spot one. A spotted trap can be avoided, or disarmed with an Agility roll for its salvage (1 loot card). An unspotted trap springs on the hero leading the party, who may make an Agility roll to dodge it.
+**Traps** start hidden. Each shows a target and its damage (ruling #55).
 
-**Camping.** In any Empty room (or the Hearth), the party may camp: spend 1 ration per hero, Hut track +1, then flip for a wandering monster (none at the Hearth). A campfire fully resets every hero: Wounds and armor damage are cleared, discards and Exhausted cards are shuffled back into the deck, and each hero draws a fresh hand. Curses are lifted.
+1. **Spot.** The party may spend a Wits roll at the trap's target to spot it.
+2. **Spotted:** avoid it, or try to disarm it with an Agility roll at its target for its salvage (1 loot card). A failed disarm springs the trap on the disarmer.
+3. **Not spotted:** it springs on the hero leading the party: the Fighter, or if they are Down, the first standing hero of Thief, Cleric, Wizard.
+4. **Sprung:** the hero may make an Agility roll at the trap's target to dodge it; otherwise they take its damage (armor first, then Wounds).
+
+**Camping.** In a campsite the party has explored this run (Empty chamber, Pantry or Hearth), the party may camp. Walking there is free (rulings #60, #62).
+
+1. Spend 1 ration per hero, Down heroes included. Without enough rations, the party can't camp.
+2. Hut track +1.
+3. **The campfire** fully resets every hero: Wounds and armor damage are cleared, discards and Exhausted cards are shuffled back into the deck, each hero draws a fresh hand, and Down heroes get up. Curses are lifted.
+4. **Wandering monsters** (not at the Hearth): one hero, the party's choice, flips the top card of their fresh deck (the card is spent). On a skill value of 1–3 (1 in 2), 3 goblins attack. No loot, no XP.
+
+**Tip: armor gone means leave.** When your armor is gone, the next fight hits your hand. Think about heading home.
 
 ## 9. Equipment, loot, runs and levels
 
@@ -317,7 +379,7 @@ Beating a Hard or harder obstacle earns 1 XP.
 - **Leaving.** A run ends well when the party walks out through the entrance. Everything found is kept for every future run.
 - **Wipe.** If the whole party goes Down, the run ends in town. The party loses everything found on that run, and every hero's Armor reverts to White. Weapons, off-hands, trinkets and earlier finds are kept. XP is kept.
 - **Town.** Every hero fully recovers, the party takes 8 fresh rations, and equipment can be swapped freely with the town stash (no limit).
-- **The module resets** each run: Hut track to 0, and a freshly shuffled tile bag.
+- **The module resets** each run: the map board is cleared, the Hut track goes to 0, and the tile bag, room decks and Hut Whims are shuffled fresh. Every run builds a new Hut.
 
 **Levels.** Heroes level up as in D&D, but their hit points never grow: hand size and armor stay the same, and the deck gets better cards instead.
 
@@ -334,21 +396,90 @@ Beating a Hard or harder obstacle earns 1 XP.
 
 ## 10. Module 1: The Witch's Hut
 
-A small hut that never stands in the same place twice. Inside it is far larger than it looks, and it rebuilds its rooms, tunnels, hidden doors and traps every time someone enters. The party hunts the witch's artifact (name to decide). Built for levels 1–3; the witch is tuned for a level 3 party with a few items.
+A small hut that never stands in the same place twice. Inside it is far larger than it looks, and it rebuilds its rooms, tunnels and traps every time someone enters. The party hunts the witch's artifact (name to decide). Built for levels 1–3; the witch is tuned for a level 3 party with a few items.
 
-**Setup.** Place the Front Door tile. Set the Inner Study tile aside and shuffle the other tiles into the tile bag. Hut track at 0.
+**Setup (each run).** Clear the map board. Place the Front Door on `[3, 0]` (doorways N, E, W); the party starts there. Shuffle the 26 bag tiles into the tile bag; the Witch's Workshop and the Inner Study wait outside it. Shuffle the four room decks and the 12 Hut Whims. Hut track at 0; 8 rations.
 
-**The Hut track (0–10).** +1 for each tile revealed, each failed skill roll and each campfire.
+**Room tiles (26 in the bag, 11 with a moon).** Exact cells and doorways are in `data/module_witch_hut.json`.
 
+| Tile | Type | Squares | Qty | With a moon |
+| --- | --- | --- | --- | --- |
+| Straight corridor | Corridor | 2 | 1 | 0 |
+| T corridor | Corridor | 3 | 1 | 0 |
+| Bent corridor | Corridor | 3 | 1 | 0 |
+| Great hall | Lair | 4 (2×2) | 3 | 2 |
+| Long hall | Lair | 2 | 3 | 1 |
+| Den | Lair | 1 | 3 | 2 |
+| Small dark room | Dark | 1 | 3 | 2 |
+| Long dark room | Dark | 2 | 2 | 1 |
+| Vault | Vault | 1 | 2 | 1 |
+| Long library | Library | 2 | 1 | 1 |
+| Wide library | Library | 2 | 1 | 0 |
+| Shrine | Shrine | 1 | 1 | 1 |
+| Pantry | Pantry | 1 | 1 | 0 |
+| Empty chamber | Empty | 2 | 2 | 0 |
+| Hearth | Hearth | 1 | 1 | 0 |
+
+**Special tiles**
+
+- **Front Door:** 1 square, doorways N, E, W, on `[3, 0]`. Leaving the Hut means walking back here.
+- **Witch's Workshop:** 1 square, one doorway, a moon. Shuffled into the bag when the Hut track reaches 2, **only if the party is level 3 or higher and doesn't have the Iron Key**. Entering: take the Iron Key, then fight its guardians (draw a Lair card; normal loot and XP).
+- **Inner Study:** 2 × 2, one iron door. Shuffled into the bag when the Hut track reaches 4. Without the key it is still placed, but its door stays shut and the party doesn't go in. A party that finds the key later in the run may walk to it (walking is free). With the key, entering starts the boss battle.
+- **Both goal tiles ignore doorway matching.** Place one at the chosen doorway if it fits there; otherwise against any wall of an explored room where it fits (the party chooses). The Hut makes the door. They always fit (ruling #48).
+
+**The Iron Key.** It takes no slot or pack space, is kept once the party escapes, and is lost if the party wipes on the run it was found. Using it opens the Inner Study and starts the boss battle. Win, and the party must still get back to the Front Door to keep the artifact and its loot.
+
+**The Hut track (0–10).** It rises by 1 for each moon tile placed, each failed skill roll, each campfire, each "nothing fits" stir, and each secret told to the Black Cat. It never goes above 10.
+
+- At 2: the Witch's Workshop enters the bag (if the party is eligible).
 - At 3, 6 and 9: draw a **Hut Whim**.
-- At 4: shuffle the Inner Study into the tile bag (a DM may play it any time from then on).
-- At 10 the Hut wakes: every room revealed from then on also draws a Monsters card.
+- At 4: the Inner Study enters the bag.
+- **At 10 the Hut wakes:** every room entered from then on, except corridors, also draws a Lair card, and that fight happens first. A Lair room is still one fight, its own Lair card (ruling #52).
 
-**The Inner Study and the Iron Key.** The Study's iron door cannot be opened, forced or bypassed without the **Iron Key**. A party that reaches the door without it can see the way in but must turn back. The key enters the Treasure room deck only once the party is level 3, placed among its top three cards. It takes no slot or pack space, is kept once the party escapes, and is lost if the party wipes on the run it was found. Using the key opens the door and starts the boss battle. Win, and the party must still get back to the Front Door to keep the artifact and its loot.
+**Hut Whims (12).** Shuffled at the start of each run and drawn without repeats (ruling #53). Whims are never optional. Where a Whim picks a tile or doorway, the Hut picks at random among the legal options (a DM chooses in DM mode) (ruling #63).
 
-**Hut Whims (examples; 12 to write).** Shifting Walls (rotate a revealed tile), Vanishing Door, Locked In (exits seal until a lock is opened), The Black Cat (a loot card for a secret), Bubbling Cauldron (Spirit roll: heal or poison), Gingerbread Pantry (gain a ration), Hall of Mirrors, Bones Stir (3 skeletons attack).
+| Whim | Effect |
+| --- | --- |
+| Shifting Walls | Rotate an explored tile the party isn't in, in place. Doorways may open or close. If it would cut the party off from the Front Door, it doesn't turn |
+| Vanishing Door | Close one open doorway on the map with a wall token |
+| Locked In | The doorways of the party's room seal until the party beats a Strength or Agility 4 roll. Roll at once; retry until it succeeds, each failure Hut +1 (ruling #58) |
+| Hall of Mirrors | Swap two explored tiles of the same size and shape, doorways and all (not the party's room, not the Front Door) |
+| Collapse | Remove a dead-end room the party isn't in: a placed room tile, not a special tile, connected to exactly one other tile and with no open doorways. It leaves the game for this run. This can never cut the map in two |
+| Keyhole | For the next exploration, draw and look at the tile before choosing the doorway |
+| Doors Slam | Every open doorway of the party's room closes except one, chosen at random |
+| Crooked Corridor | The next tile must be placed as far (in squares, by path) from the Front Door as it can go |
+| The Black Cat | Optional: tell the cat a secret. Hut track +1, draw 1 loot card (ruling #64) |
+| Bubbling Cauldron | Spirit 4 roll: success repairs 1 armor damage on each hero; failure deals 1 damage to each |
+| Gingerbread Pantry | Gain a ration |
+| Bones Stir | 3 skeletons attack. No loot, no XP |
 
-**Room deck (about 30 cards, to write).** Monsters: goblin bands, an ogre and goblins, skeletons. Traps: pit, poison needle, falling ceiling. Locks and puzzles: rune lock, riddle door, barred cellar. Treasure: chests, locked chests, the Iron Key. Events: the cat, the cauldron, a trapped adventurer.
+**Room decks (36 cards).** They reshuffle when empty and reset each run.
+
+**Lair (8):** Goblin band ×4 (5 goblins), Skeleton band ×2 (5 skeletons), Ogre and goblins ×2 (an ogre and 4 goblins). Normal loot and XP after winning.
+
+**Dark (12)**
+
+| Card | Qty | Effect |
+| --- | --- | --- |
+| Pit | 2 | Trap, target 4, 2 damage |
+| Poison needle | 2 | Trap, target 4, 2 damage |
+| Falling ceiling | 2 | Trap, Hard (target 5), 3 damage |
+| Abandoned pack | 2 | Draw 1 loot card |
+| Strange font | 2 | Optional Spirit 4 roll: success repairs 1 armor damage on each hero; failure deals 1 damage to each |
+| Ambush | 2 | Fight 3 goblins; normal loot and XP |
+
+**Vault (8):** Chest ×5 (draw 2 loot). Locked chest ×3 (Agility 5, one retry; success draws 3 loot and gives 1 XP).
+
+**Library (8):** each is a lock or puzzle. Success draws 1 loot (Hard or harder also 1 XP); failure raises the Hut track by 1 and may be retried with another flip.
+
+| Card | Qty | Roll |
+| --- | --- | --- |
+| Lockbox | 2 | Agility 4 |
+| Trapped lock | 1 | Agility 5 |
+| Rune lock | 2 | Wits 4 |
+| Riddle door | 1 | Wits 5 |
+| Barred cellar | 1 | Strength 4 |
+| Seized bookcase | 1 | Strength 5 |
 
 ### The Witch (boss)
 
@@ -576,9 +707,9 @@ The full deck needs about 50 cards: this gear plus Healing Potions and Rations (
 
 ### Still to design before a playtest
 
-- [ ] About 20 map tiles, plus the Front Door and the Inner Study
-- [ ] The room deck (about 30 cards), with obstacle targets and failure text
-- [ ] 12 Hut Whim cards
+- [x] Room tiles: 26 in the bag, plus the Front Door, Witch's Workshop and Inner Study (§10)
+- [x] The room decks: Lair, Dark, Vault and Library, 36 cards (§10)
+- [x] 12 Hut Whim cards (§10)
 - [ ] The full loot deck (about 50 cards) and the artifact's name
 - [ ] Advancement cards for levels 4 and 5
 

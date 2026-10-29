@@ -17,7 +17,7 @@
 | `data/heroes.json` | Four heroes, 30-card decks with skill values, advancement cards |
 | `data/enemies.json` | Goblin, ogre, skeleton, witch: stats, action decks, encounters |
 | `data/items.json` | White gear, loot deck, consumables |
-| `data/module_witch_hut.json` | Module 1 settings (tiles and room decks are still placeholders) |
+| `data/module_witch_hut.json` | Module 1: room tiles, room types, room decks, Hut track, Hut Whims |
 | `reference/` | The Python simulator used for balancing (prototype code, for reference only) |
 
 Run `python3 reference/hut.py` style experiments only if you want to compare numbers; the Godot project doesn't depend on it.

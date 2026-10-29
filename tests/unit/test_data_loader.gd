@@ -59,6 +59,79 @@ func test_missing_gear_reference_is_rejected():
     assert_false(loader.validate(data))
     assert_string_contains("\n".join(loader.errors), "mithril")
 
+func _module_errors(data: Dictionary) -> String:
+    var loader := DataLoader.new()
+    assert_false(loader.validate(data), "validation should fail")
+    return "\n".join(loader.errors)
+
+func test_tile_bag_has_26_tiles_and_11_moons():
+    var bag: int = 0
+    var moons: int = 0
+    for tile in BattleFixture.data()["module_witch_hut"]["tiles"]:
+        bag += int(tile["qty"])
+        moons += int(tile["moon_qty"])
+    assert_eq(bag, 26)
+    assert_eq(moons, 11)
+
+func test_room_decks_hold_36_cards_and_there_are_12_whims():
+    var module: Dictionary = BattleFixture.data()["module_witch_hut"]
+    var total: int = 0
+    for deck_name in module["room_decks"]:
+        total += DataLoader.new().sum_deck_quantity(module["room_decks"][deck_name])
+    assert_eq(total, 36)
+    assert_eq(module["hut_whims"].size(), 12)
+
+func test_a_missing_bag_tile_is_rejected():
+    var data := _data_copy()
+    data["module_witch_hut"]["tiles"][3]["qty"] = 2
+    assert_string_contains(_module_errors(data), "bag_size")
+
+func test_a_wrong_moon_count_is_rejected():
+    var data := _data_copy()
+    data["module_witch_hut"]["tiles"][3]["moon_qty"] = 3
+    assert_string_contains(_module_errors(data), "moon")
+
+func test_a_doorway_inside_the_tile_is_rejected():
+    var data := _data_copy()
+    # lair_great_hall: [0,0] side E faces its own cell [1,0]
+    data["module_witch_hut"]["tiles"][3]["doors"][0] = {"cell": [0, 0], "side": "E"}
+    assert_string_contains(_module_errors(data), "not on the tile's edge")
+
+func test_a_doorway_off_the_tile_is_rejected():
+    var data := _data_copy()
+    data["module_witch_hut"]["tiles"][5]["doors"][0] = {"cell": [2, 2], "side": "S"}
+    assert_string_contains(_module_errors(data), "not one of its cells")
+
+func test_a_duplicate_cell_is_rejected():
+    var data := _data_copy()
+    data["module_witch_hut"]["tiles"][0]["cells"] = [[0, 0], [0, 0]]
+    assert_string_contains(_module_errors(data), "twice")
+
+func test_an_unknown_room_op_is_rejected():
+    var data := _data_copy()
+    data["module_witch_hut"]["room_decks"]["dark"][0]["effects"] = [{"op": "summon_dragon"}]
+    assert_string_contains(_module_errors(data), "summon_dragon")
+
+func test_an_unknown_op_nested_in_a_skill_check_is_rejected():
+    var data := _data_copy()
+    data["module_witch_hut"]["hut_whims"][9]["effects"][0]["failure"] = [{"op": "explode"}]
+    assert_string_contains(_module_errors(data), "explode")
+
+func test_a_room_fight_with_an_unknown_encounter_is_rejected():
+    var data := _data_copy()
+    data["module_witch_hut"]["room_decks"]["lair"][0]["effects"][0]["encounter"] = "dragons"
+    assert_string_contains(_module_errors(data), "dragons")
+
+func test_tile_rotation_turns_clockwise_with_y_up():
+    assert_eq(TileGeometry.rotate_cell(Vector2i(0, 1), 1), Vector2i(1, 0), "north of the anchor turns to east")
+    assert_eq(TileGeometry.rotate_cell(Vector2i(1, 0), 1), Vector2i(0, -1), "east turns to south")
+    assert_eq(TileGeometry.rotate_cell(Vector2i(1, 1), 2), Vector2i(-1, -1))
+    assert_eq(TileGeometry.rotate_cell(Vector2i(1, 1), 4), Vector2i(1, 1))
+    assert_eq(TileGeometry.rotate_side("N", 1), "E")
+    assert_eq(TileGeometry.rotate_side("W", 1), "N")
+    assert_eq(TileGeometry.rotate_side("S", 3), "E")
+    assert_eq(TileGeometry.opposite("E"), "W")
+
 func test_unknown_enemy_in_an_encounter_is_rejected():
     var data := _data_copy()
     data["encounters"]["standard"] = [{"type": "dragon", "count": 1}]

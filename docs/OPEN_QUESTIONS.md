@@ -1,4 +1,4 @@
-# Open questions (rules v0.5)
+# Open questions
 
 Rules that are ambiguous for implementation. Ask before inventing a rule; once answered, record the decision in `docs/RULES.md` and move the question to Resolved.
 
@@ -11,6 +11,34 @@ None.
 Not rule questions; things to check later.
 
 - **Balance under standard DM (2026-10-26).** Standard DM is the intended default. Re-check campaign balance (wipes, runs to beat the witch) under standard DM once exploration and runs exist. The battle baseline is in CLAUDE.md (Balance baseline).
+- **Exploration playtest (2026-10-28).** From `EXPLORATION_SPEC.md` §11: whether a DM placing Lairs everywhere is too strong (with the DM tile hand, later), and whether the map-shifting Whims (Shifting Walls, Hall of Mirrors, Collapse, Doors Slam) are fun or fiddly.
+
+## Resolved (Milestone 4 planning, 2026-10-28)
+
+Exploration with room tiles (`docs/EXPLORATION_SPEC.md`). All recorded in `docs/RULES.md` §8 and §10.
+
+| # | Question | Decision | Where |
+| --- | --- | --- | --- |
+| 46 | Tile placed at another doorway | Only a doorway the party *chooses* outside its current room is a backtrack (with the check). When the Hut forces the tile to another doorway because it doesn't fit, there is no check | §8 Exploring, Backtracking |
+| 47 | Break-through | Uses the first tile set aside. The party chooses where: any wall of an explored room where it fits (AI: prefer the party's room). No Hut +1 beyond the one stir | §8 Nothing fits |
+| 48 | Placing the Workshop and Inner Study | At the chosen doorway if they fit there, otherwise against any wall of an explored room where they fit (party's choice; AI: closest to the party). The Hut makes the door | §10 Special tiles |
+| 49 | Walking to a shut Study after finding the key | Allowed and free: walking through explored rooms is free and opens no new doorway, so no backtrack check | §8 Walking, §10 |
+| 50 | Empty bag | No more exploring. The party can still camp at a known campsite, walk to a placed Study, or leave | §8 Nothing fits |
+| 51 | Order when a moon triggers things | Place the tile, moon, Hut track, any Whim resolves, then the party enters the room | §8 Exploring |
+| 52 | Hut 10 and Lair rooms | A Lair room is still one fight (its own Lair card). Every other non-corridor room draws an extra Lair card, fought first | §10 Hut track |
+| 53 | Whim deck | Shuffle the 12 Whims at the start of each run; draw without repeats within the run | §10 Hut Whims |
+| 54 | Only Wounds in hand outside battle | Down (as #33). Stays Down until bandaging after the next won battle, the Shrine, or a campfire. Every hero Down is a wipe | §8 Down outside battle |
+| 55 | Traps | Spotting is optional. Every failed skill roll raises the Hut track by 1 (spot, disarm, dodge, locks). Disarm and dodge use the trap's target. A failed disarm springs the trap on the disarmer. The leader is the Fighter, else the first standing hero of Thief, Cleric, Wizard. Only beating a Hard (5+) obstacle gives XP; spotting and dodging never do | §8 Skill rolls, Traps |
+| 56 | Optional rooms | The Shrine and Strange font may be declined and come back to later (the Shrine is still once per run). Whims, the Cauldron included, are never optional | §8 Room types, §10 |
+| 57 | Retries | Library locks: unlimited, each failure Hut +1. Locked chests: one retry. AI retries while the party's average deck is 8 or more | §8 Skill rolls, §10 Room decks |
+| 58 | Locked In | Rolled at once when the Whim resolves; retries until it succeeds, each failure Hut +1 | §10 Hut Whims |
+| 59 | Backtrack flip ties | The party chooses among tied heroes (AI: Fighter, Cleric, Thief, Wizard) | §8 Backtracking |
+| 60 | The campfire wandering check | After the campfire reset, one hero (party's choice) flips the top card of their fresh deck; skill 1–3 (1 in 2) means 3 goblins attack. The card is spent | §8 Camping |
+| 61 | Rewards from wandering fights | No loot and no XP from any wandering fight: backtracking, camping, Whim fights (Bones Stir). Fights from room cards (Lair, Dark ambush, Workshop guardians, the Hut-waking extra) reward as normal | §8 After a won battle, Wandering monsters |
+| 62 | Camping | 1 ration per hero, Down heroes included (the campfire gets them up), in an explored campsite. Walking there is free, with no backtrack check | §8 Camping |
+| 63 | Who picks for map Whims | The Hut picks at random among legal options (a DM chooses in DM mode). "Dead end": a placed room tile (not special, not the party's room) connected to exactly one other tile, with no open doorways. Removing it can never cut the map in two | §10 Hut Whims |
+| 64 | The Black Cat | Optional: "Tell the cat a secret: Hut track +1, draw 1 loot card" | §10 Hut Whims |
+| 65 | Battles inside a run | Enemy decks are fresh and shuffled for each battle. At the round cap the remaining enemies withdraw: no loot or XP, no wipe. If every hero is sitting out (empty decks) when a fight starts, it's a wipe | §5 Round limit, §8 |
 
 ## Resolved (Milestone 1 build, 2026-10-25)
 

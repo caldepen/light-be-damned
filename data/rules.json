@@ -28,7 +28,7 @@
   "_formation_doc": "[row, lane] on the hero board; row 0 = front, lane 0 = the players' left (shared by both boards)",
   "battle": {
     "round_cap": 30,
-    "_round_cap_doc": "Digital engine only: a battle still running after this many rounds ends as a draw"
+    "_round_cap_doc": "Digital engine only: a battle still running after this many rounds ends as a draw. In a run the enemies withdraw: no loot or XP, no wipe (ruling #65)"
   },
   "board": {
     "rows": 3,
@@ -85,9 +85,19 @@
   "camping": {
     "rations_per_hero": 1,
     "hut_track": 1,
-    "wandering_monster_chance": 0.5,
+    "_wandering_doc": "After the reset, one hero (party's choice) flips the top of their fresh deck; monsters on a skill value at or below this. No loot, no XP (rulings #60, #61)",
+    "wandering_on_skill_at_most": 3,
     "wandering_encounter": "wandering",
     "lifts_curses": true
+  },
+  "backtracking": {
+    "_doc": "The hero with the most deck cards flips (ties: party's choice); monsters on a skill value at or below this. No loot, no XP (RULES §8, rulings #46, #59, #61)",
+    "wandering_on_skill_at_most": 2,
+    "encounter": "wandering"
+  },
+  "traps": {
+    "_doc": "An unspotted trap springs on the first standing hero in this order (ruling #55)",
+    "leader_order": ["fighter", "thief", "cleric", "wizard"]
   },
   "run": {
     "rations": 8,

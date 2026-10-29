@@ -1,10 +1,10 @@
 # Card RPG — digital prototype (Godot 4)
 
-This is the digital version of a tabletop card RPG. It exists first to playtest and balance the rules, and later to ship alongside the physical game. The tabletop rules are the source of truth: **`docs/RULES.md`** (v0.5). All content (cards, enemies, items, rule numbers) lives in **`data/*.json`**, described in **`docs/DATA_SCHEMA.md`**.
+This is the digital version of a tabletop card RPG. It exists first to playtest and balance the rules, and later to ship alongside the physical game. The tabletop rules are the source of truth: **`docs/RULES.md`** (v0.5, exploration revised for room tiles from `docs/EXPLORATION_SPEC.md`). All content (cards, enemies, items, rule numbers) lives in **`data/*.json`**, described in **`docs/DATA_SCHEMA.md`**.
 
 ## The game in one paragraph
 
-A party of four heroes (Fighter, Cleric, Thief, Wizard) explores a shifting dungeon over several runs. Every hero is a 30-card deck; there are no dice. In battle each hero plays a card from hand or flips the top of their deck. Damage fills armor slots, then puts useless Wound cards into the hand; a hand of only Wounds means Down. Enemies have Hit Dice instead of hands and play cards from a shared deck per enemy type, choosing by morale. A shared Provoke track decides who enemies attack. Exploring uses skill rolls: flip a deck card and read its 1–6 skill value. The deck is the clock: fighting and exploring both run it down until the party camps.
+A party of four heroes (Fighter, Cleric, Thief, Wizard) explores a shifting dungeon over several runs. Every hero is a 30-card deck; there are no dice. In battle each hero plays a card from hand or flips the top of their deck. Damage fills armor slots, then puts useless Wound cards into the hand; a hand of only Wounds means Down. Enemies have Hit Dice instead of hands and play cards from a shared deck per enemy type, choosing by morale. A shared Provoke track decides who enemies attack. Exploring builds the Hut one room tile at a time on a 7×9 map board: the party picks a doorway and draws the room blind from a bag. Skill rolls flip a deck card and read its 1–6 skill value. The deck is the clock: fighting and exploring both run it down until the party camps.
 
 ## Architecture rules (please follow these)
 
@@ -119,8 +119,10 @@ The `witch` encounter is left out: her Bone Storm extra turn is built (ruling #4
 - Milestone 2: battle scene (`scenes/battle.tscn`) with board, hands, Provoke track, click to play for every decision, the party choosing hero order, event log, AI-heroes and auto-continue toggles.
 - Milestone 3: `TacticalAiProvider` hero AI (threat model, Provoke-aware scoring, one-turn look-ahead for hero order; `--ai simple` keeps the old heuristics) and the batch balance runner with automated / standard / ruthless DM modes and `--detail` reports; 163 GUT tests; baseline above.
 
-**Next**
-- Milestone 4: exploration. It is being redesigned (room tiles placed on a map board); a new spec will come with the Milestone 4 prompt. Don't start on exploration until then.
+**In progress: Milestone 4, exploration** (spec `docs/EXPLORATION_SPEC.md`, rulings #46-65)
+- Step 0 done: RULES.md §8 and §10 rewritten for room tiles; `module_witch_hut.json` holds the tiles, specials, room types, four room decks, Hut track and 12 Whims, validated on load (26 bag tiles, 11 moons, doorways on tile edges); DATA_SCHEMA.md documents them.
+- Steps: 4.1 table layout (placeholder visuals, reusable scenes, one Theme) → 4.2 map and tile engine → 4.3 rooms, rolls, traps, camping, backtracking, Whims → 4.4 the run loop → 4.5 run decisions and exploration AI → 4.6 map UI → 4.7 run batch report. Commit each step as "M4.x: ...".
+- Exploration code lives in `scripts/core/explore/` (`TileGeometry` so far). Rotation: r quarter turns clockwise about the anchor, y up.
 
 **Known follow-ups**
 - Standard DM is the intended default. Re-check campaign balance (wipes, runs to beat the witch) under standard DM once exploration and runs exist; the baseline above is per battle.
@@ -132,10 +134,12 @@ The `witch` encounter is left out: her Bone Storm extra turn is built (ruling #4
 
 ## Milestones
 
-1. Battle engine, headless, with tests (no UI).
-2. Minimal battle UI: boards, hands, Provoke track, click to play.
-3. Hero AI + headless balance runner (thousands of seeded battles, summary stats).
-4. Exploration: tiles, rooms, skill rolls, Hut track, camping (being redesigned: room tiles on a map board; spec to come).
-5. Loot, equipment, levels, runs, town, wipes.
-6. The witch boss and the full Witch's Hut module.
-7. Later: export card data to printable sheets for the tabletop version.
+1. Battle engine, headless, with tests ✔
+2. Minimal battle UI ✔
+3. Hero AI, batch balance runner, DM modes ✔
+4. **Exploration:** table layout, map board and room tiles, rooms and room decks, skill rolls and traps, Hut track and Whims, camping and rations, backtracking, a full run from the Front Door until the party leaves or wipes, exploration AI and a run batch report. Loot, levels and the boss are stubbed.
+5. **Loot, equipment, levels, runs, town and wipes:** real loot draws and items, XP and levels, the Workshop's level gate, wipes, a campaign batch runner (many runs per campaign), then re-check campaign balance under standard DM against the spec's simulation numbers.
+6. **The witch and the full Witch's Hut module:** Bone Ward, the boss fight in the Inner Study, escaping after the win, Whim polish, and a witch baseline with a level 3 party with items.
+7. **Art pass:** retro ink on graph paper. Swap the reusable scenes and the shared Theme; design card frames that the print version will share.
+8. **Tabletop export:** printable cards, tiles and boards from the data.
+- Later: human DM decision provider (including the DM's 3-tile hand), advancement cards for levels 4–5, hybrid classes, more modules.
