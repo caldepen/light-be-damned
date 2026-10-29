@@ -1,12 +1,10 @@
 {
-  "_doc": "Module 1: The Witch's Hut, room tiles on a map board (RULES.md section 10, EXPLORATION_SPEC.md, rulings #46-65). Schema in DATA_SCHEMA.md.",
+  "_doc": "Module 1: The Witch's Hut, room tiles on an open map with no fixed board (RULES.md section 10, EXPLORATION_SPEC.md, rulings #46-65). Schema in DATA_SCHEMA.md.",
   "id": "witch_hut",
   "name": "The Witch's Hut",
   "levels": [1, 3],
   "boss": "witch",
   "map": {
-    "width": 7,
-    "height": 9,
     "entrance_tile": "front_door"
   },
   "hut_track": {
@@ -38,7 +36,7 @@
   "bag_size": 26,
   "bag_moons": 11,
   "special_tiles": [
-    {"id": "front_door", "name": "Front Door", "type": "front_door", "moon": false, "cells": [[0,0]], "doors": [{"cell": [0,0], "side": "N"}, {"cell": [0,0], "side": "E"}, {"cell": [0,0], "side": "W"}], "fixed_at": [3,0]},
+    {"id": "front_door", "name": "Front Door", "type": "front_door", "moon": false, "cells": [[0,0]], "doors": [{"cell": [0,0], "side": "N"}, {"cell": [0,0], "side": "E"}, {"cell": [0,0], "side": "W"}], "fixed_at": [0,0]},
     {"id": "witchs_workshop", "name": "Witch's Workshop", "type": "workshop", "moon": true, "cells": [[0,0]], "doors": [{"cell": [0,0], "side": "S"}], "ignores_doorway_matching": true,
      "enters_bag": {"at_hut": 2, "min_party_level": 3, "unless_party_has_key": true}},
     {"id": "inner_study", "name": "Inner Study", "type": "inner_study", "moon": false, "cells": [[0,0],[1,0],[0,1],[1,1]], "doors": [{"cell": [0,0], "side": "S"}], "ignores_doorway_matching": true,

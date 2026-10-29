@@ -10,7 +10,7 @@ All game content lives in `data/*.json`. Code interprets it; it never hard-codes
 | `heroes.json` | The four heroes: Type, hand size, starting gear, 30-card starting deck, advancement cards (levels 2–3) |
 | `enemies.json` | Enemy stat lines (armor, Hit Dice, Draw, size), their shared action decks, and named encounters |
 | `items.json` | White starting gear, the loot deck (gear with `copies`), and consumables |
-| `module_witch_hut.json` | Module 1: map board, room tiles (bag and specials), room types, the four room decks, Hut track, Hut Whims |
+| `module_witch_hut.json` | Module 1: room tiles (bag and specials), room types, the four room decks, Hut track, Hut Whims |
 
 ## Hero card
 
@@ -96,14 +96,14 @@ All game content lives in `data/*.json`. Code interprets it; it never hard-codes
   "doors": [{"cell": [0,0], "side": "S"}, {"cell": [0,1], "side": "N"}, {"cell": [0,1], "side": "E"}] }
 ```
 
-- **Coordinates.** Map squares are `[x, y]`: x is the column from the left (0 to `map.width` − 1), y the row up from the **bottom** edge (0 to `map.height` − 1). So N is +y, E is +x. Tile-local cells use the same axes, with the tile's anchor cell at `[0, 0]`; other cells may be negative (`corridor_t` has `[-1, 0]`).
+- **Coordinates.** There is no fixed board: the map grows in any direction without limit. Map squares are `[x, y]` from the Front Door at `[0, 0]`: x east, y north (N is +y, E is +x); both can be negative. Tile-local cells use the same axes, with the tile's anchor cell at `[0, 0]`; other cells may be negative (`corridor_t` has `[-1, 0]`).
 - **Doorways.** `{"cell", "side"}`: an opening on that side (N, E, S, W) of one of the tile's own cells. It must be on the tile's outer edge: the square it faces is not one of the tile's cells. A cell may have several doorways.
 - **Rotation.** A placed tile has a rotation r from 0 to 3: r quarter turns **clockwise** about the anchor, applied to every cell (`(x, y) → (y, −x)` per turn) and every doorway side (N → E → S → W). The engine then shifts the tile so it lands where it is placed. `TileGeometry` implements this.
 - `type`: a key of `room_types`.
 - `qty`: copies in the tile bag. `moon_qty`: how many of those copies show a moon (0 to `qty`).
 - Bag totals are checked on load against `bag_size` (26) and `bag_moons` (11).
 - **Special tiles** start outside the bag. They use `moon` (true/false) instead of `qty`/`moon_qty`, and may have:
-  - `fixed_at`: the map square of the anchor (Front Door, `[3, 0]`).
+  - `fixed_at`: the map square of the anchor (Front Door, `[0, 0]`).
   - `ignores_doorway_matching`: placed against any wall of an explored room where it fits; the Hut makes the door (Workshop, Inner Study).
   - `enters_bag`: `{"at_hut": N}` shuffles it into the bag when the Hut track reaches N; optional `min_party_level` and `unless_party_has_key`.
 - `map.entrance_tile` names the tile the party starts in.
@@ -168,6 +168,6 @@ XP for beating a Hard or harder obstacle (target ≥ `rules.json` `skill_rolls.d
 ## Conventions
 
 - Battle board coordinates are `[row, lane]` on each side's own board: row 0 = front, lane 0 = the players' left on both boards (ruling #1).
-- Map board coordinates are `[x, y]` with y up from the bottom edge (see Room tiles).
+- Map coordinates are `[x, y]` from the Front Door at `[0, 0]`, y north, unbounded (see Room tiles).
 - IDs are snake_case and stable. Never rename an ID once saves exist; change `name` instead.
 - When a rule changes, update `docs/RULES.md`, then the data, then the tests.

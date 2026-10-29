@@ -4,7 +4,7 @@ This is the digital version of a tabletop card RPG. It exists first to playtest 
 
 ## The game in one paragraph
 
-A party of four heroes (Fighter, Cleric, Thief, Wizard) explores a shifting dungeon over several runs. Every hero is a 30-card deck; there are no dice. In battle each hero plays a card from hand or flips the top of their deck. Damage fills armor slots, then puts useless Wound cards into the hand; a hand of only Wounds means Down. Enemies have Hit Dice instead of hands and play cards from a shared deck per enemy type, choosing by morale. A shared Provoke track decides who enemies attack. Exploring builds the Hut one room tile at a time on a 7×9 map board: the party picks a doorway and draws the room blind from a bag. Skill rolls flip a deck card and read its 1–6 skill value. The deck is the clock: fighting and exploring both run it down until the party camps.
+A party of four heroes (Fighter, Cleric, Thief, Wizard) explores a shifting dungeon over several runs. Every hero is a 30-card deck; there are no dice. In battle each hero plays a card from hand or flips the top of their deck. Damage fills armor slots, then puts useless Wound cards into the hand; a hand of only Wounds means Down. Enemies have Hit Dice instead of hands and play cards from a shared deck per enemy type, choosing by morale. A shared Provoke track decides who enemies attack. Exploring builds the Hut one room tile at a time on an open, unbounded map: the party picks a doorway and draws the room blind from a bag. Skill rolls flip a deck card and read its 1–6 skill value. The deck is the clock: fighting and exploring both run it down until the party camps.
 
 ## Architecture rules (please follow these)
 
@@ -122,7 +122,7 @@ The `witch` encounter is left out: her Bone Storm extra turn is built (ruling #4
 **In progress: Milestone 4, exploration** (spec `docs/EXPLORATION_SPEC.md`, rulings #46-65)
 - Step 0 done: RULES.md §8 and §10 rewritten for room tiles; `module_witch_hut.json` holds the tiles, specials, room types, four room decks, Hut track and 12 Whims, validated on load (26 bag tiles, 11 moons, doorways on tile edges); DATA_SCHEMA.md documents them.
 - Steps: 4.1 table layout (placeholder visuals, reusable scenes, one Theme) → 4.2 map and tile engine → 4.3 rooms, rolls, traps, camping, backtracking, Whims → 4.4 the run loop → 4.5 run decisions and exploration AI → 4.6 map UI → 4.7 run batch report. Commit each step as "M4.x: ...".
-- Exploration code lives in `scripts/core/explore/` (`TileGeometry` so far). Rotation: r quarter turns clockwise about the anchor, y up.
+- Exploration code lives in `scripts/core/explore/` (`TileGeometry` so far). Rotation: r quarter turns clockwise about the anchor, y up. The map has no fixed board (changed 2026-10-28): the Front Door is at [0,0] and coordinates can go negative; nothing fits / break-through / closed in stay as a rarely used safety net. Map UI (4.6): zoom to fit the whole map while keeping the party's room in view, optional drag pan and wheel zoom, a centre-on-party button, zoom toward the chosen doorway when placing; the 4.1 map panel hosts a SubViewport with a Camera2D for this.
 
 **Known follow-ups**
 - Standard DM is the intended default. Re-check campaign balance (wipes, runs to beat the witch) under standard DM once exploration and runs exist; the baseline above is per battle.
@@ -137,7 +137,7 @@ The `witch` encounter is left out: her Bone Storm extra turn is built (ruling #4
 1. Battle engine, headless, with tests ✔
 2. Minimal battle UI ✔
 3. Hero AI, batch balance runner, DM modes ✔
-4. **Exploration:** table layout, map board and room tiles, rooms and room decks, skill rolls and traps, Hut track and Whims, camping and rations, backtracking, a full run from the Front Door until the party leaves or wipes, exploration AI and a run batch report. Loot, levels and the boss are stubbed.
+4. **Exploration:** table layout, the open map and room tiles, rooms and room decks, skill rolls and traps, Hut track and Whims, camping and rations, backtracking, a full run from the Front Door until the party leaves or wipes, exploration AI and a run batch report. Loot, levels and the boss are stubbed.
 5. **Loot, equipment, levels, runs, town and wipes:** real loot draws and items, XP and levels, the Workshop's level gate, wipes, a campaign batch runner (many runs per campaign), then re-check campaign balance under standard DM against the spec's simulation numbers.
 6. **The witch and the full Witch's Hut module:** Bone Ward, the boss fight in the Inner Study, escaping after the win, Whim polish, and a witch baseline with a level 3 party with items.
 7. **Art pass:** retro ink on graph paper. Swap the reusable scenes and the shared Theme; design card frames that the print version will share.

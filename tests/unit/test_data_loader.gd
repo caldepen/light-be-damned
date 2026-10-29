@@ -122,6 +122,21 @@ func test_a_room_fight_with_an_unknown_encounter_is_rejected():
     data["module_witch_hut"]["room_decks"]["lair"][0]["effects"][0]["encounter"] = "dragons"
     assert_string_contains(_module_errors(data), "dragons")
 
+func test_the_map_has_no_fixed_board_and_the_front_door_is_at_the_origin():
+    var module: Dictionary = BattleFixture.data()["module_witch_hut"]
+    assert_false(module["map"].has("width"), "no board width")
+    assert_false(module["map"].has("height"), "no board height")
+    var front_door: Dictionary = {}
+    for tile in module["special_tiles"]:
+        if tile["id"] == module["map"]["entrance_tile"]:
+            front_door = tile
+    assert_eq(TileGeometry.cells_from_data([front_door["fixed_at"]])[0], Vector2i(0, 0))
+
+func test_a_bad_fixed_at_is_rejected():
+    var data := _data_copy()
+    data["module_witch_hut"]["special_tiles"][0]["fixed_at"] = [0]
+    assert_string_contains(_module_errors(data), "fixed_at")
+
 func test_tile_rotation_turns_clockwise_with_y_up():
     assert_eq(TileGeometry.rotate_cell(Vector2i(0, 1), 1), Vector2i(1, 0), "north of the anchor turns to east")
     assert_eq(TileGeometry.rotate_cell(Vector2i(1, 0), 1), Vector2i(0, -1), "east turns to south")

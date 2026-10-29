@@ -1,6 +1,6 @@
 # Card RPG — Rules v0.5
 
-Version 0.5 · 25 October 2026 · exploration (§8, §10) revised 28 October 2026: room tiles on a map board (`docs/EXPLORATION_SPEC.md`, rulings #46–65)
+Version 0.5 · 25 October 2026 · exploration (§8, §10) revised 28 October 2026: room tiles laid out on an open map with no fixed board (`docs/EXPLORATION_SPEC.md`, rulings #46–65)
 
 ## 1. Overview
 
@@ -27,7 +27,7 @@ A party of four heroes delves into a shifting dungeon, fights with cards instead
 - Enemy cards (stats) and one action deck per enemy type: goblin, ogre, skeleton, witch
 - 2 battle boards of 3×3 squares (heroes and enemies)
 - The Provoke track (0–20) with 4 hero tokens
-- The map board (7 × 9 squares), 29 room tiles (26 for the tile bag, plus the Front Door, Witch's Workshop and Inner Study) and the tile bag; 4 room decks (36 cards); 12 Hut Whim cards; wall tokens; the party marker
+- 29 room tiles (26 for the tile bag, plus the Front Door, Witch's Workshop and Inner Study) and the tile bag; 4 room decks (36 cards); 12 Hut Whim cards; wall tokens; the party marker
 - Tokens: Guard, damage markers, Bleed, Stun, toad; the Hut track; rations; the party XP track
 
 **Starting a campaign**
@@ -39,7 +39,7 @@ A party of four heroes delves into a shifting dungeon, fights with cards instead
 
 1. Each hero shuffles their deck and draws a hand: Fighter 6, Cleric 5, Thief 5, Wizard 4.
 2. Take 8 rations (two campfires for a party of four).
-3. Set up the module (see section 10): clear the map board, place the Front Door, shuffle the tile bag, the room decks and the Hut Whims, set the Hut track to 0.
+3. Set up the module (see section 10): clear the map, place the Front Door, shuffle the tile bag, the room decks and the Hut Whims, set the Hut track to 0.
 
 ## 3. Heroes and cards
 
@@ -270,23 +270,23 @@ An enemy's **power** (unmarked armor + unmarked Hd) is what cards like Ambush us
 
 ### The map
 
-The party explores the Hut one room at a time on a **map board**, building it from room tiles drawn blind from a bag. **The party never chooses the room**; its only choice is the doorway. Fights move to the battle boards and come back to the map afterwards. The map is cleared between runs, so every run builds a new Hut.
+The party explores the Hut one room at a time, building a map from room tiles drawn blind from a bag and laid directly on the table. There is no board: the map can grow in any direction without limit. **The party never chooses the room**; its only choice is the doorway. Fights move to the battle boards and come back to the map afterwards. The map is cleared between runs, so every run builds a new Hut.
 
-- **Map board.** 7 squares wide and 9 tall. Squares are named `[x, y]`: x is the column from the left (0–6), y the row up from the bottom edge (0–8). The entrance square is `[3, 0]`.
+- **Squares.** Each tile is made of squares. The digital game names them `[x, y]` from the Front Door, which is `[0, 0]`: x counts squares east (negative is west), y counts squares north (negative is south).
 - **Room tiles.** Each tile is a single room of one to four squares, with doorways on some of its edges. It shows its room type, and some show a **moon**. Section 10 lists the module's tiles.
-- **Open doorway.** A doorway of a placed tile whose neighbouring square is on the board and empty, and not closed by a wall token.
-- **Connections.** Two doorways that face each other connect, so the party can walk between those rooms. A door made by the Hut (a break-through, the Workshop, the Inner Study) also connects. A doorway that faces a wall or the board edge is simply closed.
+- **Open doorway.** A doorway of a placed tile whose neighbouring square is empty (no tile there) and not closed by a wall token.
+- **Connections.** Two doorways that face each other connect, so the party can walk between those rooms. A door made by the Hut (a break-through, the Workshop, the Inner Study) also connects. A doorway that faces another tile's wall is simply closed.
 - **Party marker.** Shows the room the party is in.
 
 **Exploring (one room at a time)**
 
 1. **Pick a doorway.** Choose an open doorway of the room the party is in. If it has none left, or the party prefers another, it may **backtrack** to an open doorway of any other explored room instead (see Backtracking). (At the table this may be played loosely: draw the tile, then lay it at whichever doorway of the party's room fits best. The digital game always picks the doorway first.)
 2. **Draw** 1 tile from the bag and turn it face up.
-3. **Place it** so one of its doorways meets the chosen doorway, turning it to fit (any of 4 rotations). It must lie inside the board and not overlap another tile. If no rotation fits there, place it at another open doorway of the same room, or else of any explored room (the party chooses). That is the Hut's doing, not a backtrack: there is no backtracking check (ruling #46).
+3. **Place it** so one of its doorways meets the chosen doorway, turning it to fit (any of 4 rotations). It must not overlap another tile. If no rotation fits there, place it at another open doorway of the same room, or else of any explored room (the party chooses). That is the Hut's doing, not a backtrack: there is no backtracking check (ruling #46).
 4. **Moon.** If the tile shows a moon, the Hut track rises by 1. Anything that triggers (a Hut Whim, a special tile entering the bag, the Hut waking) resolves now, while the party is still in the room it came from (ruling #51).
 5. **Enter.** The party moves in and resolves the room (Room types, below).
 
-**Nothing fits.** If the drawn tile fits at no open doorway on the map, the Hut stirs: Hut track +1 (only once per exploration). Set the tile aside and draw again until one fits, then shuffle the set-aside tiles back into the bag.
+**Nothing fits.** With no board edges this should almost never happen, but other tiles can still box a doorway in. If the drawn tile fits at no open doorway on the map, the Hut stirs: Hut track +1 (only once per exploration). Set the tile aside and draw again until one fits, then shuffle the set-aside tiles back into the bag.
 
 - **Break-through.** If nothing left in the bag fits, the party breaks through a wall with the **first tile set aside**: place it against any wall of an explored room where it fits (the party chooses; no doorway is needed, the Hut makes one). Then shuffle the other set-aside tiles back. No Hut +1 beyond the one stir (ruling #47).
 - **Closed in.** If even that is impossible, the Hut has closed in: no more exploring this run.
@@ -379,7 +379,7 @@ Beating a Hard or harder obstacle (target 5 or more) earns 1 XP. Spotting and do
 - **Leaving.** A run ends well when the party walks out through the entrance. Everything found is kept for every future run.
 - **Wipe.** If the whole party goes Down, the run ends in town. The party loses everything found on that run, and every hero's Armor reverts to White. Weapons, off-hands, trinkets and earlier finds are kept. XP is kept.
 - **Town.** Every hero fully recovers, the party takes 8 fresh rations, and equipment can be swapped freely with the town stash (no limit).
-- **The module resets** each run: the map board is cleared, the Hut track goes to 0, and the tile bag, room decks and Hut Whims are shuffled fresh. Every run builds a new Hut.
+- **The module resets** each run: the map is cleared, the Hut track goes to 0, and the tile bag, room decks and Hut Whims are shuffled fresh. Every run builds a new Hut.
 
 **Levels.** Heroes level up as in D&D, but their hit points never grow: hand size and armor stay the same, and the deck gets better cards instead.
 
@@ -398,7 +398,7 @@ Beating a Hard or harder obstacle (target 5 or more) earns 1 XP. Spotting and do
 
 A small hut that never stands in the same place twice. Inside it is far larger than it looks, and it rebuilds its rooms, tunnels and traps every time someone enters. The party hunts the witch's artifact (name to decide). Built for levels 1–3; the witch is tuned for a level 3 party with a few items.
 
-**Setup (each run).** Clear the map board. Place the Front Door on `[3, 0]` (doorways N, E, W); the party starts there. Shuffle the 26 bag tiles into the tile bag; the Witch's Workshop and the Inner Study wait outside it. Shuffle the four room decks and the 12 Hut Whims. Hut track at 0; 8 rations.
+**Setup (each run).** Clear the map. Lay the Front Door on the table (doorways N, E, W; square `[0, 0]` in the digital game); the party starts there. Shuffle the 26 bag tiles into the tile bag; the Witch's Workshop and the Inner Study wait outside it. Shuffle the four room decks and the 12 Hut Whims. Hut track at 0; 8 rations.
 
 **Room tiles (26 in the bag, 11 with a moon).** Exact cells and doorways are in `data/module_witch_hut.json`.
 
@@ -422,10 +422,10 @@ A small hut that never stands in the same place twice. Inside it is far larger t
 
 **Special tiles**
 
-- **Front Door:** 1 square, doorways N, E, W, on `[3, 0]`. Leaving the Hut means walking back here.
+- **Front Door:** 1 square, doorways N, E, W, at `[0, 0]`. Leaving the Hut means walking back here.
 - **Witch's Workshop:** 1 square, one doorway, a moon. Shuffled into the bag when the Hut track reaches 2, **only if the party is level 3 or higher and doesn't have the Iron Key**. Entering: take the Iron Key, then fight its guardians (draw a Lair card; normal loot and XP).
 - **Inner Study:** 2 × 2, one iron door. Shuffled into the bag when the Hut track reaches 4. Without the key it is still placed, but its door stays shut and the party doesn't go in. A party that finds the key later in the run may walk to it (walking is free). With the key, entering starts the boss battle.
-- **Both goal tiles ignore doorway matching.** Place one at the chosen doorway if it fits there; otherwise against any wall of an explored room where it fits (the party chooses). The Hut makes the door. They always fit (ruling #48).
+- **Both goal tiles ignore doorway matching.** Place one at the chosen doorway if it fits there; otherwise against any wall of an explored room where it fits (the party chooses). The Hut makes the door. With no board edges they always fit (ruling #48).
 
 **The Iron Key.** It takes no slot or pack space, is kept once the party escapes, and is lost if the party wipes on the run it was found. Using it opens the Inner Study and starts the boss battle. Win, and the party must still get back to the Front Door to keep the artifact and its loot.
 

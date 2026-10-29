@@ -1,4 +1,4 @@
-# Exploration spec: room tiles on a map board (approved 2026-10-28)
+# Exploration spec: room tiles on an open map (approved 2026-10-28; no fixed board since 2026-10-28)
 
 This replaces the v0.5 exploration rules in `docs/RULES.md` §8 ("The map": Tiles, Revealing, Rooms, Hidden doors) and the tile, room-deck, Hut-track and Iron Key parts of §10. Skill rolls, teamwork, traps, bandaging and camping are unchanged except where noted. It was balanced in the Python campaign simulator (blind draws, standard DM, 400 campaigns).
 
@@ -8,7 +8,7 @@ Exploring builds the Hut one room at a time. The party picks which doorway to op
 
 ## 2. Components
 
-- **Map board:** a grid 7 squares wide and 9 tall. Coordinates are `[x, y]`, x = column from the left (0–6), y = row up from the bottom edge (0–8). The entrance square is `[3, 0]`.
+- **No map board:** tiles are laid directly on the table and the map can grow in any direction without limit. Coordinates (digital) are `[x, y]` from the Front Door at `[0, 0]`: x east, y north; both can go negative.
 - **Room tiles:** 26 in the bag (section 7). Three special tiles start outside the bag: Front Door, Witch's Workshop, Inner Study.
 - **Tile bag:** a cloth bag at the table; a shuffled list in the digital version (seeded RNG).
 - **Room decks (36 cards):** Lair (8), Dark (12), Vault (8), Library (8). Section 8.
@@ -18,19 +18,19 @@ Exploring builds the Hut one room at a time. The party picks which doorway to op
 
 ## 3. Setup (each run)
 
-Place the Front Door on `[3, 0]` (doorways N, E, W). Shuffle the 26 bag tiles into the bag. Workshop and Inner Study wait outside the bag (section 6). Hut track at 0. The party starts in the Front Door.
+Lay the Front Door at `[0, 0]` (doorways N, E, W). Shuffle the 26 bag tiles into the bag. Workshop and Inner Study wait outside the bag (section 6). Hut track at 0. The party starts in the Front Door.
 
 ## 4. Exploring (one room at a time)
 
 1. **Pick a doorway.** Choose an open doorway of the room the party is in. If it has none left, or the party prefers another, they may first **backtrack** to an unopened doorway in any explored room (see below). This is the party's only choice. (Digital: always pick the doorway first, then flip. At the table it may be played more loosely: draw the tile, then lay it at whichever doorway of the party's room fits best.)
 2. **Draw and flip** 1 tile from the bag.
-3. **Place it** so one of its doorways meets the chosen doorway, rotating it to fit (any of 4 rotations). It must lie inside the board and not overlap another tile. If no rotation fits there, place it at another open doorway of the same room, or else of any explored room. Its other doorways may face a wall or the board edge; those are simply closed. Two doorways that end up facing each other connect.
+3. **Place it** so one of its doorways meets the chosen doorway, rotating it to fit (any of 4 rotations). It must not overlap another tile. If no rotation fits there, place it at another open doorway of the same room, or else of any explored room. Its other doorways may face another tile's wall; those are simply closed. Two doorways that end up facing each other connect.
 4. **Moon:** if the tile shows a moon, the Hut track rises by 1.
 5. **Enter.** The party moves in and resolves the room (section 5).
 
-An **open doorway** is a doorway of a placed tile whose neighbouring square is on the board and empty.
+An **open doorway** is a doorway of a placed tile whose neighbouring square is empty.
 
-**Nothing fits.** If the drawn tile fits at no open doorway on the map: the Hut stirs (+1, only once per exploration); set the tile aside and draw again until one fits; then shuffle the set-aside tiles back into the bag. If nothing in the bag fits, the party **breaks through** a wall: place a set-aside tile against any wall of an explored room where it fits (no doorway needed; the Hut makes one). If even that is impossible, the Hut has closed in and the party must head home. (Simulation: a redraw about once in 4 runs; a break-through almost never; closed in about 1 run in 50.)
+**Nothing fits.** If the drawn tile fits at no open doorway on the map: the Hut stirs (+1, only once per exploration); set the tile aside and draw again until one fits; then shuffle the set-aside tiles back into the bag. If nothing in the bag fits, the party **breaks through** a wall: place a set-aside tile against any wall of an explored room where it fits (no doorway needed; the Hut makes one). If even that is impossible, the Hut has closed in and the party must head home. (Simulation, on the old 7×9 board: a redraw about once in 4 runs; a break-through almost never; closed in about 1 run in 50. Without board edges these rules are a safety net that should almost never trigger.)
 
 **Backtracking.** Walking back through explored rooms to open a doorway in a different room costs time. The hero with the most cards in their deck flips the top card; it is spent as in a skill roll (Exhausted if ▲ or ★). On a skill value of 1 or 2, wandering monsters spill out: fight 3 goblins (`wandering` encounter) before exploring. **This fight gives no loot and no XP**, though bandaging afterwards works as usual. Backtracking is meant to be a small cost the party can choose to pay, never something worth doing for its own sake. Walking through explored rooms is otherwise free and triggers nothing.
 
@@ -60,7 +60,7 @@ An **open doorway** is a doorway of a placed tile whose neighbouring square is o
 
 ## 6. Special tiles
 
-- **Front Door:** 1×1, doorways N, E, W, on `[3, 0]`. Leaving the Hut means walking back here.
+- **Front Door:** 1×1, doorways N, E, W, at `[0, 0]`. Leaving the Hut means walking back here.
 - **Witch's Workshop:** 1×1, one doorway (S), moon. Shuffled into the bag when the Hut track reaches 2, **only if the party is level 3 or higher and doesn't have the Iron Key**. Entering: take the Iron Key, then fight its guardians (draw a Lair card). Key rules otherwise unchanged (no slot; kept once the party escapes; lost if the party wipes on the run it was found). This replaces "the key is among the top three Treasure cards".
 - **Inner Study:** 2×2, one iron door (cell `[0,0]`, side S). Shuffled into the bag when the Hut track reaches 4. Without the key it is still placed, but its door stays shut. With the key, entering starts the boss battle.
 - **Both goal tiles ignore doorway matching:** place them against any wall of an explored room where they fit; the Hut makes a door. They always fit.
@@ -113,7 +113,7 @@ Room decks reshuffle when empty. They reset each run.
 
 ## 9. Tile data (exact doorway positions)
 
-Tile-local coordinates use the same axes as the board (x right, y up), with the tile's anchor cell at `[0, 0]`. Rotations are applied at placement. `moon_qty` is how many of the `qty` copies show a moon.
+Tile-local coordinates use the same axes as the map (x east, y north), with the tile's anchor cell at `[0, 0]`. Rotations are applied at placement. `moon_qty` is how many of the `qty` copies show a moon.
 
 ```json
 [
@@ -139,13 +139,21 @@ Specials:
 
 ```json
 [
-  {"id": "front_door", "type": "front_door", "cells": [[0,0]], "doors": [{"cell":[0,0],"side":"N"},{"cell":[0,0],"side":"E"},{"cell":[0,0],"side":"W"}], "fixed_at": [3,0]},
+  {"id": "front_door", "type": "front_door", "cells": [[0,0]], "doors": [{"cell":[0,0],"side":"N"},{"cell":[0,0],"side":"E"},{"cell":[0,0],"side":"W"}], "fixed_at": [0,0]},
   {"id": "witchs_workshop", "type": "workshop", "moon": true, "cells": [[0,0]], "doors": [{"cell":[0,0],"side":"S"}], "ignores_doorway_matching": true},
   {"id": "inner_study", "type": "inner_study", "moon": false, "cells": [[0,0],[1,0],[0,1],[1,1]], "doors": [{"cell":[0,0],"side":"S"}], "ignores_doorway_matching": true}
 ]
 ```
 
 Totals: 26 bag tiles, 11 with a moon.
+
+## 9a. Digital map view (added 2026-10-28)
+
+The map has no fixed size, so the map panel shows it through a camera:
+
+- By default the view zooms to fit the whole map, zooming out as it grows, and always keeps the party's room in view.
+- Optional pan (drag) and zoom (mouse wheel), and a "centre on party" button that returns to the automatic view.
+- When the party is placing a tile, the view zooms toward the chosen doorway so the placement targets stay large enough to click.
 
 ## 10. Simulation reference (Python campaign simulator, 400 campaigns, level 1 start)
 

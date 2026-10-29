@@ -107,10 +107,8 @@ func _validate_module(module: Dictionary, encounters: Dictionary) -> void:
         _fail("The tile bag has %d moons; bag_moons says %d." % [bag_moons, int(module.get("bag_moons", -1))])
     for tile in module.get("special_tiles", []):
         _validate_tile(tile, room_types, tile_ids)
-        if tile.has("fixed_at"):
-            var at: Array = tile["fixed_at"]
-            if int(at[0]) < 0 or int(at[0]) >= int(map.get("width", 0)) or int(at[1]) < 0 or int(at[1]) >= int(map.get("height", 0)):
-                _fail("Special tile '%s' is fixed at %s, off the map board." % [tile.get("id", "?"), str(at)])
+        if tile.has("fixed_at") and (typeof(tile["fixed_at"]) != TYPE_ARRAY or tile["fixed_at"].size() != 2):
+            _fail("Special tile '%s' has a bad fixed_at %s." % [tile.get("id", "?"), str(tile["fixed_at"])])
     if not tile_ids.has(String(map.get("entrance_tile", ""))):
         _fail("map.entrance_tile '%s' is not a tile." % map.get("entrance_tile", ""))
     for type_name in room_types:
