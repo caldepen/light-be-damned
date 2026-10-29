@@ -10,7 +10,7 @@ var _rows: Dictionary = {}  # row key -> Array[DeckPile]
 var _names: Dictionary = {} # row key -> Label
 
 func _init() -> void:
-    horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+    horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
     _box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     _box.add_theme_constant_override("separation", 4)
     add_child(_box)

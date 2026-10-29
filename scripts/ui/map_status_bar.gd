@@ -16,8 +16,9 @@ var _warning := Label.new()
 
 func _init() -> void:
     theme_type_variation = &"TableBar"
-    var row := HBoxContainer.new()
-    row.add_theme_constant_override("separation", 12)
+    # Wraps onto two lines when the map column is narrow.
+    var row := HFlowContainer.new()
+    row.add_theme_constant_override("h_separation", 12)
     var hut_label := Label.new()
     hut_label.text = "Hut"
     row.add_child(hut_label)

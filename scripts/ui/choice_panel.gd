@@ -35,7 +35,7 @@ func _init() -> void:
     add_child(_buttons)
     _summary.fit_content = true
     _summary.scroll_active = false
-    _summary.custom_minimum_size = Vector2(0, 60)
+    _summary.custom_minimum_size = Vector2(0, 0)
     add_child(_summary)
     _play.pressed.connect(func() -> void: play_pressed.emit())
     _flip.pressed.connect(func() -> void: option_chosen.emit(_flip_index))

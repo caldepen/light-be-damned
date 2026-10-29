@@ -2,9 +2,9 @@ class_name BoardView
 extends Control
 
 ## One side's 3x3 battle board, built from BoardSquare and FigureToken scenes. The DM board shows
-## grid rows 0-2 (its front row at the bottom) and the player board rows 3-5 (front row at the top),
-## so the two front rows face each other across the Provoke track. refresh() copies what to draw
-## while the engine is paused. Squares, rows and figures that answer the pending request are
+## grid rows 0-2 and the player board rows 3-5; BoardOrientation places them so the two front rows
+## face each other (tall: across the Provoke strip; wide: side by side). refresh() copies what to
+## draw while the engine is paused. Squares, rows and figures that answer the pending request are
 ## highlighted and clickable. The board scales to fit its rect, keeping the squares' shape.
 
 signal option_chosen(index: int)
@@ -12,6 +12,7 @@ signal option_chosen(index: int)
 const ASPECT := 1.6  # square width / height
 
 var side: String = FigureState.SIDE_ENEMIES
+var orientation: String = BoardOrientation.TALL
 var _squares: Dictionary = {}      # Vector2i -> BoardSquare
 var _tokens: Array[FigureToken] = []
 var _figures: Array[Dictionary] = []
@@ -26,6 +27,7 @@ func _init(board_side: String = FigureState.SIDE_ENEMIES) -> void:
     for cell in Field.board_cells(side):
         var square: BoardSquare = UiScenes.board_square()
         square.cell = cell
+        square.tooltip_text = BoardOrientation.square_label(cell)
         square.pressed.connect(_on_square_pressed)
         _squares[cell] = square
         add_child(square)
@@ -33,6 +35,10 @@ func _init(board_side: String = FigureState.SIDE_ENEMIES) -> void:
 func _notification(what: int) -> void:
     if what == NOTIFICATION_RESIZED:
         _layout()
+
+func set_orientation(value: String) -> void:
+    orientation = value
+    _layout()
 
 func refresh(battle: Battle, request: DecisionRequest) -> void:
     _figures.clear()
@@ -146,8 +152,8 @@ func _cell_size() -> Vector2:
 func _cell_rect(cell: Vector2i) -> Rect2:
     var cs: Vector2 = _cell_size()
     var origin := (size - cs * Vector2(Field.LANES, 3)) * 0.5
-    var row_top: int = cell.y - (0 if side == FigureState.SIDE_ENEMIES else Field.HERO_FRONT_Y)
-    return Rect2(origin + Vector2(cell.x * cs.x, row_top * cs.y), cs)
+    var screen: Vector2i = BoardOrientation.screen_cell_of(cell, orientation)
+    return Rect2(origin + Vector2(screen) * cs, cs)
 
 func _layout() -> void:
     for cell in _squares:

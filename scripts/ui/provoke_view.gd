@@ -12,7 +12,7 @@ var _track_max: int = 20
 var _stacks: Dictionary = {}  # value -> Array of {"label", "color", "down"}, top first
 
 func _init() -> void:
-    custom_minimum_size = Vector2(420, TOKEN_HEIGHT * 4 + LABEL_HEIGHT + 8)
+    custom_minimum_size = Vector2(300, TOKEN_HEIGHT * 4 + LABEL_HEIGHT + 8)
     mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 func refresh(battle: Battle) -> void:

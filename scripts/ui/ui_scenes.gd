@@ -10,10 +10,17 @@ const FIGURE_TOKEN := preload("res://scenes/components/figure_token.tscn")
 const CARD_VIEW := preload("res://scenes/components/card_view.tscn")
 const DECK_PILE := preload("res://scenes/components/deck_pile.tscn")
 const TILE_VIEW := preload("res://scenes/components/tile_view.tscn")
+const COLLAPSIBLE_PANEL := preload("res://scenes/components/collapsible_panel.tscn")
 
 static func panel(title: String) -> PanelFrame:
     var p: PanelFrame = PANEL_FRAME.instantiate()
     p.set_title(title)
+    return p
+
+## `kind`: CollapsiblePanel.STRIP_COLUMN or STRIP_ROW.
+static func collapsible_panel(key: String, title: String, kind: String) -> CollapsiblePanel:
+    var p: CollapsiblePanel = COLLAPSIBLE_PANEL.instantiate()
+    p.setup(key, title, kind)
     return p
 
 static func board_square() -> BoardSquare:
