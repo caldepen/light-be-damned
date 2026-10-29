@@ -137,6 +137,30 @@ func test_a_bad_fixed_at_is_rejected():
     data["module_witch_hut"]["special_tiles"][0]["fixed_at"] = [0]
     assert_string_contains(_module_errors(data), "fixed_at")
 
+func test_every_room_type_has_a_feature_pool():
+    for type_name in BattleFixture.data()["module_witch_hut"]["room_types"]:
+        var features: Dictionary = BattleFixture.data()["module_witch_hut"]["room_types"][type_name].get("features", {})
+        assert_false(features.get("pool", []).is_empty(), "%s feature pool" % type_name)
+
+func test_a_tile_feature_slot_override_on_its_own_cells_is_accepted():
+    var data := _data_copy()
+    data["module_witch_hut"]["tiles"][3]["features"] = {"slots": [{"cell": [1, 1], "count": 2}], "pool": [{"id": "throne", "weight": 1}]}
+    var loader := DataLoader.new()
+    assert_true(loader.validate(data), str(loader.errors))
+
+func test_a_feature_slot_off_the_tile_is_rejected():
+    var data := _data_copy()
+    data["module_witch_hut"]["tiles"][5]["features"] = {"slots": [{"cell": [3, 3], "count": 1}]}
+    assert_string_contains(_module_errors(data), "feature slot")
+
+func test_a_bad_feature_chance_or_weight_is_rejected():
+    var data := _data_copy()
+    data["module_witch_hut"]["room_types"]["lair"]["features"]["chance"] = 1.5
+    data["module_witch_hut"]["room_types"]["dark"]["features"]["pool"][0]["weight"] = 0
+    var errors: String = _module_errors(data)
+    assert_string_contains(errors, "chance")
+    assert_string_contains(errors, "weight")
+
 func test_tile_rotation_turns_clockwise_with_y_up():
     assert_eq(TileGeometry.rotate_cell(Vector2i(0, 1), 1), Vector2i(1, 0), "north of the anchor turns to east")
     assert_eq(TileGeometry.rotate_cell(Vector2i(1, 0), 1), Vector2i(0, -1), "east turns to south")

@@ -116,6 +116,8 @@ func _validate_module(module: Dictionary, encounters: Dictionary) -> void:
         if room.has("deck") and not decks.has(String(room["deck"])):
             _fail("Room type '%s' uses unknown room deck '%s'." % [type_name, room["deck"]])
         _validate_explore_effects(room.get("effects", []), "room type '%s'" % type_name, decks, encounters)
+        if room.has("features"):
+            _validate_features(room["features"], "Room type '%s'" % type_name, {})
     var sizes: Dictionary = module.get("room_deck_sizes", {})
     for deck_name in decks:
         var total: int = sum_deck_quantity(decks[deck_name])
@@ -170,6 +172,32 @@ func _validate_tile(tile: Dictionary, room_types: Dictionary, tile_ids: Dictiona
         if door_keys.has(key):
             _fail("%s lists the doorway %s %s twice." % [context, str(cell), side])
         door_keys[key] = true
+    if tile.has("features"):
+        _validate_features(tile["features"], context, seen)
+
+## Decoration data (DATA_SCHEMA "Map features"): a room type's slots_per_cell, chance and pool, or a
+## tile's slots (on its own cells) and extra pool. `tile_cells` is empty for room types.
+func _validate_features(features: Variant, context: String, tile_cells: Dictionary) -> void:
+    if typeof(features) != TYPE_DICTIONARY:
+        _fail("%s has features that are not an object." % context)
+        return
+    if features.has("slots_per_cell") and int(features["slots_per_cell"]) < 0:
+        _fail("%s has a negative features.slots_per_cell." % context)
+    var chance: float = float(features.get("chance", 1.0))
+    if chance < 0.0 or chance > 1.0:
+        _fail("%s has features.chance %s; expected 0 to 1." % [context, str(chance)])
+    for entry in features.get("pool", []):
+        if typeof(entry) != TYPE_DICTIONARY or String(entry.get("id", "")).is_empty():
+            _fail("%s has a feature with no id." % context)
+        elif float(entry.get("weight", 1)) <= 0.0:
+            _fail("%s feature '%s' needs a weight above 0." % [context, entry["id"]])
+    for slot in features.get("slots", []):
+        var raw: Array = slot.get("cell", [])
+        var cell := Vector2i(int(raw[0]), int(raw[1])) if raw.size() == 2 else Vector2i(-999, -999)
+        if tile_cells.is_empty() or not tile_cells.has(cell):
+            _fail("%s has a feature slot on %s, which is not one of its cells." % [context, str(raw)])
+        if int(slot.get("count", 1)) < 0:
+            _fail("%s has a feature slot with a negative count." % context)
 
 ## Ops must be exploration ops; fights name known encounters, rolls a hero Type, room cards a deck.
 func _validate_explore_effects(effects: Array, context: String, decks: Dictionary, encounters: Dictionary) -> void:

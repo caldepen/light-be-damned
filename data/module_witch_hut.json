@@ -43,22 +43,23 @@
      "enters_bag": {"at_hut": 4}}
   ],
   "room_types": {
-    "front_door": {"name": "Front Door", "exit": true},
-    "corridor": {"name": "Corridor"},
-    "lair": {"name": "Lair", "deck": "lair"},
-    "dark": {"name": "Dark room", "deck": "dark"},
-    "vault": {"name": "Vault", "deck": "vault"},
-    "library": {"name": "Library", "deck": "library"},
+    "front_door": {"name": "Front Door", "exit": true, "features": {"slots_per_cell": 1, "chance": 1.0, "pool": [{"id": "door_mat", "weight": 1}]}},
+    "corridor": {"name": "Corridor", "features": {"slots_per_cell": 1, "chance": 0.3, "pool": [{"id": "torch_bracket", "weight": 1}, {"id": "cobweb", "weight": 1}]}},
+    "lair": {"name": "Lair", "deck": "lair", "features": {"slots_per_cell": 1, "chance": 0.6, "pool": [{"id": "bones", "weight": 1}, {"id": "claw_marks", "weight": 1}, {"id": "rubble", "weight": 1}]}},
+    "dark": {"name": "Dark room", "deck": "dark", "features": {"slots_per_cell": 1, "chance": 0.5, "pool": [{"id": "cobweb", "weight": 1}, {"id": "puddle", "weight": 1}, {"id": "cracked_floor", "weight": 1}]}},
+    "vault": {"name": "Vault", "deck": "vault", "features": {"slots_per_cell": 1, "chance": 1.0, "pool": [{"id": "coins", "weight": 1}, {"id": "strongbox", "weight": 1}]}},
+    "library": {"name": "Library", "deck": "library", "features": {"slots_per_cell": 1, "chance": 0.8, "pool": [{"id": "bookshelf", "weight": 1}, {"id": "scroll_pile", "weight": 1}, {"id": "reading_desk", "weight": 1}]}},
     "shrine": {"name": "Shrine", "text": "Once per run, a Spirit 4 roll. Success: every hero removes 2 Wounds and repairs 1 armor damage. Failure: Hut track +1",
       "effects": [{"op": "skill_check", "type": "spirit", "target": 4, "optional": true,
-        "success": [{"op": "party_heal_wounds", "amount": 2}, {"op": "party_repair_armor", "amount": 1}], "failure": []}]},
-    "pantry": {"name": "Pantry", "text": "Gain 1 ration. A campsite", "campsite": true, "effects": [{"op": "gain_ration", "amount": 1}]},
-    "empty": {"name": "Empty chamber", "text": "A campsite", "campsite": true},
-    "hearth": {"name": "Hearth", "text": "A campsite with no wandering-monster check", "campsite": true, "wandering_check": false},
+        "success": [{"op": "party_heal_wounds", "amount": 2}, {"op": "party_repair_armor", "amount": 1}], "failure": []}],
+      "features": {"slots_per_cell": 1, "chance": 1.0, "pool": [{"id": "altar", "weight": 1}, {"id": "candles", "weight": 1}]}},
+    "pantry": {"name": "Pantry", "text": "Gain 1 ration. A campsite", "campsite": true, "effects": [{"op": "gain_ration", "amount": 1}], "features": {"slots_per_cell": 1, "chance": 1.0, "pool": [{"id": "barrels", "weight": 1}, {"id": "hanging_herbs", "weight": 1}]}},
+    "empty": {"name": "Empty chamber", "text": "A campsite", "campsite": true, "features": {"slots_per_cell": 1, "chance": 0.4, "pool": [{"id": "rubble", "weight": 1}, {"id": "old_bedroll", "weight": 1}]}},
+    "hearth": {"name": "Hearth", "text": "A campsite with no wandering-monster check", "campsite": true, "wandering_check": false, "features": {"slots_per_cell": 1, "chance": 1.0, "pool": [{"id": "fireplace", "weight": 1}]}},
     "workshop": {"name": "Witch's Workshop", "text": "Take the Iron Key, then fight its guardians (draw a Lair card)",
-      "effects": [{"op": "take_key"}, {"op": "draw_room_card", "deck": "lair"}]},
+      "effects": [{"op": "take_key"}, {"op": "draw_room_card", "deck": "lair"}], "features": {"slots_per_cell": 1, "chance": 1.0, "pool": [{"id": "cauldron", "weight": 1}, {"id": "potion_shelf", "weight": 1}]}},
     "inner_study": {"name": "Inner Study", "text": "The iron door needs the Iron Key. Entering starts the boss battle", "requires_key": true,
-      "effects": [{"op": "boss", "encounter": "witch"}]}
+      "effects": [{"op": "boss", "encounter": "witch"}], "features": {"slots_per_cell": 1, "chance": 0.75, "pool": [{"id": "candles", "weight": 1}, {"id": "rune_circle", "weight": 1}, {"id": "bone_pile", "weight": 1}]}}
   },
   "room_decks": {
     "lair": [

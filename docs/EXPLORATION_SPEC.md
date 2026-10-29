@@ -155,6 +155,13 @@ The map has no fixed size, so the map panel shows it through a camera:
 - Optional pan (drag) and zoom (mouse wheel), and a "centre on party" button that returns to the automatic view.
 - When the party is placing a tile, the view zooms toward the chosen doorway so the placement targets stay large enough to click.
 
+**Art direction: an inked map on graph paper.** Placed tiles "lock in" as if drawn there, hand-drawn details are added, and later players can write their own notes on it. The structure is built in Milestone 4 with placeholder visuals; the real art comes in Milestone 7 (art pass).
+
+- **Layers**, bottom to top, kept separate: paper and grid; tiles (rooms); features (decorations); annotations (player notes, empty for now); overlay (doorway highlights, party marker, placement previews).
+- **Ink in.** Placing a tile goes through a dedicated "ink in" hook: a short fade for now, a draw-on animation in Milestone 7.
+- **Features.** Optional decoration slots per cell in the tile and room-type data, picked with a seeded stream so a replay draws the same map (DATA_SCHEMA "Map features"). No art yet.
+- **Annotations** are presentation only and never part of the rules engine. The layer is reserved; player notes come later.
+
 ## 10. Simulation reference (Python campaign simulator, 400 campaigns, level 1 start)
 
 | System and DM | Witch beaten within 12 runs | Median runs | Wipes per campaign | Wiped on run 1 | Battles per run | Tiles per run |

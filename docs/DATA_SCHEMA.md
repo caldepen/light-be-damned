@@ -116,8 +116,24 @@ Keyed by tile `type`. Fields: `name`, `text` (printed rule), and any of:
 - `effects`: resolved on entering (rooms without a deck: Shrine, Pantry, Workshop, Inner Study).
 - `campsite`: the party may camp here once it is explored. `wandering_check: false` skips the campfire's wandering-monster flip (Hearth).
 - `requires_key`: the door stays shut without the Iron Key (Inner Study). `exit`: the way out (Front Door).
+- `features`: decorations for tiles of this type (see Map features).
 
 `hut_track.wake_skips_types` lists the types that draw no extra Lair card once the Hut wakes (corridors, Lairs, the Front Door).
+
+## Map features (decorations)
+
+Purely cosmetic hand-drawn details on placed tiles (bones, cobwebs, bookshelves). They never affect play. Art comes in Milestone 7; until then the ids are drawn as placeholders.
+
+```json
+"lair": { "name": "Lair", "deck": "lair",
+          "features": {"slots_per_cell": 1, "chance": 0.6,
+                       "pool": [{"id": "bones", "weight": 1}, {"id": "claw_marks", "weight": 1}]} }
+```
+
+- **Room type** `features`: `slots_per_cell` (decoration slots on each cell of a tile of this type, default 1), `chance` (0–1, how likely each slot gets a decoration, default 1) and `pool` (`{"id", "weight"}` entries to pick from).
+- **Tile** `features` (optional): `slots` (`[{"cell": [x, y], "count": n}]` on the tile's own cells, replacing the type's `slots_per_cell` for that tile) and `pool` (extra entries added to the type's pool).
+- **Picking.** When a tile is placed, the engine walks its slots in data order (cells, then count), rolls `chance` for each, and makes a weighted pick from the pool. The result is stored on the placed tile in map coordinates and logged with the `tile_placed` event.
+- **A separate seeded stream.** Picks use the run's cosmetic RNG, derived from the run seed, not the gameplay RNG. A replay draws the same map, and changing feature data never changes how a seeded run plays.
 
 ## Room cards and Hut Whims (module file `room_decks`, `hut_whims`)
 
