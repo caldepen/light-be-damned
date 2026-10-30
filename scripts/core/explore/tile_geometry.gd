@@ -1,8 +1,8 @@
 class_name TileGeometry
 extends RefCounted
 
-## Map-board geometry for room tiles (RULES §8, DATA_SCHEMA "Room tiles"). Squares are
-## Vector2i(x, y): x is the column from the left, y the row up from the bottom edge, so N is +y.
+## Map geometry for room tiles (RULES §8, DATA_SCHEMA "Room tiles"). Squares are Vector2i(x, y)
+## from the Front Door at [0, 0]: x east, y north (N is +y), unbounded and possibly negative.
 ## A rotation r (0-3) turns a tile r quarter turns clockwise about its anchor cell [0, 0].
 
 const SIDES: Array[String] = ["N", "E", "S", "W"]
@@ -41,3 +41,27 @@ static func cells_from_data(raw: Array) -> Array[Vector2i]:
     for c in raw:
         cells.append(Vector2i(int(c[0]), int(c[1])))
     return cells
+
+## Doorways from tile data as {"cell": Vector2i, "side": String}.
+static func doors_from_data(raw: Array) -> Array[Dictionary]:
+    var doors: Array[Dictionary] = []
+    for d in raw:
+        doors.append({"cell": Vector2i(int(d["cell"][0]), int(d["cell"][1])), "side": String(d["side"])})
+    return doors
+
+## A tile's cells turned `rotation` quarter turns and shifted so its anchor lands on `anchor`.
+static func placed_cells(cells: Array[Vector2i], rotation: int, anchor: Vector2i) -> Array[Vector2i]:
+    var result: Array[Vector2i] = []
+    for c in cells:
+        result.append(rotate_cell(c, rotation) + anchor)
+    return result
+
+## Doorways turned and shifted the same way.
+static func placed_doors(doors: Array[Dictionary], rotation: int, anchor: Vector2i) -> Array[Dictionary]:
+    var result: Array[Dictionary] = []
+    for d in doors:
+        result.append({"cell": rotate_cell(d["cell"], rotation) + anchor, "side": rotate_side(d["side"], rotation)})
+    return result
+
+static func door_key(cell: Vector2i, side: String) -> String:
+    return "%d,%d,%s" % [cell.x, cell.y, side]
