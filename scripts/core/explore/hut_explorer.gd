@@ -141,6 +141,113 @@ func _check_specials() -> void:
         bag.put_back(more, rng)
         log.record("special_enters_bag", "The %s is shuffled into the bag." % String(s.get("name", id)), {"tile": id})
 
+# ------------------------------------------------------------------ map changes (Hut Whims)
+# Each returns "" when the change happened, else why not; both are logged.
+
+func rotate_tile(tile: PlacedTile, rotation: int) -> String:
+    return _logged(map.rotate_tile(tile, rotation, party_tile, front_door), "tile_rotated",
+        "The %s turns in place." % _tile_name(tile), {"tile": _uid(tile), "rotation": rotation})
+
+func swap_tiles(a: PlacedTile, b: PlacedTile) -> String:
+    return _logged(map.swap_tiles(a, b, party_tile, front_door), "tiles_swapped",
+        "The %s and the %s trade places." % [_tile_name(a), _tile_name(b)], {"tiles": [_uid(a), _uid(b)]})
+
+func remove_tile(tile: PlacedTile) -> String:
+    return _logged(map.remove_tile(tile, party_tile, front_door), "tile_removed",
+        "The %s collapses and is gone for this run." % _tile_name(tile), {"tile": _uid(tile)})
+
+func close_doorway(doorway: MapDoorway) -> String:
+    return _logged(map.close_doorway(doorway.cell, doorway.side), "doorway_closed",
+        "A wall seals the %s." % doorway.describe(), {"cell": doorway.cell, "side": doorway.side})
+
+## Every legal turn of an explored tile: [{"tile", "rotation"}] (Shifting Walls).
+func rotation_options() -> Array[Dictionary]:
+    var result: Array[Dictionary] = []
+    for t in map.tiles:
+        for r in range(4):
+            if map.rotate_tile(t, r, party_tile, front_door, true).is_empty():
+                result.append({"tile": t, "rotation": r})
+    return result
+
+## Every legal pair for Hall of Mirrors: [{"a", "b"}], each pair once.
+func swap_options() -> Array[Dictionary]:
+    var result: Array[Dictionary] = []
+    for i in range(map.tiles.size()):
+        for j in range(i + 1, map.tiles.size()):
+            if map.swap_tiles(map.tiles[i], map.tiles[j], party_tile, front_door, true).is_empty():
+                result.append({"a": map.tiles[i], "b": map.tiles[j]})
+    return result
+
+## Dead ends Collapse may remove.
+func collapse_options() -> Array[PlacedTile]:
+    var result: Array[PlacedTile] = []
+    for t in map.tiles:
+        if map.remove_tile(t, party_tile, front_door, true).is_empty():
+            result.append(t)
+    return result
+
+## Every open doorway on the map (Vanishing Door).
+func open_doorway_options() -> Array[MapDoorway]:
+    var result: Array[MapDoorway] = []
+    for t in map.tiles:
+        result.append_array(map.open_doorways(t))
+    return result
+
+func _logged(why: String, event_type: String, message: String, details: Dictionary) -> String:
+    if why.is_empty():
+        log.record(event_type, message, details)
+    else:
+        var refused: Dictionary = details.duplicate()
+        refused["change"] = event_type
+        refused["reason"] = why
+        log.record("map_change_refused", "No change (%s): %s." % [event_type.replace("_", " "), why], refused)
+    return why
+
+static func _tile_name(tile: PlacedTile) -> String:
+    return "?" if tile == null else String(tile.def.get("name", tile.tile_id))
+
+static func _uid(tile: PlacedTile) -> int:
+    return -1 if tile == null else tile.uid
+
+# ------------------------------------------------------------------ save and load
+
+## The whole exploration state as plain, JSON-safe data: map, bag order, Hut track, party
+## position, specials already in the bag, and both RNG streams' positions.
+func to_dict() -> Dictionary:
+    var specials: Array = _specials_entered.keys()
+    specials.sort()
+    return {
+        "map": map.to_dict(),
+        "bag": bag.entries.map(func(e: Dictionary) -> Dictionary: return {"id": String(e["def"]["id"]), "moon": bool(e["moon"])}),
+        "hut_track": hut_track, "party_level": party_level, "has_key": has_key,
+        "front_door": front_door.uid, "party_tile": party_tile.uid, "specials_entered": specials,
+        # 64-bit states as strings: a JSON number would lose precision.
+        "rng_state": str(rng.get_state()), "cosmetic_rng_state": str(cosmetic_rng.get_state()),
+    }
+
+## Rebuild from to_dict(). `rng_in` is the run's gameplay RNG; its state is restored too.
+static func from_dict(data: Dictionary, module_in: Dictionary, rng_in: SeededRng, log_in: EventLog = null) -> HutExplorer:
+    var ex := HutExplorer.new(module_in, rng_in, 0, log_in)
+    ex.log.entries.clear()
+    ex.map = HutMap.from_dict(data["map"], module_in)
+    var defs: Dictionary = {}
+    for def in module_in.get("tiles", []) + module_in.get("special_tiles", []):
+        defs[String(def["id"])] = def
+    ex.bag.entries.clear()
+    for e in data.get("bag", []):
+        ex.bag.entries.append({"def": defs[String(e["id"])], "moon": bool(e["moon"])})
+    ex.hut_track = int(data["hut_track"])
+    ex.party_level = int(data["party_level"])
+    ex.has_key = bool(data["has_key"])
+    ex.front_door = ex.map.tile_by_uid(int(data["front_door"]))
+    ex.party_tile = ex.map.tile_by_uid(int(data["party_tile"]))
+    ex._specials_entered.clear()
+    for id in data.get("specials_entered", []):
+        ex._specials_entered[String(id)] = true
+    ex.rng.set_state(String(data["rng_state"]).to_int())
+    ex.cosmetic_rng.set_state(String(data["cosmetic_rng_state"]).to_int())
+    return ex
+
 func _choose(options: Array[TilePlacement]) -> TilePlacement:
     if options.size() == 1:
         return options[0]

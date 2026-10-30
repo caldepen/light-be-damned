@@ -17,6 +17,13 @@ func reset(seed_in: int = -1) -> void:
         seed_value = seed_in
     _rng.seed = seed_value
 
+## The generator's position in its stream, for saving and loading a run.
+func get_state() -> int:
+    return _rng.state
+
+func set_state(value: int) -> void:
+    _rng.state = value
+
 func next_float() -> float:
     return _rng.randf()
 
