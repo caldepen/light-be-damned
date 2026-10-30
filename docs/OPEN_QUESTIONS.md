@@ -4,14 +4,22 @@ Rules that are ambiguous for implementation. Ask before inventing a rule; once a
 
 ## Open
 
-From building rooms and Whims (Milestone 4.3, 2026-10-30). The engine as built is described; the proposal keeps it.
+From the run loop (Milestone 4.4, 2026-10-30). The engine as built is described; the proposal keeps it.
 
 | # | Question | Engine now (proposal: keep) |
 | --- | --- | --- |
-| 71 | When the Hut track crosses 3, 6 or 9 in the middle of a room (a failed lock roll), when does the Whim resolve? | At once, mid-room, as with a moon (#51): a Bones Stir fight happens before the lock's retry |
-| 72 | A roll nobody can make (every standing hero's deck empty): a non-optional check (Bubbling Cauldron), Locked In | The check counts as failed (failure effects, but no Hut +1 since nothing was flipped). Locked In stops; the doorways stay sealed and the log says so |
-| 73 | After the Hut wakes, does a declined optional room (the Shrine) draw its Lair card again when the party comes back? | No: one Lair fight per room, the first time the party enters it awake |
-| 74 | Who decides when a wandering-monster flip or a campfire check is due if the chosen hero is Down? | Only standing heroes with cards in their deck can flip (as for skill rolls); the campfire flip comes after the reset, when everyone is up |
+| 75 | Patch up (§8 After a won battle): there is no board between battles, so who is "adjacent" (Mend) or "within 1" (Rally), and which cards count? | The heroes stand in the party's formation, so adjacency and areas use their formation squares (the battle board with no enemies on it). A card counts if it has a heal, repair, cleanse, recover or Wound-transfer effect, or Consecrate; only those effects happen (and the draw on Greater Heal), never damage, Guard or Provoke. Fix Armor uses its between-battles text |
+| 76 | At the round cap the enemies withdraw (ruling #65). Does the party bandage and patch up afterwards? | No: it isn't a won battle, so no bandage and no patch up, as well as no loot or XP. (No battle has reached the cap in any batch so far) |
+| 77 | Shifting Walls may turn a dead end so it no longer connects to the map (only cutting the *party* off is forbidden). Can the party still use that room's open doorway (backtracking, or the "any explored room" placement fallback)? | No: only rooms the party can walk to count, for backtracking, for placing a tile that doesn't fit at the chosen doorway, and for break-throughs. The turned room stays on the map, unreachable, until another Whim moves it. Likewise an edge sealed by a wall token (Vanishing Door) is never a wall the Hut opens for a goal tile or a break-through. (Both found by the run batch: the party was stranded once by each) |
+
+## Resolved (rooms and Whims, 2026-10-30)
+
+| # | Question | Decision | Where |
+| --- | --- | --- | --- |
+| 71 | When the Hut track crosses 3, 6 or 9 in the middle of a room (a failed lock roll), when does the Whim resolve? | At once, mid-room, as with a moon (#51): a Bones Stir fight happens before the lock's retry | §10 The Hut track |
+| 72 | A roll nobody can make (every standing hero's deck empty): a non-optional check (Bubbling Cauldron), Locked In | The check counts as failed (failure effects, but no Hut +1 since nothing was flipped). Exception, Locked In: if nobody can roll, the seal breaks on its own and the Hut track rises by 1 (otherwise the run would be stuck) | §8 Nobody can roll, §10 Hut Whims |
+| 73 | After the Hut wakes, does a declined optional room (the Shrine) draw its Lair card again when the party comes back? | No: one Lair fight per room, the first time the party enters it awake | §10 The Hut track |
+| 74 | Who can make a wandering-monster flip or a campfire check? | Only standing heroes with cards in their deck (as for skill rolls); the campfire flip comes after the reset, when everyone is up | §8 Nobody can roll, Camping |
 
 ## Follow-ups
 

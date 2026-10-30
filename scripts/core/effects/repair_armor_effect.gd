@@ -2,7 +2,7 @@ class_name RepairArmorEffect
 extends EffectHandler
 
 ## "repair_armor": remove armor and shield damage. `amount` is a number or "all"; `target` self or hero_any.
-## (`between_battles_amount` applies outside battle, a later milestone.)
+## `between_battles_amount` replaces `amount` while patching up after a battle (Fix Armor).
 
 func op_name() -> String:
     return "repair_armor"
@@ -16,6 +16,8 @@ func resolve(ctx: EffectContext) -> void:
     if String(ctx.effect.get("target", "self")) != "self":
         target = ctx.battle.ask(DecisionRequest.TARGET, ctx.hero, targets, ctx.card, {"purpose": "repair"})
     var raw: Variant = ctx.effect.get("amount", 1)
+    if ctx.battle.between_battles and ctx.effect.has("between_battles_amount"):
+        raw = ctx.effect["between_battles_amount"]
     var amount: int = target.armor_damage if typeof(raw) == TYPE_STRING and raw == "all" else int(raw)
     ctx.battle.repair_armor(target, amount, ctx.actor)
     ctx.set_targets([target])

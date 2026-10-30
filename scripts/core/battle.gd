@@ -32,6 +32,9 @@ var round_number: int = 0
 var result: String = ""
 var dm_mode: String = DM_AUTOMATED
 var dm_policy: String = DM_POLICY_GREEDY
+## True while the party patches up after a won battle (PatchUp): no enemies, and cards use their
+## between-battles text (Fix Armor).
+var between_battles: bool = false
 
 ## The hero whose card is resolving; their Down check waits for the end of the card (RULES §6).
 var acting_hero: HeroState = null
@@ -166,6 +169,14 @@ func dm_extra_flips() -> int:
 func new_uid() -> int:
     _next_uid += 1
     return _next_uid
+
+## The last card uid handed out; a battle inside a run continues the party's numbering so Wound
+## cards never share a uid with the heroes' cards.
+func last_uid() -> int:
+    return _next_uid
+
+func continue_uids(after: int) -> void:
+    _next_uid = maxi(_next_uid, after)
 
 # ------------------------------------------------------------------ decisions
 

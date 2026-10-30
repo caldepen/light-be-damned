@@ -22,6 +22,7 @@ const RECOVER_CARD := "recover_card"       # options: Card, or null to stop
 const PEEK_TYPE := "peek_type"             # options: String (enemy type)
 const PEEK_ORDER := "peek_order"           # options: Array[Dictionary] (the peeked cards in a new order, top first)
 const SIGNATURE_OPTION := "signature_option"  # options: Dictionary (card-like option)
+const PATCH_UP := "patch_up"               # options: Dictionary {"hero", "card"} to play after a won battle, or {} to stop (asked of the party, hero is null)
 
 var kind: String = ""
 var hero: HeroState = null

@@ -95,7 +95,7 @@
   "hut_whims": [
     {"id": "shifting_walls", "name": "Shifting Walls", "text": "Rotate an explored tile the party isn't in, in place. Doorways may open or close. If it would cut the party off from the Front Door, it doesn't turn", "effects": [{"op": "rotate_tile"}]},
     {"id": "vanishing_door", "name": "Vanishing Door", "text": "Close one open doorway on the map with a wall token", "effects": [{"op": "close_doorway"}]},
-    {"id": "locked_in", "name": "Locked In", "text": "The doorways of the party's room seal until they beat a Strength or Agility 4 roll (retries allowed; each failure Hut +1)", "effects": [{"op": "lock_in", "types": ["strength", "agility"], "target": 4}]},
+    {"id": "locked_in", "name": "Locked In", "text": "The doorways of the party's room seal until they beat a Strength or Agility 4 roll (retries allowed; each failure Hut +1). If nobody can roll, the seal breaks: Hut +1", "effects": [{"op": "lock_in", "types": ["strength", "agility"], "target": 4, "hut_if_nobody_rolls": 1}]},
     {"id": "hall_of_mirrors", "name": "Hall of Mirrors", "text": "Swap two explored tiles of the same size and shape, doorways and all (not the party's room, not the Front Door)", "effects": [{"op": "swap_tiles"}]},
     {"id": "collapse", "name": "Collapse", "text": "Remove a dead-end room the party isn't in (not a special tile); it leaves the game for this run", "effects": [{"op": "collapse"}]},
     {"id": "keyhole", "name": "Keyhole", "text": "For the next exploration, draw and look at the tile before choosing the doorway", "effects": [{"op": "keyhole"}]},

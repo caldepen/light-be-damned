@@ -84,6 +84,8 @@ static func option_label(request: DecisionRequest, option: Variant) -> String:
             for t in d["targets"]:
                 names.append((t as FigureState).name)
             return "%d damage to %s" % [int(d["amount"]), ", ".join(names)]
+        if request.kind == DecisionRequest.PATCH_UP:
+            return "Done" if d.is_empty() else "%s plays %s" % [(d["hero"] as HeroState).name, (d["card"] as Card).name]
         return String(d.get("name", d.get("id", str(d))))
     if option is Array:
         var names: PackedStringArray = []
@@ -133,6 +135,8 @@ static func prompt(request: DecisionRequest) -> String:
             return "%s: put the peeked cards back in an order (top first)%s." % [who, card_name]
         DecisionRequest.SIGNATURE_OPTION:
             return "%s: choose a signature option%s." % [who, card_name]
+        DecisionRequest.PATCH_UP:
+            return "Patch up: play a healing, repair or recovery card, or Done."
     return "%s: choose (%s)%s." % [who, request.kind, card_name]
 
 ## What happened in the turn that just ended, from its turn_start to its turn_end entry.

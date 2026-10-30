@@ -15,6 +15,8 @@ const ACCEPT := "accept"                # options: [false, true] (an optional Wh
 const WOUND_DISCARD := "wound_discard"  # options: Card (discarded to make room for a Wound outside battle)
 const FLIPPER := "flipper"              # options: HeroState (who flips: backtracking ties, the campfire check)
 const SIGNATURE := "signature"          # options: Dictionary (the wizard's signature, chosen at each campfire)
+const ACTION := "action"                # options: String, HutRun.ACT_* (explore, camp, study, leave)
+const CAMPSITE := "campsite"            # options: PlacedTile (where to camp)
 
 var kind: String = ""
 var hero: HeroState = null

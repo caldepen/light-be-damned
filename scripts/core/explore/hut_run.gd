@@ -1,14 +1,16 @@
 class_name HutRun
 extends RefCounted
 
-## One run in the Witch's Hut, outside battle (RULES §8, §10): the map (HutExplorer), the party
-## between fights (PartyState), room decks, Hut Whims, rations, XP and the loot count. It enters
-## and resolves rooms through the room effect handlers, runs the Whims at Hut 3, 6 and 9 and the
-## Hut waking at 10, camping and the backtracking check, and one exploration step.
+## One run in the Witch's Hut (RULES §8, §10): the map (HutExplorer), the party between fights
+## (PartyState), room decks, Hut Whims, rations, XP and the loot count. It enters and resolves rooms
+## through the room effect handlers, runs the Whims at Hut 3, 6 and 9 and the Hut waking at 10,
+## camping and the backtracking check, and the run loop (`play`): explore, camp, walk to the Inner
+## Study or walk out, until the party leaves or wipes.
 ##
-## Battles go through `fight_runner` (func(run, encounter, rewards) -> FIGHT_*); until Milestone 4.4
-## the default records the fight and calls it won. Loot is only counted (Milestone 5) and the boss
-## stops the run as "boss reached" (Milestone 6). Party choices go through `decisions`.
+## Battles go through `fight_runner` (func(run, encounter, rewards) -> FIGHT_*), by default RunFight:
+## the party's own heroes in the run's `formation`, `battle_decisions` choosing for them, `dm_mode`
+## running the enemies. Loot is only counted (Milestone 5) and the boss stops the run as "boss
+## reached" (Milestone 6). Party choices outside battle go through `decisions`.
 
 const FIGHT_WON := "won"
 const FIGHT_WIPE := "wipe"
@@ -21,6 +23,18 @@ const ROOM_SHUT := "shut"
 const ROOM_BOSS := "boss"
 const ROOM_WIPE := "wipe"
 
+## What the party does next (RunRequest.ACTION).
+const ACT_EXPLORE := "explore"
+const ACT_CAMP := "camp"
+const ACT_STUDY := "study"   # walk to the placed Inner Study with the key: the boss
+const ACT_LEAVE := "leave"   # walk out through the Front Door
+
+## How a run ended (`result`).
+const RUN_LEFT := "left"
+const RUN_WIPE := "wipe"
+const RUN_BOSS := "boss reached"
+const RUN_STALLED := "stalled"   # the step cap in play(); a safety net for simulations
+
 var data: Dictionary
 var rules: Dictionary
 var module: Dictionary
@@ -32,7 +46,13 @@ var decisions: RunDecisionProvider
 var room_decks: RoomDecks
 var effects := RoomEffectRegistry.new()
 var whims: Array[Dictionary] = []  # the Whim deck; draw() takes the last
-var fight_runner: Callable = func(_run: HutRun, _encounter: String, _rewards: bool) -> String: return FIGHT_WON
+var fight_runner: Callable = func(run: HutRun, encounter: String, rewards: bool) -> String: return RunFight.play(run, encounter, rewards)
+## Who chooses for the heroes in battle and while patching up (an AI, or the UI's human provider).
+var battle_decisions: DecisionProvider = DecisionProvider.new()
+var dm_mode: String = Battle.DM_STANDARD
+## Where each hero stands at the start of every battle: {hero_id: [row, lane]} (set_formation).
+var formation: Dictionary = {}
+var last_battle: Battle = null
 var rations: int = 0
 var xp: int = 0
 var loot_drawn: int = 0
@@ -40,6 +60,8 @@ var awake: bool = false
 var keyhole: bool = false
 var wiped: bool = false
 var boss_reached: bool = false
+var can_explore: bool = true
+var result: String = ""
 
 func _init(data_in: Dictionary, seed_value: int, decisions_in: RunDecisionProvider = null) -> void:
     data = data_in
@@ -56,6 +78,40 @@ func _init(data_in: Dictionary, seed_value: int, decisions_in: RunDecisionProvid
         whims.append(w)
     rng.shuffle(whims)
     rations = int(rules.get("run", {}).get("rations", 8))
+    formation = rules.get("default_formation", {}).duplicate(true)
+
+## Set where the heroes stand in battle: every hero on a different square of the hero board.
+## Returns "" or why not (nothing changes then).
+func set_formation(new_formation: Dictionary) -> String:
+    var used: Dictionary = {}
+    for h in party.heroes:
+        if not new_formation.has(h.hero_id):
+            return "%s has no square" % h.name
+        var pos: Array = new_formation[h.hero_id]
+        if pos.size() != 2 or int(pos[0]) < 0 or int(pos[0]) > 2 or int(pos[1]) < 0 or int(pos[1]) > 2:
+            return "%s's square isn't on the hero board" % h.name
+        var key: Vector2i = Vector2i(int(pos[0]), int(pos[1]))
+        if used.has(key):
+            return "%s and %s share a square" % [used[key], h.name]
+        used[key] = h.name
+    formation = new_formation.duplicate(true)
+    log.record("formation", "The party's formation: %s." % _formation_text(), {"formation": formation.duplicate(true)})
+    return ""
+
+func _formation_text() -> String:
+    var parts: PackedStringArray = []
+    for h in party.heroes:
+        var pos: Array = formation[h.hero_id]
+        parts.append("%s %s %s" % [h.name, ["front", "middle", "back"][int(pos[0])], ["left", "centre", "right"][int(pos[1])]])
+    return ", ".join(parts)
+
+## A fresh seed from the run's stream for each battle, so a run replays exactly from its seed.
+func next_seed() -> int:
+    return rng.int_range(1, 2147483646)
+
+## Battle events go into the run's log as they happen.
+func forward_event(entry: Dictionary) -> void:
+    log.record(String(entry["type"]), String(entry["message"]), entry["details"])
 
 # ------------------------------------------------------------------ choices
 
@@ -89,11 +145,11 @@ func loot(count: int, reason: String) -> void:
 ## A battle. A wipe ends the run.
 func fight(encounter: String, rewards: bool) -> String:
     log.record("fight", "Fight: %s%s." % [encounter, "" if rewards else " (no loot, no XP)"], {"encounter": encounter, "rewards": rewards})
-    var result: String = String(fight_runner.call(self, encounter, rewards))
-    if result == FIGHT_WIPE:
+    var outcome: String = String(fight_runner.call(self, encounter, rewards))
+    if outcome == FIGHT_WIPE:
         wiped = true
         log.record("wipe", "The party is wiped out.", {})
-    return result
+    return outcome
 
 ## Damage outside battle, the party choosing which card each Wound pushes out (RULES §8).
 func damage_hero(hero: HeroState, amount: int, reason: String) -> void:
@@ -285,7 +341,7 @@ func explore_step() -> String:
         for d in explorer.party_doorways():
             options.append(d)
             backtrack.append(false)
-        for d in explorer.map.explored_open_doorways():
+        for d in explorer.map.explored_open_doorways(explorer.party_tile):
             if d.tile != explorer.party_tile:
                 options.append(d)
                 backtrack.append(true)
@@ -295,10 +351,102 @@ func explore_step() -> String:
             backtrack_check()
             if wiped:
                 return ROOM_WIPE
-            explorer.walk_to(doorway.tile)
-    var result: ExploreResult = explorer.explore(doorway)
+            var why: String = explorer.walk_to(doorway.tile)
+            if not why.is_empty():
+                push_error("Backtrack to an unreachable doorway: %s." % why)
+                return ROOM_SHUT
+    var explored: ExploreResult = explorer.explore(doorway)
     if wiped:
         return ROOM_WIPE
-    if not result.placed():
-        return result.status
-    return enter_room(result.tile)
+    if not explored.placed():
+        can_explore = false
+        return explored.status
+    return enter_room(explored.tile)
+
+# ------------------------------------------------------------------ the run loop
+
+## Play the run from where it stands until the party walks out, wipes or reaches the boss: each
+## step the party picks an action (RunRequest.ACTION). `max_steps` stops a simulation that never
+## ends (RUN_STALLED). Returns `result`.
+func play(max_steps: int = 300) -> String:
+    log.record("run_start", "== Run (seed %d): %s ==" % [rng.seed_value, _formation_text()], {"seed": rng.seed_value})
+    var steps: int = 0
+    while result.is_empty():
+        if wiped:
+            _finish(RUN_WIPE)
+        elif boss_reached:
+            _finish(RUN_BOSS)
+        elif steps >= max_steps:
+            _finish(RUN_STALLED)
+        else:
+            steps += 1
+            take_action(String(ask(RunRequest.ACTION, null, actions())))
+    return result
+
+## What the party can do now. Leaving is always possible; exploring until the bag is empty or the
+## Hut closes in (ruling #50); camping in an explored campsite with enough rations; the Inner Study
+## once it is placed and the party has the key.
+func actions() -> Array:
+    var list: Array = []
+    if can_explore:
+        list.append(ACT_EXPLORE)
+    if not campsites().is_empty():
+        list.append(ACT_CAMP)
+    if explorer.has_key and inner_study() != null:
+        list.append(ACT_STUDY)
+    list.append(ACT_LEAVE)
+    return list
+
+func take_action(action: String) -> void:
+    match action:
+        ACT_EXPLORE:
+            explore_step()
+        ACT_CAMP:
+            var site: PlacedTile = ask(RunRequest.CAMPSITE, null, campsites())
+            var why: String = camp(site)
+            if not why.is_empty():
+                log.record("cant_camp", "The party can't camp there: %s." % why, {"tile": site.uid})
+        ACT_STUDY:
+            var study: PlacedTile = inner_study()
+            var why: String = explorer.walk_to(study) if study.explored else ""
+            if why.is_empty():
+                enter_room(study)
+        ACT_LEAVE:
+            leave()
+
+## Explored campsites the party can reach and afford to camp in.
+func campsites() -> Array[PlacedTile]:
+    var result_list: Array[PlacedTile] = []
+    var cost: int = int(rules.get("camping", {}).get("rations_per_hero", 1)) * party.heroes.size()
+    if rations < cost:
+        return result_list
+    var reach: Array[PlacedTile] = explorer.map.reachable_from(explorer.party_tile)
+    for t in explorer.map.tiles:
+        if t.explored and reach.has(t) and bool(module.get("room_types", {}).get(t.room_type, {}).get("campsite", false)):
+            result_list.append(t)
+    return result_list
+
+## The placed Inner Study the party can reach through its iron door, or null.
+func inner_study() -> PlacedTile:
+    var reach: Array[PlacedTile] = explorer.map.reachable_from(explorer.party_tile)
+    for t in explorer.map.tiles:
+        if bool(module.get("room_types", {}).get(t.room_type, {}).get("requires_key", false)) and reach.has(t):
+            return t
+    return null
+
+## Walk back to the Front Door and out (RULES §8 Walking and leaving, §9): the run ends well and the
+## party gains its walking-out XP.
+func leave() -> void:
+    var why: String = explorer.walk_to(explorer.front_door)
+    if not why.is_empty():
+        log.record("cant_leave", "The party can't reach the Front Door: %s." % why, {})
+        return
+    log.record("leave", "The party walks out through the Front Door.", {})
+    gain_xp(int(rules.get("run", {}).get("xp_for_walking_out", 2)), "walked out")
+    _finish(RUN_LEFT)
+
+func _finish(how: String) -> void:
+    result = how
+    var kept: String = "kept" if how == RUN_LEFT else ("lost" if how == RUN_WIPE else "not yet counted")
+    log.record("run_end", "== Run over: %s. Hut track %d, rations %d, XP %d, loot %d (%s), key %s ==" % [how, explorer.hut_track, rations, xp, loot_drawn, kept, "yes" if explorer.has_key else "no"],
+        {"result": how, "hut_track": explorer.hut_track, "rations": rations, "xp": xp, "loot": loot_drawn, "key": explorer.has_key})

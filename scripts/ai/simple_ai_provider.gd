@@ -39,7 +39,80 @@ func decide(request: DecisionRequest, battle: Battle) -> int:
             return _best_index(request.options, func(card: Variant) -> float: return -1.0 if card == null else CardScorer.keep_value(card))
         DecisionRequest.PEEK_ORDER:
             return _best_index(request.options, func(order: Array) -> float: return -_ai_value(order[0]))
+        DecisionRequest.PATCH_UP:
+            return _choose_patch_up(request, battle)
     return 0
+
+## Patch up after a battle: the play that removes the most Wounds and armor damage (a recovered
+## card counts half), less a cost for burning a ▲/★ card; stop when nothing is worth PATCH_MIN.
+const PATCH_MIN := 1.0
+const PATCH_EXHAUST_COST := 2.0
+
+func _choose_patch_up(request: DecisionRequest, battle: Battle) -> int:
+    var best: int = 0  # PatchUp lists the stop option ({}) first
+    var best_value: float = PATCH_MIN - 0.001
+    for i in range(request.options.size()):
+        var option: Dictionary = request.options[i]
+        if option.is_empty():
+            continue
+        var v: float = _patch_value(battle, option["hero"], option["card"])
+        if v > best_value:
+            best_value = v
+            best = i
+    return best
+
+func _patch_value(battle: Battle, hero: HeroState, card: Card) -> float:
+    var value: float = 0.0
+    for e in PatchUp.effects_for(hero, card):
+        var raw: Variant = e.get("between_battles_amount", e.get("amount", 1))
+        var amount: int = 99 if typeof(raw) == TYPE_STRING else int(raw)
+        var target: String = String(e.get("target", "hero_any"))
+        match String(e.get("op", "")):
+            "heal_wound":
+                var near_only: bool = target == "hero_adjacent" or target == "heroes_within_1"
+                var each: Array[float] = []
+                for h in battle.standing_heroes():
+                    if not near_only or Field.cells_distance(h.cells, hero.cells) <= 1:
+                        each.append(float(mini(amount, h.wound_count())))
+                value += _sum_or_max(each, target == "all_heroes" or target == "heroes_within_1")
+            "repair_armor":
+                var each: Array[float] = []
+                for h in battle.standing_heroes():
+                    if target != "self" or h == hero:
+                        each.append(float(mini(amount, h.armor_damage)))
+                value += _sum_or_max(each, false)
+            "cleanse":
+                var each: Array[float] = []
+                for h in battle.standing_heroes():
+                    each.append(float(mini(amount, h.wound_count() + h.armor_damage)))
+                value += _sum_or_max(each, false)
+            "consecrate":
+                var best_block: float = 0.0
+                for corner in Field.block_corners():
+                    var n: float = 0.0
+                    for h in battle.heroes_in_cells(Field.block_cells(corner)):
+                        if h.wound_count() > 0 or h.armor_damage > 0:
+                            n += 1.0
+                    best_block = maxf(best_block, n)
+                value += best_block
+            "recover":
+                if String(e.get("to", "deck")) == "deck":
+                    var most: int = 0
+                    for h in battle.standing_heroes():
+                        if target != "self" or h == hero:
+                            most = maxi(most, mini(amount, h.discard.size()))
+                    value += 0.5 * most
+    if card.exhausts():
+        value -= PATCH_EXHAUST_COST
+    return value
+
+static func _sum_or_max(values: Array[float], add_up: bool) -> float:
+    var total: float = 0.0
+    var best: float = 0.0
+    for v in values:
+        total += v
+        best = maxf(best, v)
+    return total if add_up else best
 
 func _choose_turn(request: DecisionRequest, battle: Battle) -> int:
     var best_index: int = -1

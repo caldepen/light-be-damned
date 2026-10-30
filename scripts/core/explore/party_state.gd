@@ -39,6 +39,13 @@ func new_uid() -> int:
     _next_uid += 1
     return _next_uid
 
+func last_uid() -> int:
+    return _next_uid
+
+## After a battle: carry on numbering from the battle's last uid.
+func continue_uids(after: int) -> void:
+    _next_uid = maxi(_next_uid, after)
+
 func hero(hero_id: String) -> HeroState:
     for h in heroes:
         if h.hero_id == hero_id:
@@ -62,6 +69,24 @@ func can_roll() -> Array[HeroState]:
 
 func all_down() -> bool:
     return standing().is_empty()
+
+## Heroes who fight the next battle: standing, with cards in their deck. The rest sit out: Down
+## heroes, and heroes whose deck ran out, until the party camps (RULES §5 Empty deck, §8).
+func fighters() -> Array[HeroState]:
+    return can_roll()
+
+## Battle effects end with each battle (RULES §8 Battles in a run): squares, Guard, Bleed, Stun,
+## statuses, pending bonuses and draws, toad turns. Hands, piles, Wounds, armor and Down stay.
+func clear_battle_state(hero_in: HeroState) -> void:
+    hero_in.cells = []
+    hero_in.guard_tokens = 0
+    hero_in.guard_expires_round = -1
+    hero_in.bleeds.clear()
+    hero_in.stunned = false
+    hero_in.statuses.clear()
+    hero_in.buffs.clear()
+    hero_in.owed_draws = 0
+    hero_in.toad_turns = 0
 
 ## Average deck size of the standing heroes (the AI's "keep going" measure, ruling #57).
 func average_deck() -> float:
@@ -156,10 +181,7 @@ func campfire_reset(hero_in: HeroState, rng: SeededRng) -> void:
     draw(hero_in, hero_in.hand_size)
     hero_in.armor_damage = 0
     hero_in.down = false
-    hero_in.statuses.clear()
-    hero_in.buffs.clear()
-    hero_in.owed_draws = 0
-    hero_in.toad_turns = 0
+    clear_battle_state(hero_in)
 
 ## Party armor slots still intact, and in all (the "armor gone means leave" meter).
 func armor_left() -> int:

@@ -111,7 +111,7 @@ func explore(doorway: MapDoorway) -> ExploreResult:
             raise_hut(1, "nothing fits")
     result.set_aside = set_aside.size()
     var first: Dictionary = set_aside.pop_front()
-    var walls: Array[TilePlacement] = map.wall_placements(first)
+    var walls: Array[TilePlacement] = map.wall_placements(first, party_tile)
     if walls.is_empty():
         set_aside.push_front(first)
         _return_set_aside(set_aside)
@@ -127,12 +127,13 @@ func explore(doorway: MapDoorway) -> ExploreResult:
 ## Where a drawn tile may go, in the rules' order: at the chosen doorway; else at another open
 ## doorway of the same room; else of any explored room. Goal tiles (ignores_doorway_matching)
 ## go at the chosen doorway if they fit, else against any wall of an explored room (ruling #48).
+## "Explored room" here means one the party can walk to (open question #77).
 func placement_options(entry: Dictionary, doorway: MapDoorway) -> Array[TilePlacement]:
     var options: Array[TilePlacement] = []
     if bool(entry["def"].get("ignores_doorway_matching", false)):
         if doorway != null:
             options = map.hut_placements_at(entry, doorway)
-        return options if not options.is_empty() else map.wall_placements(entry)
+        return options if not options.is_empty() else map.wall_placements(entry, party_tile)
     if doorway != null:
         options = map.doorway_placements(entry, doorway)
         if not options.is_empty():
@@ -142,7 +143,7 @@ func placement_options(entry: Dictionary, doorway: MapDoorway) -> Array[TilePlac
                 options.append_array(map.doorway_placements(entry, d))
         if not options.is_empty():
             return options
-    for d in map.explored_open_doorways():
+    for d in map.explored_open_doorways(party_tile):
         if doorway == null or d.tile != doorway.tile:
             options.append_array(map.doorway_placements(entry, d))
     return options
@@ -152,9 +153,9 @@ func placement_options(entry: Dictionary, doorway: MapDoorway) -> Array[TilePlac
 func farthest_options(entry: Dictionary) -> Array[TilePlacement]:
     var all: Array[TilePlacement] = []
     if bool(entry["def"].get("ignores_doorway_matching", false)):
-        all = map.wall_placements(entry)
+        all = map.wall_placements(entry, party_tile)
     else:
-        for d in map.explored_open_doorways():
+        for d in map.explored_open_doorways(party_tile):
             all.append_array(map.doorway_placements(entry, d))
     var dist: Dictionary = map.path_distances(front_door.cells[0])
     var best: int = -1

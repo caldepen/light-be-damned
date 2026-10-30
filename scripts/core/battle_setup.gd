@@ -8,6 +8,27 @@ extends RefCounted
 static func create(data: Dictionary, encounter: Array, seed_in: int, provider: DecisionProvider) -> Battle:
     var battle := Battle.new(data["rules"], data["enemies"], seed_in, provider)
     add_party(battle, data)
+    add_encounter(battle, encounter)
+    return battle
+
+static func add_party(battle: Battle, data: Dictionary) -> void:
+    var heroes: Array[HeroState] = []
+    for key in battle.rules["hero_order"]:
+        heroes.append(make_hero(battle, String(key), data["heroes"][key], data["items"]))
+    add_heroes(battle, heroes, battle.rules.get("default_formation", {}))
+
+## Put existing heroes (a run's party, RunFight) on their formation squares ({hero_id: [row, lane]})
+## and set up the Provoke track for them.
+static func add_heroes(battle: Battle, heroes: Array[HeroState], formation: Dictionary) -> void:
+    for hero in heroes:
+        var pos: Array = formation[hero.hero_id]
+        var cells: Array[Vector2i] = [Field.cell_for(FigureState.SIDE_HEROES, int(pos[0]), int(pos[1]))]
+        battle.heroes.append(hero)
+        battle.field.place(hero, cells)
+    battle.provoke.setup(battle.heroes, int(battle.rules.get("provoke", {}).get("track_max", 20)))
+
+## Enemies placed front row first, large enemies first (RULES §5 Placement).
+static func add_encounter(battle: Battle, encounter: Array) -> void:
     var groups: Array = encounter.duplicate()
     groups.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
         var sa: Vector2i = size_of(battle.enemy_defs[a["type"]])
@@ -16,17 +37,6 @@ static func create(data: Dictionary, encounter: Array, seed_in: int, provider: D
     for group in groups:
         for i in range(int(group.get("count", 1))):
             add_enemy(battle, String(group["type"]))
-    return battle
-
-static func add_party(battle: Battle, data: Dictionary) -> void:
-    var formation: Dictionary = battle.rules.get("default_formation", {})
-    for key in battle.rules["hero_order"]:
-        var hero: HeroState = make_hero(battle, String(key), data["heroes"][key], data["items"])
-        var pos: Array = formation[key]
-        var cells: Array[Vector2i] = [Field.cell_for(FigureState.SIDE_HEROES, int(pos[0]), int(pos[1]))]
-        battle.heroes.append(hero)
-        battle.field.place(hero, cells)
-    battle.provoke.setup(battle.heroes, int(battle.rules.get("provoke", {}).get("track_max", 20)))
 
 static func make_hero(battle: Battle, key: String, def: Dictionary, items: Dictionary) -> HeroState:
     var hero := HeroState.new()

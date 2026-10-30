@@ -192,6 +192,31 @@ func test_locked_in_rolls_until_it_succeeds_each_failure_raising_the_hut():
     assert_eq(run.explorer.hut_track, 2)
     assert_true(run.log.has_type("unlocked"))
 
+func test_locked_in_breaks_on_its_own_with_hut_plus_1_when_nobody_can_roll():
+    for h in run.party.heroes:
+        h.discard.append_array(h.deck)
+        h.deck.clear()
+    run.stack_whim("locked_in")
+    run.resolve_whim()
+    assert_true(run.log.has_type("seal_breaks"), "ruling #72: the seal breaks rather than leaving the party stuck")
+    assert_eq(run.explorer.hut_track, 1)
+    assert_eq(run.party.can_roll().size(), 0, "nothing was flipped")
+
+func test_failed_lock_rolls_until_the_track_crosses_3_resolve_the_whim_at_once():
+    # Ruling #71: Hut 2 -> a failed retry -> 3 draws a Whim mid-room, before the next retry.
+    run.explorer.hut_track = 2
+    run.stack_whim("bones_stir")
+    run.room_decks.stack("library", "rune_lock")
+    var wizard: HeroState = _hero("wizard")
+    _top(wizard, 6)
+    _top(wizard, 1)
+    provider.then(RunRequest.ATTEMPT, true).then(RunRequest.RETRY, true)
+    provider.then(RunRequest.ROLLER, wizard).then(RunRequest.ROLLER, wizard)
+    run.enter_room(_room("library_long"))
+    assert_eq(fights, ["bones_stir (no rewards)"])
+    var types: Array = run.log.entries.map(func(e: Dictionary) -> String: return e["type"])
+    assert_lt(types.find("whim"), types.rfind("skill_roll"), "the Whim came before the retry")
+
 func test_doors_slam_leaves_one_open_doorway_and_vanishing_door_closes_one():
     run.stack_whim("doors_slam")
     run.resolve_whim()

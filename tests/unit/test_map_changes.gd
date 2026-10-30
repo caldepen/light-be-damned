@@ -34,6 +34,22 @@ func _sides(t: PlacedTile) -> Array:
     s.sort()
     return s
 
+func test_the_hut_never_makes_a_door_through_a_wall_token():
+    assert_eq(ex.map.close_doorway(Vector2i(-1, 0), "W"), "")
+    var placements: Array[TilePlacement] = ex.map.wall_placements(_entry("witchs_workshop"), ex.party_tile)
+    assert_gt(placements.size(), 0)
+    for p in placements:
+        assert_false(p.hut_door.get("cell") == Vector2i(-1, 0) and p.hut_door.get("side") == "W", "the sealed edge stays sealed")
+
+func test_a_dead_end_turned_away_from_the_map_offers_no_doorways_to_the_party():
+    # Open question #77: the vault turned so its doorway faces east is cut off from everything.
+    assert_eq(ex.rotate_tile(vault, 3), "")
+    assert_false(ex.map.reachable_from(ex.front_door).has(vault))
+    for d in ex.map.explored_open_doorways(ex.party_tile):
+        assert_ne(d.tile, vault, "the party can't walk to it, so it can't backtrack there")
+    var any_vault: bool = ex.map.explored_open_doorways().any(func(d: MapDoorway) -> bool: return d.tile == vault)
+    assert_true(any_vault, "it still has an open doorway on the map")
+
 ## The party in a room east of the den, reachable only through it.
 func _party_beyond_the_den() -> PlacedTile:
     var beyond: PlacedTile = _put("dark_small", 0, Vector2i(1, 1))

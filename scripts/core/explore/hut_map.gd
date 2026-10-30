@@ -77,11 +77,15 @@ func open_doorways(tile: PlacedTile) -> Array[MapDoorway]:
             result.append(MapDoorway.new(tile, cell, side))
     return result
 
-## Open doorways of every explored tile, in placement order.
-func explored_open_doorways() -> Array[MapDoorway]:
+## Open doorways of every explored tile, in placement order. With `from`, only rooms the party can
+## walk to from there: a room a Whim turned away from the map (Shifting Walls) is out of reach.
+func explored_open_doorways(from: PlacedTile = null) -> Array[MapDoorway]:
     var result: Array[MapDoorway] = []
+    var reach: Array[PlacedTile] = []
+    if from != null:
+        reach = reachable_from(from)
     for t in tiles:
-        if t.explored:
+        if t.explored and (from == null or reach.has(t)):
             result.append_array(open_doorways(t))
     return result
 
@@ -362,15 +366,20 @@ func hut_placements_at(entry: Dictionary, doorway: MapDoorway) -> Array[TilePlac
 
 ## Ways to lay `entry` against any edge of an explored room that faces an empty square; the
 ## Hut makes the door (break-through, and the goal tiles when they don't fit at the doorway).
-func wall_placements(entry: Dictionary) -> Array[TilePlacement]:
+## With `from`, only rooms the party can walk to from there. An edge sealed by a wall token
+## (Vanishing Door) stays sealed: the Hut never makes a door through it.
+func wall_placements(entry: Dictionary, from: PlacedTile = null) -> Array[TilePlacement]:
     var options: Array[TilePlacement] = []
     var seen: Dictionary = {}
+    var reach: Array[PlacedTile] = []
+    if from != null:
+        reach = reachable_from(from)
     for t in tiles:
-        if not t.explored:
+        if not t.explored or (from != null and not reach.has(t)):
             continue
         for cell in t.cells:
             for side in TileGeometry.SIDES:
-                if is_free(TileGeometry.facing_cell(cell, side)):
+                if is_free(TileGeometry.facing_cell(cell, side)) and not is_walled(cell, side):
                     _add_against(options, seen, entry, cell, side, null)
     return options
 

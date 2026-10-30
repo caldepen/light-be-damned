@@ -348,6 +348,8 @@ The party explores the Hut one room at a time, building a map from room tiles dr
 3. Equal or beat the target to succeed. Otherwise the failure text happens (a trap springs, a lock jams). **Every failed skill roll raises the Hut track by 1**: spotting, disarming, dodging, locks, the Shrine, Hut Whims (ruling #55).
 4. The flipped card is spent: discarded, or Exhausted if it is a ▲ or ★ card. About 1 flip in 6 burns one of your best cards.
 
+**Nobody can roll.** If no standing hero has a card in their deck, a roll the party must make (a Hut Whim, a non-optional room check) counts as failed: its failure text happens, but the Hut track doesn't rise, since nothing was flipped. Locked In is the exception (§10). The same goes for wandering-monster flips: only a standing hero with cards in their deck can flip (rulings #72, #74).
+
 **Retries.** Library locks may be retried as often as the party likes, by any hero, each failure raising the Hut track. A locked chest allows one retry. Stopping leaves the lock shut for good, since the room won't resolve again (ruling #57).
 
 **Teamwork.** A target above 6 needs two heroes, who each flip and add the values ("Collapsed tunnel: Strength 8").
@@ -374,7 +376,7 @@ Beating a Hard or harder obstacle (target 5 or more) earns 1 XP. Spotting and do
 1. Spend 1 ration per hero, Down heroes included. Without enough rations, the party can't camp.
 2. Hut track +1.
 3. **The campfire** fully resets every hero: Wounds and armor damage are cleared, discards and Exhausted cards are shuffled back into the deck, each hero draws a fresh hand, and Down heroes get up. Curses are lifted.
-4. **Wandering monsters** (not at the Hearth): one hero, the party's choice, flips the top card of their fresh deck (the card is spent). On a skill value of 1–3 (1 in 2), 3 goblins attack. No loot, no XP.
+4. **Wandering monsters** (not at the Hearth): one hero, the party's choice, flips the top card of their fresh deck (the card is spent). On a skill value of 1–3 (1 in 2), 3 goblins attack. No loot, no XP. The flip comes after the reset, so every hero is up and can flip (ruling #74).
 
 **Tip: armor gone means leave.** When your armor is gone, the next fight hits your hand. Think about heading home.
 
@@ -457,7 +459,8 @@ A small hut that never stands in the same place twice. Inside it is far larger t
 - At 2: the Witch's Workshop enters the bag (if the party is eligible).
 - At 3, 6 and 9: draw a **Hut Whim**.
 - At 4: the Inner Study enters the bag.
-- **At 10 the Hut wakes:** every room entered from then on, except corridors, also draws a Lair card, and that fight happens first. A Lair room is still one fight, its own Lair card (ruling #52).
+- **At 10 the Hut wakes:** every room entered from then on, except corridors, also draws a Lair card, and that fight happens first. A Lair room is still one fight, its own Lair card (ruling #52). Each room gets this extra Lair fight once, the first time the party enters it awake: a declined Shrine doesn't draw another when the party comes back (ruling #73).
+- **Mid-room.** When the track crosses 3, 6 or 9 in the middle of a room (a failed lock roll), the Whim resolves at once, as with a moon: a Bones Stir fight comes before the lock's retry (ruling #71).
 
 **Hut Whims (12).** Shuffled at the start of each run and drawn without repeats (ruling #53). Whims are never optional. Where a Whim picks a tile or doorway, the Hut picks at random among the legal options (a DM chooses in DM mode) (ruling #63).
 
@@ -465,7 +468,7 @@ A small hut that never stands in the same place twice. Inside it is far larger t
 | --- | --- |
 | Shifting Walls | Rotate an explored tile the party isn't in, in place. Doorways may open or close. If it would cut the party off from the Front Door, it doesn't turn |
 | Vanishing Door | Close one open doorway on the map with a wall token |
-| Locked In | The doorways of the party's room seal until the party beats a Strength or Agility 4 roll. Roll at once; retry until it succeeds, each failure Hut +1 (ruling #58) |
+| Locked In | The doorways of the party's room seal until the party beats a Strength or Agility 4 roll. Roll at once; retry until it succeeds, each failure Hut +1 (ruling #58). If nobody can roll (every standing hero's deck is empty), the seal breaks on its own and the Hut track rises by 1 (ruling #72) |
 | Hall of Mirrors | Swap two explored tiles of the same size and shape, doorways and all (not the party's room, not the Front Door) |
 | Collapse | Remove a dead-end room the party isn't in: a placed room tile, not a special tile, connected to exactly one other tile and with no open doorways. It leaves the game for this run. This can never cut the map in two |
 | Keyhole | For the next exploration, draw and look at the tile before choosing the doorway |

@@ -1,11 +1,14 @@
 extends SceneTree
 
-## Headless map runner (Milestone 4.2): builds the Hut from the tile bag with HutExplorer and no
-## rooms resolved. The party walks into each new tile; doorways are picked at random (seeded) from
-## the party's room, else from any explored room. Usage:
+## Headless map and run runner. Without --rooms it builds the Hut from the tile bag with HutExplorer
+## and no rooms resolved (Milestone 4.2): the party walks into each new tile; doorways are picked at
+## random (seeded) from the party's room, else from any explored room. With --rooms it plays whole
+## runs (see _rooms). Usage:
 ##   godot --headless --path . --script tools/run_map.gd                 # seed 1: event log and map
 ##   godot --headless --path . --script tools/run_map.gd -- 7            # seed 7
 ##   godot --headless --path . --script tools/run_map.gd -- --batch 1000 # how often the safety nets fire
+##   godot --headless --path . --script tools/run_map.gd -- --rooms 7    # one whole run, seed 7
+##   godot --headless --path . --script tools/run_map.gd -- --rooms --batch 200 --dm standard
 
 const TYPE_CHARS: Dictionary = {
     "front_door": "F", "corridor": "c", "lair": "L", "dark": "?", "vault": "V", "library": "B",
@@ -70,37 +73,86 @@ func _batch(module: Dictionary, runs: int) -> void:
         [100.0 * stirs / runs, 100.0 * breaks / runs, 100.0 * closed / runs])
     print("Tiles placed per run: %.1f. Average map size: %.1f x %.1f squares." % [float(tiles) / runs, float(width) / runs, float(height) / runs])
 
-## --rooms [seed]: one run with rooms resolved by HutRun and SimpleRunAi (battles stubbed as won
-## until Milestone 4.4), exploring until the bag is empty, the boss or a wipe; prints the log.
-## --rooms --batch N: N such runs, counting what happened.
+## Whole runs (HutRun.play) with real battles: SimpleRunAi outside battle, TacticalAiProvider heroes.
+##   --rooms [seed]             one run: the event log (battles included), the map, the result
+##   --rooms --batch N          N runs (seeds 1-N), a summary
+##   options: --dm automated|standard|ruthless (default standard)
+##            --level N   party level for the Witch's Workshop gate (default 1: no Workshop, so
+##                        no key and no boss; levels don't exist until Milestone 5)
+##            --stub      battles are recorded and called won (the 4.3 smoke test)
 func _rooms(data: Dictionary, args: PackedStringArray) -> void:
-    if args.size() >= 3 and args[1] == "--batch":
-        var runs: int = int(args[2])
-        var totals: Dictionary = {}
-        for s in range(1, runs + 1):
-            var run: HutRun = play_rooms(data, s)
-            for key in ["fight", "whim", "skill_roll", "camp", "backtrack", "trap_springs", "loot", "hut_wakes", "boss_reached", "door_shut", "map_change_refused"]:
-                totals[key] = int(totals.get(key, 0)) + run.log.of_type(key).size()
-        print("%d runs (rooms resolved, battles stubbed as won, SimpleRunAi). Per run:" % runs)
-        for key in totals:
-            print("  %-20s %.2f" % [key, float(totals[key]) / runs])
+    var options: Dictionary = {"dm": Battle.DM_STANDARD, "level": 1, "stub": false, "batch": 0, "seed": 1}
+    var i: int = 1
+    while i < args.size():
+        match args[i]:
+            "--dm":
+                i += 1
+                options["dm"] = args[i]
+            "--level":
+                i += 1
+                options["level"] = int(args[i])
+            "--batch":
+                i += 1
+                options["batch"] = int(args[i])
+            "--stub":
+                options["stub"] = true
+            _:
+                options["seed"] = int(args[i])
+        i += 1
+    if int(options["batch"]) > 0:
+        _rooms_batch(data, options)
         return
-    var seed_value: int = int(args[1]) if args.size() >= 2 else 1
-    var run: HutRun = play_rooms(data, seed_value)
+    var run: HutRun = play_run(data, int(options["seed"]), options)
     print(run.log.to_text())
     print("")
     print(render(run.explorer))
-    print("Hut track %d, rations %d, XP %d, loot %d, key %s, boss %s." % [run.explorer.hut_track, run.rations, run.xp, run.loot_drawn, run.explorer.has_key, run.boss_reached])
 
-static func play_rooms(data: Dictionary, seed_value: int) -> HutRun:
+func _rooms_batch(data: Dictionary, options: Dictionary) -> void:
+    var runs: int = int(options["batch"])
+    var started: int = Time.get_ticks_msec()
+    var results: Dictionary = {}
+    var totals: Dictionary = {}
+    var keys: Array[String] = ["fight", "enemies_withdraw", "camp", "backtrack", "whim", "skill_roll", "hut_wakes", "patch_up", "bandage", "sits_out", "down"]
+    var sums: Dictionary = {"rooms": 0, "xp": 0, "loot": 0, "hut": 0, "rations": 0, "key": 0}
+    var stalled: Array[int] = []
+    for s in range(1, runs + 1):
+        var run: HutRun = play_run(data, s, options)
+        results[run.result] = int(results.get(run.result, 0)) + 1
+        if run.result == HutRun.RUN_STALLED:
+            stalled.append(s)
+        for key in keys:
+            totals[key] = int(totals.get(key, 0)) + run.log.of_type(key).size()
+        var rooms: int = 0
+        for t in run.explorer.map.tiles:
+            rooms += 1 if t.explored and t != run.explorer.front_door else 0
+        sums["rooms"] += rooms
+        sums["xp"] += run.xp
+        sums["loot"] += run.loot_drawn if run.result == HutRun.RUN_LEFT else 0
+        sums["hut"] += run.explorer.hut_track
+        sums["rations"] += run.rations
+        sums["key"] += 1 if run.explorer.has_key else 0
+    print("%d runs (seeds 1-%d), %s DM, party level %d%s, SimpleRunAi + TacticalAiProvider, %.1f s." %
+        [runs, runs, options["dm"], int(options["level"]), ", battles stubbed as won" if options["stub"] else "", (Time.get_ticks_msec() - started) / 1000.0])
+    var parts: PackedStringArray = []
+    for r in results:
+        parts.append("%s %.1f%%" % [r, 100.0 * int(results[r]) / runs])
+    print("Results: " + ", ".join(parts))
+    if not stalled.is_empty():
+        print("Stalled (hit the step cap): seeds %s" % str(stalled))
+    print("Per run: rooms explored %.1f, XP %.2f, loot kept %.2f, Hut track at the end %.1f, rations left %.1f, key %.1f%%." %
+        [float(sums["rooms"]) / runs, float(sums["xp"]) / runs, float(sums["loot"]) / runs, float(sums["hut"]) / runs, float(sums["rations"]) / runs, 100.0 * int(sums["key"]) / runs])
+    print("Events per run (\"down\" counts heroes and enemies):")
+    for key in keys:
+        print("  %-18s %.2f" % [key, float(totals[key]) / runs])
+
+static func play_run(data: Dictionary, seed_value: int, options: Dictionary) -> HutRun:
     var run := HutRun.new(data, seed_value, SimpleRunAi.new())
-    run.explorer.party_level = 3
-    for i in range(60):
-        var status: String = run.explore_step()
-        if run.wiped or run.boss_reached or status == ExploreResult.EMPTY_BAG or status == ExploreResult.CLOSED_IN:
-            break
-        if status == HutRun.ROOM_SHUT and run.explorer.has_key:
-            break
+    run.battle_decisions = TacticalAiProvider.new()
+    run.dm_mode = String(options.get("dm", Battle.DM_STANDARD))
+    run.explorer.party_level = int(options.get("level", 1))
+    if bool(options.get("stub", false)):
+        run.fight_runner = func(_r: HutRun, _e: String, _rw: bool) -> String: return HutRun.FIGHT_WON
+    run.play()
     return run
 
 static func _bounds(ex: HutExplorer) -> Rect2i:

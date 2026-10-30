@@ -167,7 +167,7 @@ XP for beating a Hard or harder obstacle (target ≥ `rules.json` `skill_rolls.d
 | `optional` | `prompt`, `effects` | The party may accept (resolve `effects`) or refuse (The Black Cat) |
 | `rotate_tile` | | Shifting Walls |
 | `close_doorway` | | Vanishing Door: a random open doorway gets a wall token |
-| `lock_in` | `types`, `target` | Locked In: the party's room seals until one of `types` beats `target`; roll at once, retry until success |
+| `lock_in` | `types`, `target`, `hut_if_nobody_rolls` | Locked In: the party's room seals until one of `types` beats `target`; roll at once, retry until success. If nobody can roll, the seal breaks and the Hut track rises by `hut_if_nobody_rolls` (default 1, ruling #72) |
 | `swap_tiles` | | Hall of Mirrors |
 | `collapse` | | Collapse: remove a dead-end room |
 | `keyhole` | | The next exploration draws the tile before the doorway is chosen |
