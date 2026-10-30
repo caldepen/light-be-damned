@@ -13,6 +13,16 @@ Not rule questions; things to check later.
 - **Balance under standard DM (2026-10-26).** Standard DM is the intended default. Re-check campaign balance (wipes, runs to beat the witch) under standard DM once exploration and runs exist. The battle baseline is in CLAUDE.md (Balance baseline).
 - **Exploration playtest (2026-10-28).** From `EXPLORATION_SPEC.md` §11: whether a DM placing Lairs everywhere is too strong (with the DM tile hand, later), and whether the map-shifting Whims (Shifting Walls, Hall of Mirrors, Collapse, Doors Slam) are fun or fiddly.
 
+## Resolved (free step, 2026-10-29)
+
+| # | Question | Decision | Where |
+| --- | --- | --- | --- |
+| 66 | An enemy still out of reach after its step | The free step is for melee only, and enemies decide before moving: with a hero in reach after the step toward the top-Provoke hero, step and attack in melee; otherwise throw (Throw option) from where it stands, without stepping; otherwise take the step and the turn ends. No step before a throw or ranged attack | §4, §5 Movement, §6, §7, §12 |
+| 67 | Enemy cards that move (Scurry, Lumber, Clatter Forward, Vault) | Card text wins ("When a card's text conflicts with a general rule, the card wins"): they move as printed, with no free step (ruling #6 now holds for enemies too) | §3 Cards beat rules, §5 Card movement |
+| 68 | Large enemies in rows and areas (an ogre straddling both front rows) | Hit if any of its squares is in the targeted row or area, and takes the effect once, never once per square. Every row and area card | §6 Large figures in areas |
+| 69 | Choosing between flipped cards when a melee card can reach nobody | Value each card by the damage it would deal this turn (melee only, nobody in reach: 0; Melee · Throw that can't reach the top hero: its Throw). If every playable flipped card is such a 0-value melee card, Go Fish; if still nothing, play a 0-value card: step toward the top hero, turn ends. Cards with no damage but another use (Cower, Rattle, Thick Hide) play as before. Timid enemies picking a 0 card just advance (intended) | §4, §7 Card values, Nothing in reach |
+| 70 | Enemy targeting priority | Top-Provoke hero in melee reach now or after the step toward them: step if needed and hit them. Else a Throw or ranged option at the top hero from where it stands. Else (melee only) it must step toward the top hero, then hits the highest-Provoke hero in reach, or the turn ends. Never skip that step to hit a hero already in reach. Cards that name a target (Shortbow, Vault, area cards) follow their text | §5, §6, §7 Targeting priority |
+
 ## Resolved (Milestone 4 planning, 2026-10-28)
 
 Exploration with room tiles (`docs/EXPLORATION_SPEC.md`). All recorded in `docs/RULES.md` §8 and §10.

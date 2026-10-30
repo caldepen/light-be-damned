@@ -61,6 +61,8 @@ Each hero has one **Type**, which decides the cards they use and the skill rolls
 
 **Card anatomy.** Every hero card has a name, an effect and a **skill value** from 1 to 6 (bottom right). The effect is used in battle; the skill value only matters for skill rolls when exploring. Each 30-card deck holds five cards of each skill value, so a flip rolls like a six-sided die.
 
+**Cards beat rules.** When a card's text conflicts with a general rule, the card wins. Frost Ray steps back and then shoots, though the free step is only for melee; Scurry moves and then throws.
+
 **Special cards**
 
 - **Signature (★).** One per hero: Berserk, Party Heal, Backstab, and the wizard's signature (Fireball, Chain Lightning or Frost Spike, chosen at each campfire).
@@ -90,16 +92,16 @@ Each hero has one **Type**, which decides the cards they use and the skill rolls
 
 1. Draw any cards owed (from Disarm or Hex).
 2. Either **play** one card from your hand that has a legal effect, **flip** the top card of your deck and play it blind, or **pass**.
-3. Before a melee attack you may take one free straight step to get in reach.
+3. Before a melee attack you may take one free straight step to get in reach. Ranged attacks are made from where you stand.
 4. If the card has a damage, heal or repair effect and was played on a legal target, move your Provoke token up 1 for every point of damage that landed and every Wound removed or armor point repaired (at least 1), then by any Provoke the card names.
 5. Discard the card (or Exhaust it) and draw back up to your hand size.
 
 **An enemy's turn**
 
-1. Melee enemies take a free straight step toward the hero highest on the Provoke track.
-2. Flip cards equal to its Draw from its type's deck.
-3. Phase cards (◆) take effect. Then it plays one card, chosen by morale (Bold or Desperate: highest damage; Timid: lowest).
-4. If nothing can be played, it flips one more (Go Fish); otherwise the turn is lost.
+1. Flip cards equal to its Draw from its type's deck.
+2. Phase cards (◆) take effect. Then it plays one card, chosen by morale (Bold or Desperate: highest damage; Timid: lowest).
+3. An attack card decides before moving (§7, Targeting priority): if the top-Provoke hero is in reach after a free step toward them, step and attack them; otherwise throw at them if the card can, without stepping; otherwise take the step and attack the highest-Provoke hero in reach, if any.
+4. If nothing can be played, it flips one more (Go Fish); otherwise the turn is lost. If its only playable cards are melee cards with nobody in reach, it also Goes Fish; if that doesn't help, it takes the step toward the top-Provoke hero and the turn ends (§7, Nothing in reach).
 
 **Out of battle**
 
@@ -118,7 +120,7 @@ Each hero has one **Type**, which decides the cards they use and the skill rolls
 - **Placement.** The players place their heroes on any squares of their board. Enemies fill their front row first, then the middle, then the back.
 - **Size.** Most figures take one square. Large enemies take 2×2 (the ogre) and start in the front and middle rows of the left and centre lanes; the other enemies then fill the remaining squares, front row first.
 - **Down.** A hero or enemy that goes Down is removed from the board.
-- **Shifting front.** If a side's front row is empty, its front-most occupied row counts as the front row. Cards that target the "enemy front row" (Quake, Caltrops, Turn Undead) use this shifting front, and never need reach.
+- **Shifting front.** If a side's front row is empty, its front-most occupied row counts as the front row. Cards that target the "enemy front row" (Quake, Caltrops, Turn Undead) use this shifting front, and never need reach. They hit squares of the DM board only: an enemy standing on the heroes' board is never in the enemy front row.
 
 **Turn order.** Heroes and enemies alternate, one figure at a time, starting with a hero. Each hero acts once per round, in any order the party chooses. Turn a hero's card sideways when they've acted. Enemies act front row first, then left to right; a large enemy acts by its front-left square. When one side runs out of figures to act, the other side finishes the round. Positions decide when each enemy acts, so the enemies standing in front act first; the party decides when each hero acts.
 
@@ -141,9 +143,17 @@ Each hero has one **Type**, which decides the cards they use and the skill rolls
 
 **Movement**
 
-- **Free step.** Before a melee attack, a hero or enemy may step 1 square into an empty adjacent square, on either board, to get in reach.
+- **Free step, melee only.** Every melee attack, by a hero or an enemy, may be preceded by one free straight step (forward, back or sideways, never diagonal). The attack then reaches any square within 1, diagonals included.
+- **No step before a throw or ranged attack.** Ranged and Throw attacks are made from where the attacker stands.
+- **Across the line.** The step may cross onto the other side's board: enemies can step onto empty squares of the heroes' board, and heroes onto the DM board.
+- **Blocked.** A step can't end on an occupied square. A 2×2 enemy steps as a block and needs every new square empty.
+- **Heroes** may only play a melee card if an enemy is in reach after the step (Legal plays).
+- **Enemies decide before moving.** An enemy's step always goes toward the hero highest on the Provoke track, with the tie-breaks in §6. When it plays a melee card (§7, Targeting priority):
+  1. If it can reach the top-Provoke hero, now or after the step, it steps if needed and attacks that hero.
+  2. Otherwise, if the card has a Throw option (goblin "Melee 1 · Throw 1"), it throws at the top-Provoke hero from where it stands, without stepping.
+  3. Otherwise it must take the step, then attacks the highest-Provoke hero in reach; with nobody in reach its turn ends. It never skips the step to hit a hero it could already reach.
 - **Straight only.** All movement is forward, back or sideways, never diagonal, unless a card says otherwise (Blink, Vault). Attacks can still reach diagonally.
-- **Card movement.** Apart from the free step, figures only move when a card says so ("Move to the nearest square in melee reach, then…"). A card that moves you replaces the free step; you can't use both.
+- **Card movement.** Apart from the free step, figures only move when a card says so ("Move to the nearest square in melee reach, then…"). A card that moves you replaces the free step; you can't use both. Cards that move and then attack (Frost Ray, Scurry, Lumber, Clatter Forward, Vault, Twin Daggers, Backstab, Ambush) do what they say, even before a throw or ranged attack (Cards beat rules, §3). If the attack has no target after the card's own move, the card can't be played.
 - **"Move to the nearest square in melee reach"** (Twin Daggers, Backstab, Ambush) moves any distance, ignoring the straight-only rule, to an empty square within melee reach of the target, on either board. Pick the square closest to you (counting diagonal squares as 1); if several are equally close, you choose.
 - **Behind the lines.** A figure on the other side's board reaches, and can be reached by, anything within 1 square of it there.
 
@@ -156,6 +166,8 @@ Each hero has one **Type**, which decides the cards they use and the skill rolls
 - **Bonuses** (Berserk +1, Bless +2, Feint +2, Arcane Surge +2): a bonus applies to every target of the card, so it adds to each enemy hit, to each bolt of a split attack, and to each hero who gains Guard from it (Bless on Battle Cry or Shield Wall: +2 Guard tokens to each). Bless targets an ally, never the Cleric herself.
 - **Add bonuses first, then double.** Divine Light with Bless against undead deals (2 + 2) × 2 = 8.
 - **Enemy front row.** Attacks on the enemy front row (Quake, Caltrops) never need reach.
+
+- **Large figures in areas.** A large enemy is hit if any of its squares is in the targeted row or area, and takes the effect once, never once per square. This holds for every row and area card (Quake, Caltrops, Turn Undead, Frost Wall, Firestorm, Consecrate, Stomp…), including an ogre straddling both front rows.
 
 | Area | Hits |
 | --- | --- |
@@ -177,7 +189,7 @@ Each hero has one **Type**, which decides the cards they use and the skill rolls
 - **Start and limits.** All tokens start on 0, stacked from top to bottom Fighter, Cleric, Thief, Wizard. The track runs from 0 to 20. A token at 20 that gains Provoke goes on top of the 20 stack; a token at 0 that loses Provoke stays where it is.
 - Provoke never decays during a battle, so a tank who stops adding to it is eventually overtaken.
 
-**Who enemies attack.** A melee enemy uses its free step to move one square toward the hero highest on the track (if that square is empty), then attacks the highest-Provoke hero it can reach. Turn by turn it works its way toward the top hero, striking whoever stands in its path. Ranged enemy attacks simply target the top hero. A DM must follow these rules unless an enemy card says otherwise.
+**Who enemies attack.** An enemy goes for the hero highest on the track (§7, Targeting priority). If it can reach them in melee, now or after its free step toward them, it steps and attacks them. If not, a card with a Throw throws at them from where it stands; a melee-only card takes the step toward them (if that square is empty) and attacks the highest-Provoke hero it can then reach, or nobody. Turn by turn it works its way toward the top hero, striking whoever stands in its path. Ranged enemy attacks simply target the top hero. A DM must follow these rules unless an enemy card says otherwise.
 
 **Guard.** Playing a Guard card puts it in front of the hero with Guard tokens on it. A hero has at most one Guard card in play; further Guard on that hero only adds tokens to it. Each token absorbs 1 damage. The card turns sideways at the end of the round it was played and is discarded, with any tokens left, at the end of the next round.
 
@@ -227,11 +239,22 @@ Enemies have no hands. Each enemy card shows its armor and **Hit Dice (Hd)**: da
 4. **Top-tier enemy cards (▲)** are played once per battle by each enemy; if flipped again, it plays another card.
 5. **Go Fish.** If no flipped card can be played (including when a ◆ card leaves it with no other flipped card), it flips one more and plays that if it can. If the Go Fish card is a ◆ card, it takes effect (if this enemy hasn't used it) and the turn ends. Otherwise its turn is lost.
 
+**Targeting priority.** When an enemy plays an attack card, it decides before moving:
+
+1. If it can reach the top-Provoke hero in melee, now or after its free step toward them, it steps if needed and attacks that hero.
+2. Otherwise, if the card has a Throw or ranged option, it attacks the top-Provoke hero with it from where it stands, without moving.
+3. Otherwise (melee only) it must take its free step toward the top-Provoke hero. Then it attacks the highest-Provoke hero it can reach; if it can reach none, its turn ends.
+4. It may never skip the step toward the top-Provoke hero in order to attack a different hero it could already reach.
+
+Cards that name their own target follow their text: Shortbow (lowest Provoke), Vault, and area cards such as Stomp (every hero within 1 square after the step). Provoke ties work as always: the token that arrived last is on top.
+
 **Playable enemy cards**
 
-- **Melee X:** needs a hero in reach after the free step.
-- **Melee X · Throw Y:** always playable; it throws if nothing is in reach.
-- **Ranged, and "every hero within 1 square":** need at least one valid target.
+- **Melee attacks** (Melee X, and Stomp's "every hero within 1 square"): always playable. With nobody in reach after the free step, the enemy takes the step and its turn ends (§5, Enemies decide before moving).
+- **Card values.** Morale and a DM value each flipped card by the damage it would actually deal this turn: a melee-only card with nobody in reach after the step is worth 0; a Melee · Throw card that can't reach the top hero is worth its Throw. Cards that deal no damage keep their printed use (Cower, Rattle, Thick Hide still play as normal).
+- **Nothing in reach.** If every playable flipped card is a melee card with nobody in reach, the enemy Goes Fish (flips one more). If that card is playable and can deal damage or has another use, it plays it. Otherwise (another melee card with nobody in reach, an unplayable card, or a ◆ card, which takes effect first) it plays one of its 0-value melee cards: it takes the step toward the top-Provoke hero and its turn ends. A Timid enemy that picks a 0-value card over a better one just advances; that is intended.
+- **Melee X · Throw Y:** always playable; it throws at the top-Provoke hero, without stepping, if it can't reach them after the free step (even if another hero is in reach).
+- **Ranged, and Roar's "every hero within 1 square":** need at least one valid target from where the enemy stands.
 - **Self-Guard and utility** (Cower, Rattle, Dim-witted): always playable. A Timid ogre that flips Dim-witted stumbles.
 - **Healing and repair** (Reassemble, Healing Brew, Thick Hide): only if something is actually damaged.
 - **Summons** (Raise Skeletons, Shriek's extra goblin): need an empty square.
@@ -625,7 +648,7 @@ Each deck is 30 cards with five cards of each skill value (1–6).
 
 ### Goblin (Armor 1, 4 Hd, Draw 1; 15-card deck)
 
-A goblin card with Melee and Throw values is played as Melee if the goblin can reach a hero after its free step. Otherwise it throws its weapon: a Ranged attack for the Throw value at the highest-Provoke hero.
+A goblin card with Melee and Throw values is played as Melee if the goblin can reach a hero after its free step. Otherwise it throws its weapon from where it stands, without stepping: a Ranged attack for the Throw value at the highest-Provoke hero.
 
 | Card | Qty | Effect |
 | --- | --- | --- |

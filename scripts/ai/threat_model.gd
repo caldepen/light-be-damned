@@ -47,19 +47,42 @@ func party_danger(moves: Dictionary = {}, extra_buffer: Dictionary = {}) -> floa
         total += minf(ratio * ratio, MAX_DANGER)
     return total
 
-## Who an enemy goes after: ranged enemies the top hero; melee enemies the highest hero in reach,
-## else the highest one free step away, else the top hero (it walks toward them or throws).
+## Who an enemy goes after (RULES §7 Targeting priority): the top hero if it can reach them after
+## its step toward them, or if most of its melee cards can throw; otherwise its melee-only cards
+## take the step and hit the highest hero then in reach (the top hero if nobody is).
 func _target_of(enemy: EnemyState) -> HeroState:
     var heroes: Array[HeroState] = battle.standing_heroes()
-    if enemy.is_melee():
-        for reach in [1, 2]:
-            var near: Array[HeroState] = []
-            for h in heroes:
-                if Field.cells_distance(enemy.cells, h.cells) <= reach:
-                    near.append(h)
-            if not near.is_empty():
-                return _highest(near)
-    return _highest(heroes)
+    var top: HeroState = _highest(heroes)
+    if top == null or not enemy.is_melee() or _mostly_throws(enemy):
+        return top
+    var cells: Array[Vector2i] = enemy.cells
+    if Field.cells_distance(cells, top.cells) > 1:
+        var step: Array[Vector2i] = EnemyMoves.step_toward(battle, enemy, top)
+        if not step.is_empty():
+            cells = step
+    if Field.cells_distance(cells, top.cells) <= 1:
+        return top
+    var near: Array[HeroState] = []
+    for h in heroes:
+        if Field.cells_distance(cells, h.cells) <= 1:
+            near.append(h)
+    return top if near.is_empty() else _highest(near)
+
+## Whether at least half of the melee attacks in the enemy's deck have a Throw (goblins).
+static func _mostly_throws(enemy: EnemyState) -> bool:
+    var melee: int = 0
+    var throws: int = 0
+    var pending: Array = []
+    for card_def in enemy.def.get("deck", []):
+        pending.append_array(card_def.get("effects", []))
+    while not pending.is_empty():
+        var e: Dictionary = pending.pop_back()
+        pending.append_array(e.get("otherwise", []))
+        if CardRunner.is_melee_attack(e):
+            melee += 1
+            if e.has("throw"):
+                throws += 1
+    return melee > 0 and throws * 2 >= melee
 
 func _highest(heroes: Array[HeroState]) -> HeroState:
     var best: HeroState = null

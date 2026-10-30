@@ -12,11 +12,17 @@ func op_name() -> String:
 func is_legal(ctx: EffectContext) -> bool:
     if ctx.effect.has("ranged") or ctx.effect.has("throw"):
         return not ctx.battle.standing_heroes().is_empty()
-    var cells: Array[Vector2i] = ctx.actor.cells
+    return not ctx.battle.heroes_within_1_of(AttackEffect.reach_cells(ctx)).is_empty()
+
+## Where a melee attack reaches from. While checking playability: after the card's own move, or
+## else after the free step (RULES §5); once playing, the enemy has already moved.
+static func reach_cells(ctx: EffectContext) -> Array[Vector2i]:
+    if not ctx.dry_run:
+        return ctx.actor.cells
     var move: Dictionary = ctx.earlier_move()
-    if ctx.dry_run and not move.is_empty():
-        cells = EnemyMoves.preview(ctx.battle, ctx.enemy, move)
-    return not ctx.battle.heroes_within_1_of(cells).is_empty()
+    if not move.is_empty():
+        return EnemyMoves.preview(ctx.battle, ctx.enemy, move)
+    return EnemyMoves.melee_cells(ctx.battle, ctx.enemy)
 
 func resolve(ctx: EffectContext) -> void:
     var battle: Battle = ctx.battle
@@ -31,8 +37,12 @@ func resolve(ctx: EffectContext) -> void:
         else:
             target = battle.top_hero()
     else:
+        # RULES §7 Targeting priority: a Melee · Throw card hits the top hero in melee or throws at them.
         var in_reach: Array[HeroState] = battle.heroes_within_1_of(ctx.actor.cells)
-        if ctx.effect.has("melee") and not in_reach.is_empty():
+        var melee_ok: bool = not in_reach.is_empty()
+        if ctx.effect.has("throw"):
+            melee_ok = in_reach.has(battle.top_hero())
+        if ctx.effect.has("melee") and melee_ok:
             how = "melee"
             target = battle.provoke.top(in_reach)
             amount = int(ctx.effect["melee"]) + CardRunner.allies_of_type(battle, ctx.enemy, String(ctx.effect.get("melee_bonus_per_ally", "")))

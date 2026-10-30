@@ -94,33 +94,35 @@ A script error during a headless run can leave Godot running instead of exiting;
 
 ## Balance baseline (Godot engine batch runner)
 
-The Godot engine is the balance baseline; re-run the batch after rule or data changes and compare. Recorded 2026-10-28, rules v0.5 with rulings #1-45, `run_battle.gd --batch` (500 seeds per encounter, seeds 1-500), `TacticalAiProvider` heroes (Milestone 3 AI, see `scripts/ai/`), level 1 party in White gear, default formation (Thief, Fighter, Cleric in front; Wizard back centre). DM modes use the greedy policy (highest-damage playable card). Standard DM is the intended default for play.
+The Godot engine is the balance baseline; re-run the batch after rule or data changes and compare. Recorded 2026-10-29, after the free-step + targeting rules (rulings #66-70: the free step is melee only, enemies decide before moving and go for the top-Provoke hero, a melee card that can reach nobody is worth 0 and Goes Fish), rules v0.5 with rulings #1-70, `run_battle.gd --batch` (500 seeds per encounter, seeds 1-500), `TacticalAiProvider` heroes (Milestone 3 AI, see `scripts/ai/`), level 1 party in White gear, default formation (Thief, Fighter, Cleric in front; Wizard back centre). DM modes use the greedy policy (highest-damage playable card). Standard DM is the intended default for play.
 
-The previous baseline (2026-10-26, `SimpleAiProvider`, still available as `--ai simple`) is in git history. The tactical AI is stronger in every cell, most on `tough`: wins 99.0 / 93.2 / 80.8% became 100 / 97.4 / 87.4% (automated / standard / ruthless), and Downs 37.6 / 59.8 / 76.8% became 13.0 / 33.2 / 65.4%.
+The previous baselines are in git history: 2026-10-28 (rulings #1-45, tactical AI) and 2026-10-26 (`SimpleAiProvider`, still available as `--ai simple`). The free-step + targeting rules made `tough` easier (Downs 13.0 / 33.2 / 65.4% became 11.0 / 24.0 / 47.8%, automated / standard / ruthless; ruthless wins 87.4% became 91.4%) and 5 goblins a little harder (about 0.7-1 more Wounds per battle): the ogre must chase the top hero instead of hitting whoever is next to it, and goblins throw at the top hero rather than stabbing a hero in reach. The exploration simulation numbers in `EXPLORATION_SPEC.md` §10 predate these rules; campaign balance is re-checked in Milestone 5.
 
 Down = battles where any hero went Down. Wounds (from damage), armor damage left and cards Exhausted are party totals per battle, averaged. No battle hit the 30-round cap.
 
 | Encounter | DM | Party wins | Down | Rounds | Wounds | Armor left | Exhausted |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 5 goblins (`standard`) | automated | 100% | 1.2% | 3.59 | 2.91 | 5.96 | 3.07 |
-| | standard | 100% | 10.2% | 3.67 | 4.92 | 7.03 | 3.21 |
-| | ruthless | 99.6% | 32.0% | 3.89 | 7.54 | 7.97 | 3.35 |
-| Ogre + 4 goblins (`tough`) | automated | 100% | 13.0% | 4.44 | 6.42 | 8.47 | 3.87 |
-| | standard | 97.4% | 33.2% | 4.76 | 9.89 | 9.41 | 4.05 |
-| | ruthless | 87.4% | 65.4% | 5.08 | 13.78 | 10.10 | 4.06 |
-| 5 skeletons (`skeleton_band`) | automated | 100% | 0.2% | 2.78 | 0.77 | 4.49 | 2.26 |
-| | standard | 100% | 0.6% | 2.78 | 1.40 | 5.80 | 2.28 |
-| | ruthless | 100% | 3.4% | 2.84 | 2.60 | 6.98 | 2.42 |
-| `wandering` | automated | 100% | 0% | 2.19 | 0.32 | 2.73 | 1.89 |
-| | standard | 100% | 0% | 2.18 | 0.55 | 3.41 | 1.91 |
-| | ruthless | 100% | 0.4% | 2.21 | 0.94 | 4.14 | 1.93 |
+| 5 goblins (`standard`) | automated | 100% | 1.6% | 3.70 | 3.59 | 6.07 | 3.24 |
+| | standard | 100% | 12.4% | 3.80 | 5.87 | 7.00 | 3.37 |
+| | ruthless | 99.4% | 34.2% | 4.06 | 8.50 | 7.66 | 3.55 |
+| Ogre + 4 goblins (`tough`) | automated | 99.8% | 11.0% | 4.76 | 6.31 | 8.03 | 4.19 |
+| | standard | 98.4% | 24.0% | 4.88 | 8.74 | 8.89 | 4.25 |
+| | ruthless | 91.4% | 47.8% | 5.11 | 11.71 | 9.61 | 4.27 |
+| 5 skeletons (`skeleton_band`) | automated | 100% | 0% | 2.80 | 0.73 | 4.52 | 2.27 |
+| | standard | 100% | 0.8% | 2.77 | 1.36 | 5.84 | 2.24 |
+| | ruthless | 100% | 3.0% | 2.77 | 2.53 | 6.92 | 2.37 |
+| `wandering` | automated | 100% | 0% | 2.25 | 0.54 | 2.84 | 2.00 |
+| | standard | 100% | 0% | 2.25 | 0.63 | 3.62 | 1.96 |
+| | ruthless | 100% | 0.4% | 2.27 | 1.27 | 4.39 | 2.02 |
 | `bones_stir` | automated | 100% | 0% | 1.71 | 0.01 | 2.07 | 1.34 |
-| | standard | 100% | 0% | 1.66 | 0.09 | 2.76 | 1.29 |
-| | ruthless | 100% | 0% | 1.64 | 0.19 | 3.58 | 1.28 |
+| | standard | 100% | 0% | 1.66 | 0.08 | 2.76 | 1.29 |
+| | ruthless | 100% | 0% | 1.64 | 0.18 | 3.59 | 1.28 |
 
 The `witch` encounter is left out: her Bone Storm extra turn is built (ruling #45) but Bone Ward isn't, and the batch uses the level 1 party rather than a level 3 party with items. The old Python simulator in `reference/` is prototype quality and no longer the baseline; it is still useful for porting AI heuristics.
 
-## Current status (2026-10-28)
+## Current status (2026-10-29)
+
+- 2026-10-29, movement and targeting (rulings #66-70 in `docs/RULES.md` §3, §5-§7): the free step is melee only (no step before a throw or ranged attack, either board); enemies flip first and decide before moving (top-Provoke hero in reach after the step, else throw at them, else melee only: step, then the best hero in reach); cards beat rules; a large enemy in a row or area takes the effect once; a melee card that can reach nobody is worth 0 (Go Fish, then step). `CardRunner.melee_plan` / `play_enemy_card`, `EnemyMoves.melee_cells`; the hero AI's `ThreatModel` predicts the same targets. 229 GUT tests; baseline re-recorded.
 
 **Done** (Milestones 1-3 complete, 2026-10-28)
 - Milestone 1: headless battle engine for rules v0.5 (rulings #1-45 in `docs/RULES.md`, none open), data-driven effects, seeded RNG, event log, GUT tests.
@@ -130,13 +132,14 @@ The `witch` encounter is left out: her Bone Storm extra turn is built (ruling #4
 **In progress: Milestone 4, exploration** (spec `docs/EXPLORATION_SPEC.md`, rulings #46-65)
 - Step 0 done: RULES.md §8 and §10 rewritten for room tiles; `module_witch_hut.json` holds the tiles, specials, room types, four room decks, Hut track and 12 Whims, validated on load (26 bag tiles, 11 moons, doorways on tile edges); DATA_SCHEMA.md documents them.
 - Steps: 4.1 table layout (placeholder visuals, reusable scenes, one Theme) → 4.1b flexible layout → 4.2 map and tile engine → 4.3 rooms, rolls, traps, camping, backtracking, Whims → 4.4 the run loop → 4.5 run decisions and exploration AI → 4.6 map UI → 4.7 run batch report. Commit each step as "M4.x: ...".
+- Planned for 4.4/4.5 (not built yet): party formation. 4.4: the run carries the party's formation into each battle instead of always using `rules.json` `default_formation`. 4.5: choosing it is a run decision (decision provider, with an AI choice) and the batch runner gets a formation option. Then run the all-back-row formation test (as far back as four heroes fit) and report it against the default formation.
 - 4.1 done: `scenes/table.tscn` (`TableScreen`) follows the wireframe: top bar; left the Hut track / rations / party armor meter (warns past half damaged) over the map; centre the DM board, the Provoke strip, the player board (front rows facing); right the decks, discards and Exhausted piles and the collapsible event log; bottom the prompt and the hand. Built from `scenes/components/` (panel frame, board square, figure token, card, deck pile, tile) via `UiScenes`, styled by one Theme `ui/theme.tres` (custom-drawn pieces read their colours from it), `canvas_items` stretch. The map is `MapView`: a SubViewport with a Camera2D and five layers; `ink_in()` is the placement hook; dimmed during battle.
 - 4.1b done (presentation only): draggable dividers (`TableSplit`) between the map, the battle area, the decks column and the hand dock; the map, battle boards, decks column, log and hand collapse to thin strips (`CollapsiblePanel`); a collapsed hand opens on hover and when a hero must choose a card (setting). The Layout menu (`LayoutMenu`) picks the preset (Tall, Wide, My layout), the battlefield orientation (`BoardOrientation`: tall = DM board above the player board, the Provoke strip under the player board at its width; wide = player board left, DM right; only the grid's direction changes, tooltips name lanes), the Provoke strip edge when wide, the hand dock (bottom full width, bottom under the boards, left, right) and the phase mode (Automatic: the boards collapse to a party-summary strip while exploring and expand with an animation for battle, the map shrinks and dims; Always show both; Manual). Exploring and battle keep separate divider sizes and collapsed panels. `TableScreen.set_phase()` is the hook exploration will call; until then the menu has an exploring-layout preview. The map never rotates. Saved to `user://layout.cfg`; Reset layout keeps a saved "My layout".
 - Exploration code lives in `scripts/core/explore/` (`TileGeometry` so far). Rotation: r quarter turns clockwise about the anchor, y up. The map has no fixed board (changed 2026-10-28): the Front Door is at [0,0] and coordinates can go negative; nothing fits / break-through / closed in stay as a rarely used safety net. Map UI (4.6): zoom to fit the whole map while keeping the party's room in view, optional drag pan and wheel zoom, a centre-on-party button, zoom toward the chosen doorway when placing; the 4.1 map panel hosts a SubViewport with a Camera2D for this. Art direction: an inked map on graph paper. The map view has separate layers, bottom to top: paper/grid, tiles, features, annotations (reserved, empty, UI only), overlay (doorway highlights, party marker, previews). Tile placement goes through an "ink in" hook (a short fade until Milestone 7). Decorations come from optional `features` on room types and tiles (DATA_SCHEMA "Map features"); placeholders until Milestone 7.
 
 **Known follow-ups**
 - Standard DM is the intended default. Re-check campaign balance (wipes, runs to beat the witch) under standard DM once exploration and runs exist; the baseline above is per battle.
-- The witch stays out of the baseline until Bone Ward is built and the batch can use a level 3 party with items. For reference she currently beats a level 1 party 80% / 92% / 99% of the time (automated / standard / ruthless DM).
+- The witch stays out of the baseline until Bone Ward is built and the batch can use a level 3 party with items. For reference she currently beats a level 1 party 80% / 91% / 99% of the time (automated / standard / ruthless DM).
 - Digital UI: show the party's total armor prominently and warn when most of it is damaged ("armor gone means leave").
 - As designed, not a bug: the goblin Shortbow targets the *lowest*-Provoke hero (its card overrides §6), and ties at 0 go to the bottom of the start stack, so early on it usually hits the Wizard.
 - The tactical AI doesn't foresee where a card moves its hero (Backstab, Charge and Twin Daggers step into enemy reach) and treats a kill as not changing who the enemies hit. These are candidates if the AI needs to get stronger still.

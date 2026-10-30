@@ -23,7 +23,7 @@ func targets(ctx: EffectContext) -> Array[HeroState]:
     var battle: Battle = ctx.battle
     match ctx.area():
         "heroes_within_1":
-            return battle.heroes_within_1_of(ctx.actor.cells)
+            return battle.heroes_within_1_of(AttackEffect.reach_cells(ctx))
         "area2x2_most_heroes":
             var best: Array[HeroState] = []
             for corner in Field.block_corners():

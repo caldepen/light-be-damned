@@ -16,8 +16,9 @@ func _scorer() -> TacticalScorer:
     return scorer
 
 func test_expected_hit_is_the_deck_average_for_one_flip_and_the_expected_best_for_more():
+    BattleFixture.hero(b, "fighter", 0, 1)
     var skeleton := BattleFixture.enemy(b, "skeleton", 0, 1)
-    # Skeleton deck: Bone Blade 2 (x4), Clatter Forward 1 (x2), Reassemble 0.2 (x2), Rattle 0 (x2).
+    # A hero in reach, so Bone Blade counts. Skeleton deck: Bone Blade 2 (x4), Clatter Forward 1 (x2), Reassemble 0.2 (x2), Rattle 0 (x2).
     assert_almost_eq(ThreatModel.expected_hit(b, skeleton), 1.04, 0.001, "Draw 1, Bold: the deck average")
     b.dm_mode = Battle.DM_STANDARD
     # Two flips, the DM plays the best: 0.2 x (0.4^2 - 0.2^2) + 1 x (0.6^2 - 0.4^2) + 2 x (1 - 0.6^2).
@@ -36,8 +37,9 @@ func test_a_melee_enemy_with_no_hero_near_is_expected_to_go_for_the_top_hero():
     var wizard := BattleFixture.hero(b, "wizard", 2, 2)
     BattleFixture.enemy(b, "skeleton", 2, 2)
     b.provoke.move(wizard, 5)
-    # Robes 0, hand 4.
-    assert_almost_eq(ThreatModel.new(b).party_danger(), pow(1.04 / 4.0, 2), 0.0001)
+    # Robes 0, hand 4. Bone Blade can reach nobody this turn (it would only step), so the threat
+    # is Clatter Forward 1 (x2) and Reassemble 0.2 (x2) over 10 cards: 0.24.
+    assert_almost_eq(ThreatModel.new(b).party_danger(), pow(0.24 / 4.0, 2), 0.0001)
 
 func test_projected_provoke_follows_the_backstab_example_in_the_rules():
     var thief := BattleFixture.hero(b, "thief", 0, 1, ["backstab"])
@@ -80,6 +82,7 @@ func test_healing_goes_to_the_hero_closest_to_down():
 
 func test_damage_that_kills_nothing_goes_where_it_removes_the_most_threat():
     var wizard := BattleFixture.hero(b, "wizard", 2, 1, ["fire_bolt"])
+    BattleFixture.hero(b, "fighter", 0, 0)  # in the ogre's reach, so its melee cards count
     var ogre := BattleFixture.enemy(b, "ogre", 0, 0)
     var goblin := BattleFixture.enemy(b, "goblin", 0, 2)
     HeroTurn.take(b, wizard)

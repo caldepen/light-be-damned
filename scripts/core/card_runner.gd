@@ -7,6 +7,10 @@ const ATTACK_OPS: Array[String] = ["damage", "damage_choice", "consecrate"]
 ## A card's own Provoke resolves last, after the automatic +1 (RULES §6 Provoke, Order).
 const PROVOKE_OPS: Array[String] = ["provoke", "provoke_halve"]
 const ENEMY_ATTACK_OPS: Array[String] = ["attack", "attack_area", "splash", "throw_ally"]
+## How an enemy plays a card with a melee attack (RULES §7 Targeting priority).
+const PLAN_MELEE := "melee"      # step if needed, then hit the top hero (or, melee only, the best in reach)
+const PLAN_THROW := "throw"      # the top hero is out of reach after the step: throw at them from here
+const PLAN_ADVANCE := "advance"  # melee only, nobody in reach after the step: step, the turn ends
 
 ## The effects a hero card actually has: the wizard's signature uses the option chosen at camp.
 static func effects_of(hero: HeroState, card: Card) -> Array:
@@ -103,10 +107,13 @@ static func run_effects(ctx: EffectContext, effects: Array) -> void:
 # ------------------------------------------------------------------ enemy cards
 
 ## Whether an enemy can play a flipped card (RULES §7, Playable enemy cards): ▲ cards once per
-## battle per enemy, and every effect that isn't a follow-up must have a legal use.
+## battle per enemy; a melee attack always (at worst it steps and ends the turn); otherwise every
+## effect that isn't a follow-up must have a legal use.
 static func enemy_card_playable(battle: Battle, enemy: EnemyState, card_def: Dictionary) -> bool:
     if String(card_def.get("tag", "")) == "top" and enemy.used_top.has(String(card_def.get("id", ""))):
         return false
+    if melee_plan(battle, enemy, card_def) == PLAN_ADVANCE:
+        return true
     var effects: Array = card_def.get("effects", [])
     var ctx := EffectContext.new(battle, enemy, card_def, effects)
     ctx.dry_run = true
@@ -120,6 +127,23 @@ static func enemy_card_playable(battle: Battle, enemy: EnemyState, card_def: Dic
             return false
     return true
 
+## Play an enemy card: a melee card first takes its free step (or, with nobody to reach and no
+## throw, takes the step and ends the turn); then the effects run.
+static func play_enemy_card(battle: Battle, enemy: EnemyState, card_def: Dictionary) -> void:
+    match melee_plan(battle, enemy, card_def):
+        PLAN_MELEE:
+            var cells: Array[Vector2i] = EnemyMoves.melee_cells(battle, enemy)
+            if cells != enemy.cells:
+                battle.move_figure(enemy, cells, "free step")
+        PLAN_ADVANCE:
+            _mark_top_used(enemy, card_def)
+            var step: Array[Vector2i] = EnemyMoves.free_step(battle, enemy)
+            if not step.is_empty():
+                battle.move_figure(enemy, step, "free step")
+            battle.emit("advance", "%s can't reach anyone; its turn ends." % enemy.name, {"enemy": enemy.id, "card": card_def.get("id", "")})
+            return
+    resolve_enemy_card(battle, enemy, card_def)
+
 static func resolve_enemy_card(battle: Battle, enemy: EnemyState, card_def: Dictionary) -> void:
     var effects: Array = card_def.get("effects", [])
     var ctx := EffectContext.new(battle, enemy, card_def, effects)
@@ -128,35 +152,89 @@ static func resolve_enemy_card(battle: Battle, enemy: EnemyState, card_def: Dict
         if enemy.weaken_next > 0:
             battle.emit("weakened", "%s's attack is weakened by %d." % [enemy.name, enemy.weaken_next], {"enemy": enemy.id})
         enemy.weaken_next = 0
+    _mark_top_used(enemy, card_def)
+    run_effects(ctx, effects)
+
+static func _mark_top_used(enemy: EnemyState, card_def: Dictionary) -> void:
     if String(card_def.get("tag", "")) == "top":
         enemy.used_top[String(card_def.get("id", ""))] = true
-    run_effects(ctx, effects)
+
+## PLAN_MELEE / PLAN_THROW / PLAN_ADVANCE for a card whose effects (with Flee's and Shriek's branch
+## picked) hold a melee attack; "" for other cards and for cards with their own movement, which
+## replaces the free step (RULES §5 Card movement).
+static func melee_plan(battle: Battle, enemy: EnemyState, card_def: Dictionary) -> String:
+    var effects: Array = card_def.get("effects", [])
+    if has_op(effects, ["move"]):
+        return ""
+    var melee: bool = false
+    var can_throw: bool = false
+    for e in branch_effects(battle, enemy, effects):
+        if is_melee_attack(e):
+            melee = true
+            can_throw = can_throw or e.has("throw")
+    if not melee:
+        return ""
+    var cells: Array[Vector2i] = EnemyMoves.melee_cells(battle, enemy)
+    if top_in_reach_from(battle, cells):
+        return PLAN_MELEE
+    if can_throw:
+        return PLAN_THROW
+    return PLAN_ADVANCE if battle.heroes_within_1_of(cells).is_empty() else PLAN_MELEE
+
+static func top_in_reach_from(battle: Battle, cells: Array[Vector2i]) -> bool:
+    var top: HeroState = battle.top_hero()
+    return top != null and Field.cells_distance(cells, top.cells) <= 1
+
+## Enemy attacks are melee unless marked Ranged (RULES §7): Melee X, and Stomp's every hero within 1.
+static func is_melee_attack(e: Dictionary) -> bool:
+    match String(e.get("op", "")):
+        "attack":
+            return e.has("melee")
+        "attack_area":
+            return String(e.get("area", "")) == "heroes_within_1" and String(e.get("range", "")) != "ranged"
+    return false
+
+## The effects a card will run now, with the branch of each Flee and Shriek picked.
+static func branch_effects(battle: Battle, enemy: EnemyState, effects: Array) -> Array:
+    var result: Array = []
+    for e in effects:
+        var taken: bool = true
+        match String(e.get("op", "")):
+            "flee_if":
+                taken = condition_holds(enemy, String(e.get("condition", "")))
+            "summon_if_last":
+                taken = SummonIfLastEffect.will_summon(battle, enemy, e)
+        if taken:
+            result.append(e)
+        else:
+            result.append_array(branch_effects(battle, enemy, e.get("otherwise", [])))
+    return result
 
 ## Damage value used for morale (RULES §7): a number from the data, or computed at play time
 ## when the data gives a formula (a String) or when a Melee · Throw card would have to throw.
+## A melee card with nobody to reach deals nothing (it only steps).
 static func enemy_card_value(battle: Battle, enemy: EnemyState, card_def: Dictionary) -> float:
     var value: Variant = card_def.get("ai_value", 0)
     var effects: Array = card_def.get("effects", [])
-    if typeof(value) == TYPE_STRING or _would_throw(battle, enemy, effects):
+    var plan: String = melee_plan(battle, enemy, card_def)
+    if plan == PLAN_ADVANCE:
+        return 0.0
+    if typeof(value) == TYPE_STRING or plan == PLAN_THROW:
         return estimate_enemy_damage(battle, enemy, effects)
     return float(value)
-
-static func _would_throw(battle: Battle, enemy: EnemyState, effects: Array) -> bool:
-    for e in effects:
-        if String(e.get("op", "")) == "attack" and e.has("melee") and e.has("throw"):
-            return battle.heroes_within_1_of(enemy.cells).is_empty()
-    return false
 
 ## Expected damage of an enemy effect list, for morale.
 static func estimate_enemy_damage(battle: Battle, enemy: EnemyState, effects: Array) -> float:
     var total: float = 0.0
-    var in_reach: Array[HeroState] = battle.heroes_within_1_of(enemy.cells)
+    var cells: Array[Vector2i] = EnemyMoves.melee_cells(battle, enemy)
+    var in_reach: Array[HeroState] = battle.heroes_within_1_of(cells)
+    var top_in_reach: bool = top_in_reach_from(battle, cells)
     for e in effects:
         match String(e.get("op", "")):
             "attack":
                 if e.has("ranged"):
                     total += float(e["ranged"])
-                elif e.has("melee") and not in_reach.is_empty():
+                elif e.has("melee") and (top_in_reach or (not e.has("throw") and not in_reach.is_empty())):
                     total += float(e["melee"]) + float(allies_of_type(battle, enemy, String(e.get("melee_bonus_per_ally", ""))))
                 elif e.has("throw"):
                     total += float(e["throw"])

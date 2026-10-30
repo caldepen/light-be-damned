@@ -12,10 +12,10 @@ func before_each():
 
 func test_free_step_toward_the_top_provoke_hero():
     BattleFixture.hero(b, "fighter", 0, 1, ["bash"], [])
-    var goblin := BattleFixture.enemy(b, "goblin", 2, 1)
-    BattleFixture.stack_enemy_deck(b, "goblin", ["cower"])
-    EnemyTurn.take(b, goblin)
-    assert_eq(goblin.cells[0], Field.cell_for(FigureState.SIDE_ENEMIES, 1, 1))
+    var skeleton := BattleFixture.enemy(b, "skeleton", 2, 1)
+    BattleFixture.stack_enemy_deck(b, "skeleton", ["bone_blade"])
+    EnemyTurn.take(b, skeleton)
+    assert_eq(skeleton.cells[0], Field.cell_for(FigureState.SIDE_ENEMIES, 1, 1))
 
 func test_melee_hits_the_highest_provoke_hero_in_reach():
     var fighter := BattleFixture.hero(b, "fighter", 0, 1, ["bash"], [])
@@ -175,7 +175,8 @@ func test_a_used_phase_card_with_no_other_card_goes_fish():
 func test_go_fish_then_the_turn_is_lost():
     BattleFixture.hero(b, "wizard", 2, 2, ["fire_bolt"], [])
     var ogre := BattleFixture.enemy(b, "ogre", 1, 0)
-    BattleFixture.stack_enemy_deck(b, "ogre", ["club_swing", "backhand", "crushing_blow"])
+    # Unhurt (no Thick Hide) and nobody within 1 (no Roar). Melee cards would step instead.
+    BattleFixture.stack_enemy_deck(b, "ogre", ["thick_hide", "roar", "thick_hide"])
     EnemyTurn.take(b, ogre)
     assert_true(b.log.has_type("go_fish"))
     assert_true(b.log.has_type("turn_lost"))

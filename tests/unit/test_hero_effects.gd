@@ -245,6 +245,7 @@ func test_frost_ray_weakens_the_targets_next_attack():
     var goblin := BattleFixture.enemy(b, "goblin", 0, 1)
     BattleFixture.play(b, wizard, "frost_ray")
     assert_eq(wizard.cells[0], Vector2i(1, 5), "stepped back")
+    b.provoke.move(fighter, 5)  # top again, so the goblin stabs the fighter instead of throwing at the wizard
     BattleFixture.stack_enemy_deck(b, "goblin", ["spear"])
     EnemyTurn.take(b, goblin)
     assert_eq(fighter.armor_damage, 1, "Spear 2 - 1")

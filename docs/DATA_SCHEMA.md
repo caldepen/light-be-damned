@@ -69,7 +69,7 @@ All game content lives in `data/*.json`. Code interprets it; it never hard-codes
 
 | op | Meaning |
 | --- | --- |
-| `attack` | `melee` X (needs reach after the free step), `throw` Y (ranged fallback at the top-Provoke hero), or `ranged` X with `target` (top_provoke / lowest_provoke). Optional `melee_bonus_per_ally` |
+| `attack` | `melee` X (RULES §7 Targeting priority: the top-Provoke hero if in reach after the free step toward them; else `throw` Y at them from where the enemy stands, no step; melee only: the step, then the highest-Provoke hero in reach, or the turn ends), or `ranged` X with `target` (top_provoke / lowest_provoke). Optional `melee_bonus_per_ally` |
 | `attack_area` | `amount` to every hero in `area` (heroes_within_1, area2x2_most_heroes) |
 | `splash` | Extra damage to one hero next to the target |
 | `stun`, `bleed`, `guard` | As for heroes |

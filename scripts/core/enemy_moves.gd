@@ -1,9 +1,10 @@
 class_name EnemyMoves
 extends RefCounted
 
-## Where enemies move: the free step toward the top-Provoke hero (RULES §6, Who enemies attack)
-## and the movement modes on enemy cards. Enemies follow fixed rules; no decision provider.
-## preview() is used both to check whether a move-then-melee card is playable and to perform it.
+## Where enemies move: the free step toward the top-Provoke hero before a melee attack (RULES §5,
+## Enemies decide before moving) and the movement modes on enemy cards. Enemies follow fixed
+## rules; no decision provider. preview() is used both to check whether a move-then-melee card is
+## playable and to perform it.
 
 ## The free step: one straight step toward the top-Provoke hero, if not already in reach of them
 ## and the step gets closer. Returns the new cells, or [] for no step.
@@ -12,6 +13,12 @@ static func free_step(battle: Battle, enemy: EnemyState) -> Array[Vector2i]:
     if top == null or battle.in_reach(enemy, top):
         return []
     return step_toward(battle, enemy, top)
+
+## Where a melee attack is made from: after the free step toward the top-Provoke hero, which is
+## never skipped to hit a hero already in reach (RULES §7 Targeting priority).
+static func melee_cells(battle: Battle, enemy: EnemyState) -> Array[Vector2i]:
+    var step: Array[Vector2i] = free_step(battle, enemy)
+    return enemy.cells if step.is_empty() else step
 
 ## One straight step (whole body) that strictly reduces the distance to `goal`; [] if none.
 ## Ties prefer forward, then back, then left, then right (Field.STRAIGHT_DIRECTIONS order).
