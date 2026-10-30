@@ -23,6 +23,8 @@ func _init() -> void:
     var module: Dictionary = data["module_witch_hut"]
     if args.size() >= 2 and args[0] == "--batch":
         _batch(module, int(args[1]))
+    elif args.size() >= 1 and args[0] == "--rooms":
+        _rooms(data, args)
     else:
         var seed_value: int = int(args[0]) if args.size() >= 1 else 1
         var ex: HutExplorer = build(module, seed_value)
@@ -67,6 +69,39 @@ func _batch(module: Dictionary, runs: int) -> void:
     print("Runs with a 'nothing fits' redraw: %.1f%%; a break-through: %.1f%%; closed in: %.1f%%." %
         [100.0 * stirs / runs, 100.0 * breaks / runs, 100.0 * closed / runs])
     print("Tiles placed per run: %.1f. Average map size: %.1f x %.1f squares." % [float(tiles) / runs, float(width) / runs, float(height) / runs])
+
+## --rooms [seed]: one run with rooms resolved by HutRun and SimpleRunAi (battles stubbed as won
+## until Milestone 4.4), exploring until the bag is empty, the boss or a wipe; prints the log.
+## --rooms --batch N: N such runs, counting what happened.
+func _rooms(data: Dictionary, args: PackedStringArray) -> void:
+    if args.size() >= 3 and args[1] == "--batch":
+        var runs: int = int(args[2])
+        var totals: Dictionary = {}
+        for s in range(1, runs + 1):
+            var run: HutRun = play_rooms(data, s)
+            for key in ["fight", "whim", "skill_roll", "camp", "backtrack", "trap_springs", "loot", "hut_wakes", "boss_reached", "door_shut", "map_change_refused"]:
+                totals[key] = int(totals.get(key, 0)) + run.log.of_type(key).size()
+        print("%d runs (rooms resolved, battles stubbed as won, SimpleRunAi). Per run:" % runs)
+        for key in totals:
+            print("  %-20s %.2f" % [key, float(totals[key]) / runs])
+        return
+    var seed_value: int = int(args[1]) if args.size() >= 2 else 1
+    var run: HutRun = play_rooms(data, seed_value)
+    print(run.log.to_text())
+    print("")
+    print(render(run.explorer))
+    print("Hut track %d, rations %d, XP %d, loot %d, key %s, boss %s." % [run.explorer.hut_track, run.rations, run.xp, run.loot_drawn, run.explorer.has_key, run.boss_reached])
+
+static func play_rooms(data: Dictionary, seed_value: int) -> HutRun:
+    var run := HutRun.new(data, seed_value, SimpleRunAi.new())
+    run.explorer.party_level = 3
+    for i in range(60):
+        var status: String = run.explore_step()
+        if run.wiped or run.boss_reached or status == ExploreResult.EMPTY_BAG or status == ExploreResult.CLOSED_IN:
+            break
+        if status == HutRun.ROOM_SHUT and run.explorer.has_key:
+            break
+    return run
 
 static func _bounds(ex: HutExplorer) -> Rect2i:
     var box := Rect2i(ex.front_door.cells[0], Vector2i.ONE)

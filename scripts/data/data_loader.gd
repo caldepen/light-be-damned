@@ -13,13 +13,6 @@ const ITEM_OPS: Array[String] = [
 ]
 ## Effect fields that hold nested effect lists.
 const NESTED_FIELDS: Array[String] = ["otherwise", "fallback", "effects", "effect"]
-## Ops in room cards, room types and Hut Whims (DATA_SCHEMA "Exploration effect ops").
-const EXPLORE_OPS: Array[String] = [
-    "fight", "draw_room_card", "trap", "lock", "skill_check", "loot", "gain_ration", "party_damage",
-    "party_repair_armor", "party_heal_wounds", "take_key", "boss", "hut_track", "optional",
-    "rotate_tile", "close_doorway", "lock_in", "swap_tiles", "collapse", "keyhole", "doors_slam",
-    "crooked_corridor",
-]
 ## Fields of exploration effects that hold nested effect lists.
 const EXPLORE_NESTED_FIELDS: Array[String] = ["success", "failure", "effects"]
 const DECK_SIZE := 30
@@ -29,6 +22,8 @@ const HERO_TYPES: Array[String] = ["strength", "agility", "wits", "spirit"]
 
 var errors: PackedStringArray = []
 var _registry: EffectRegistry = EffectRegistry.new()
+## Ops in room cards, room types and Hut Whims each need a handler (DATA_SCHEMA "Exploration effect ops").
+var _room_effects: RoomEffectRegistry = RoomEffectRegistry.new()
 
 func load_all() -> Dictionary:
     errors.clear()
@@ -206,7 +201,7 @@ func _validate_explore_effects(effects: Array, context: String, decks: Dictionar
             _fail("%s has an effect that is not an object." % context)
             continue
         var op: String = String(effect.get("op", ""))
-        if not EXPLORE_OPS.has(op):
+        if not _room_effects.has(op):
             _fail("%s has unknown op '%s'." % [context, op])
         if op in ["fight", "boss"] and not encounters.has(String(effect.get("encounter", ""))):
             _fail("%s fights unknown encounter '%s'." % [context, effect.get("encounter", "")])

@@ -65,6 +65,10 @@ Godot 4.7.2 with GUT 9.7.0 (`addons/gut`). Use the console exe for headless runs
 
 # How often 'nothing fits', break-through and closed in fire over many seeds
 & "C:\Program Files\Godot4_7_2\Godot_v4.7.2-stable_win64_console.exe" --headless --path . --script tools/run_map.gd '--' --batch 1000
+
+# One run with rooms resolved (HutRun + SimpleRunAi; battles stubbed as won until 4.4), or a batch of them
+& "C:\Program Files\Godot4_7_2\Godot_v4.7.2-stable_win64_console.exe" --headless --path . --script tools/run_map.gd '--' --rooms 7
+& "C:\Program Files\Godot4_7_2\Godot_v4.7.2-stable_win64_console.exe" --headless --path . --script tools/run_map.gd '--' --rooms --batch 300
 ```
 
 The playtest table (`scenes/table.tscn`, the main scene; single battles until exploration lands): press F5 in the editor, or run the editor exe without `--headless`:
@@ -152,7 +156,17 @@ The `witch` encounter is left out: her Bone Storm extra turn is built (ruling #4
   - `HutMap` also answers open doorways (wall tokens included), connections and reachability.
   - Map changes for the Whims (start of 4.3): `rotate_tile` (in place, same squares), `swap_tiles` (same footprint by sliding, orientation kept), `remove_tile` (dead ends) and `close_doorway` (wall token on an open doorway). Each returns "" or the reason it refused (party's room, Front Door, special tile, unexplored, cutting the party off from the Front Door) and logs `map_change_refused`; `rotation_options` / `swap_options` / `collapse_options` / `open_doorway_options` list the legal ones.
   - `HutExplorer.to_dict()` / `from_dict()` save the whole exploration state as JSON-safe data (map, bag order, Hut track, party, both RNG positions as strings).
-  - `tools/run_map.gd` builds seeded maps. Over 1000 seeds the safety nets never fired; the whole bag gives maps of about 12 × 15 squares. Whims, the Hut waking, rooms and the party walking come in 4.3/4.4. Rotation: r quarter turns clockwise about the anchor, y up. The map has no fixed board (changed 2026-10-28): the Front Door is at [0,0] and coordinates can go negative; nothing fits / break-through / closed in stay as a rarely used safety net. Map UI (4.6): zoom to fit the whole map while keeping the party's room in view, optional drag pan and wheel zoom, a centre-on-party button, zoom toward the chosen doorway when placing; the 4.1 map panel hosts a SubViewport with a Camera2D for this. Art direction: an inked map on graph paper. The map view has separate layers, bottom to top: paper/grid, tiles, features, annotations (reserved, empty, UI only), overlay (doorway highlights, party marker, previews). Tile placement goes through an "ink in" hook (a short fade until Milestone 7). Decorations come from optional `features` on room types and tiles (DATA_SCHEMA "Map features"); placeholders until Milestone 7.
+  - `tools/run_map.gd` builds seeded maps.
+- 4.3 done: `HutRun` (`scripts/core/explore/hut_run.gd`) is one run outside battle.
+  - It owns the `HutExplorer`, `PartyState` (heroes carried between fights: damage armor-then-Wounds, Down outside battle, healing, campfire reset), `RoomDecks`, the Whim deck, rations, XP and a loot count.
+  - `enter_room` resolves a room once: the waking Hut's Lair card first, then the room card or the room's own effects. Optional rooms (Shrine, Strange font) wait for the party to come back; the Inner Study stays shut without the key.
+  - Room, card and Whim behaviour comes from the module's `effects` through one handler per op in `scripts/core/explore/room_effects/` (`RoomEffectRegistry`; the data loader rejects ops without a handler).
+  - `SkillRoll`: off-Type −2, cards spent or Exhausted, teamwork, failure Hut +1, Hard gives XP. Traps, locks and retries, the Iron Key, the boss stub ("boss reached").
+  - Whims at Hut 3/6/9 (no repeats; map Whims pick at random among legal options), the Hut waking at 10, Keyhole (`peek`) and Crooked Corridor (`farthest_options`).
+  - `camp`, `backtrack_check` and `explore_step` (doorway choice, backtrack check, place, enter).
+  - Party choices go through `RunDecisionProvider` (`RunRequest` kinds); `SimpleRunAi` (`scripts/ai/`) plays them until 4.5.
+  - Battles go through `fight_runner`: a stub that calls every fight won until 4.4.
+  - Open questions #71-74 note four readings. Over 1000 seeds the safety nets never fired; the whole bag gives maps of about 12 × 15 squares. Whims, the Hut waking, rooms and the party walking come in 4.3/4.4. Rotation: r quarter turns clockwise about the anchor, y up. The map has no fixed board (changed 2026-10-28): the Front Door is at [0,0] and coordinates can go negative; nothing fits / break-through / closed in stay as a rarely used safety net. Map UI (4.6): zoom to fit the whole map while keeping the party's room in view, optional drag pan and wheel zoom, a centre-on-party button, zoom toward the chosen doorway when placing; the 4.1 map panel hosts a SubViewport with a Camera2D for this. Art direction: an inked map on graph paper. The map view has separate layers, bottom to top: paper/grid, tiles, features, annotations (reserved, empty, UI only), overlay (doorway highlights, party marker, previews). Tile placement goes through an "ink in" hook (a short fade until Milestone 7). Decorations come from optional `features` on room types and tiles (DATA_SCHEMA "Map features"); placeholders until Milestone 7.
 
 **Known follow-ups**
 - Standard DM is the intended default. Re-check campaign balance (wipes, runs to beat the witch) under standard DM once exploration and runs exist; the baseline above is per battle.

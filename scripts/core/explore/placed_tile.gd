@@ -16,6 +16,9 @@ var doors: Array[Dictionary] = []      # {"cell": Vector2i, "side": String}, map
 var hut_doors: Array[Dictionary] = []  # doors the Hut made on this tile, same shape
 var features: Array[Dictionary] = []   # {"cell": Vector2i, "id": String}; cosmetic only
 var explored: bool = false
+## What happened in the room (plain data, saved with the map): "resolved", a held room card the
+## party may come back to ("card"), "wake_fought" once the waking Hut's Lair card was fought here.
+var room_state: Dictionary = {}
 
 func has_cell(cell: Vector2i) -> bool:
     return cells.has(cell)

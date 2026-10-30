@@ -4,7 +4,14 @@ Rules that are ambiguous for implementation. Ask before inventing a rule; once a
 
 ## Open
 
-None.
+From building rooms and Whims (Milestone 4.3, 2026-10-30). The engine as built is described; the proposal keeps it.
+
+| # | Question | Engine now (proposal: keep) |
+| --- | --- | --- |
+| 71 | When the Hut track crosses 3, 6 or 9 in the middle of a room (a failed lock roll), when does the Whim resolve? | At once, mid-room, as with a moon (#51): a Bones Stir fight happens before the lock's retry |
+| 72 | A roll nobody can make (every standing hero's deck empty): a non-optional check (Bubbling Cauldron), Locked In | The check counts as failed (failure effects, but no Hut +1 since nothing was flipped). Locked In stops; the doorways stay sealed and the log says so |
+| 73 | After the Hut wakes, does a declined optional room (the Shrine) draw its Lair card again when the party comes back? | No: one Lair fight per room, the first time the party enters it awake |
+| 74 | Who decides when a wandering-monster flip or a campfire check is due if the chosen hero is Down? | Only standing heroes with cards in their deck can flip (as for skill rolls); the campfire flip comes after the reset, when everyone is up |
 
 ## Follow-ups
 

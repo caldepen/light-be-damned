@@ -116,6 +116,28 @@ func reachable_from(start: PlacedTile) -> Array[PlacedTile]:
                 frontier.append(n)
     return seen
 
+## Walking distance in squares from `start` to every square the party can reach: a step to a
+## neighbouring square of the same tile, or through a connected doorway (Crooked Corridor).
+func path_distances(start: Vector2i) -> Dictionary:
+    var dist: Dictionary = {start: 0}
+    var frontier: Array[Vector2i] = [start]
+    while not frontier.is_empty():
+        var c: Vector2i = frontier.pop_front()
+        var here: PlacedTile = tile_at(c)
+        for side in TileGeometry.SIDES:
+            var n: Vector2i = TileGeometry.facing_cell(c, side)
+            var there: PlacedTile = tile_at(n)
+            if there == null or dist.has(n):
+                continue
+            if there != here:
+                if is_walled(c, side) or is_walled(n, TileGeometry.opposite(side)):
+                    continue
+                if not (here.has_door(c, side) and there.has_door(n, TileGeometry.opposite(side))):
+                    continue
+            dist[n] = int(dist[c]) + 1
+            frontier.append(n)
+    return dist
+
 # ------------------------------------------------------------------ Whim operations
 # Shifting Walls, Hall of Mirrors and Collapse (RULES §10 Hut Whims). Each returns "" when it
 # happened (or, with dry_run, would happen), else why not, and then changes nothing. None may
@@ -265,6 +287,7 @@ func to_dict() -> Dictionary:
             "anchor": [t.anchor.x, t.anchor.y], "rotation": t.rotation,
             "cells": _cells_out(t.cells), "doors": _doors_out(t.doors), "hut_doors": _doors_out(t.hut_doors),
             "features": t.features.map(func(f: Dictionary) -> Dictionary: return {"cell": [f["cell"].x, f["cell"].y], "id": f["id"]}),
+            "room_state": t.room_state.duplicate(true),
         })
     var walls: Array = _walls.keys()
     walls.sort()
@@ -290,6 +313,7 @@ static func from_dict(data: Dictionary, module: Dictionary) -> HutMap:
         t.hut_doors = TileGeometry.doors_from_data(raw["hut_doors"])
         for f in raw.get("features", []):
             t.features.append({"cell": Vector2i(int(f["cell"][0]), int(f["cell"][1])), "id": String(f["id"])})
+        t.room_state = (raw.get("room_state", {}) as Dictionary).duplicate(true)
         m.tiles.append(t)
         for c in t.cells:
             m._owner[c] = t

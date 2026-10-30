@@ -22,6 +22,12 @@ var party_level: int = 1
 var has_key: bool = false
 var front_door: PlacedTile
 var party_tile: PlacedTile
+## Called after every change of the Hut track with (before, after): the run resolves Whims and the
+## Hut waking here.
+var hut_listener: Callable = Callable()
+## Crooked Corridor: the next tile goes as far from the Front Door as it can (then clears).
+var crooked: bool = false
+var _peeked: Dictionary = {}            # Keyhole: the tile already drawn for the next exploration
 var _specials_entered: Dictionary = {}  # special tile id -> true
 
 func _init(module_in: Dictionary, rng_in: SeededRng, run_seed: int, log_in: EventLog = null) -> void:
@@ -58,22 +64,43 @@ func enter(tile: PlacedTile) -> void:
     party_tile = tile
     log.record("enter_room", "The party enters the %s." % String(tile.def.get("name", tile.tile_id)), {"tile": tile.uid, "type": tile.room_type})
 
-## Draw a tile blind and lay it at `doorway` (an open doorway of an explored room), or wherever
-## the rules send it. The party doesn't enter here; the caller resolves the room.
+## Walk through explored rooms to `tile` (free, RULES §8 Walking). Returns "" or why not.
+func walk_to(tile: PlacedTile) -> String:
+    if tile == party_tile:
+        return ""
+    if not tile.explored or not map.reachable_from(party_tile).has(tile):
+        return "the party can't walk there"
+    party_tile = tile
+    log.record("walk", "The party walks to the %s." % String(tile.def.get("name", tile.tile_id)), {"tile": tile.uid})
+    return ""
+
+## Keyhole: draw the next tile now so the party sees it before choosing a doorway.
+func peek() -> Dictionary:
+    if _peeked.is_empty() and not bag.is_empty():
+        _peeked = bag.draw()
+        log.record("tile_peeked", "Through the keyhole: %s." % _entry_name(_peeked), {"tile": String(_peeked["def"].get("id", ""))})
+    return _peeked
+
+## Draw a tile blind and lay it at `doorway` (an open doorway of an explored room, or null when
+## there is none), or wherever the rules send it. The party doesn't enter here; the caller
+## resolves the room.
 func explore(doorway: MapDoorway) -> ExploreResult:
     var result := ExploreResult.new()
-    if bag.is_empty():
+    if bag.is_empty() and _peeked.is_empty():
         result.status = ExploreResult.EMPTY_BAG
         log.record("bag_empty", "The tile bag is empty: no more exploring this run.", {})
         return result
     var set_aside: Array[Dictionary] = []
-    while not bag.is_empty():
-        var entry: Dictionary = bag.draw()
+    var forced: bool = crooked
+    crooked = false
+    while not bag.is_empty() or not _peeked.is_empty():
+        var entry: Dictionary = _peeked if not _peeked.is_empty() else bag.draw()
+        _peeked = {}
         log.record("tile_drawn", "Drawn: %s%s." % [_entry_name(entry), " (moon)" if bool(entry["moon"]) else ""],
             {"tile": String(entry["def"].get("id", "")), "moon": entry["moon"]})
-        var options: Array[TilePlacement] = placement_options(entry, doorway)
+        var options: Array[TilePlacement] = farthest_options(entry) if forced else placement_options(entry, doorway)
         if not options.is_empty():
-            result.tile = _place(_choose(options))
+            result.tile = _place(rng.pick(options) if forced else _choose(options))
             _return_set_aside(set_aside)
             result.set_aside = set_aside.size()
             return result
@@ -101,21 +128,47 @@ func explore(doorway: MapDoorway) -> ExploreResult:
 ## doorway of the same room; else of any explored room. Goal tiles (ignores_doorway_matching)
 ## go at the chosen doorway if they fit, else against any wall of an explored room (ruling #48).
 func placement_options(entry: Dictionary, doorway: MapDoorway) -> Array[TilePlacement]:
+    var options: Array[TilePlacement] = []
     if bool(entry["def"].get("ignores_doorway_matching", false)):
-        var at_door: Array[TilePlacement] = map.hut_placements_at(entry, doorway)
-        return at_door if not at_door.is_empty() else map.wall_placements(entry)
-    var options: Array[TilePlacement] = map.doorway_placements(entry, doorway)
-    if not options.is_empty():
-        return options
-    for d in map.open_doorways(doorway.tile):
-        if d.key() != doorway.key():
-            options.append_array(map.doorway_placements(entry, d))
-    if not options.is_empty():
-        return options
+        if doorway != null:
+            options = map.hut_placements_at(entry, doorway)
+        return options if not options.is_empty() else map.wall_placements(entry)
+    if doorway != null:
+        options = map.doorway_placements(entry, doorway)
+        if not options.is_empty():
+            return options
+        for d in map.open_doorways(doorway.tile):
+            if d.key() != doorway.key():
+                options.append_array(map.doorway_placements(entry, d))
+        if not options.is_empty():
+            return options
     for d in map.explored_open_doorways():
-        if d.tile != doorway.tile:
+        if doorway == null or d.tile != doorway.tile:
             options.append_array(map.doorway_placements(entry, d))
     return options
+
+## Crooked Corridor: of every legal placement on the map, those whose doorway (or Hut door) is
+## farthest from the Front Door by path in squares. The Hut picks among ties at random (#63).
+func farthest_options(entry: Dictionary) -> Array[TilePlacement]:
+    var all: Array[TilePlacement] = []
+    if bool(entry["def"].get("ignores_doorway_matching", false)):
+        all = map.wall_placements(entry)
+    else:
+        for d in map.explored_open_doorways():
+            all.append_array(map.doorway_placements(entry, d))
+    var dist: Dictionary = map.path_distances(front_door.cells[0])
+    var best: int = -1
+    var result: Array[TilePlacement] = []
+    for p in all:
+        var at: Vector2i = p.doorway.cell if p.doorway != null else p.hut_door["cell"]
+        var d: int = int(dist.get(at, -1))
+        if d > best:
+            best = d
+            result.clear()
+            result.append(p)
+        elif d == best:
+            result.append(p)
+    return result
 
 ## The Hut track rises (moons, failed rolls, campfires, a stir). Special tiles whose time has
 ## come enter the bag. Whims and the Hut waking are Milestone 4.3.
@@ -125,6 +178,8 @@ func raise_hut(amount: int, reason: String) -> void:
     hut_track = clampi(hut_track + amount, 0, int(hut.get("max", 10)))
     log.record("hut_track", "Hut track %d -> %d (%s)." % [before, hut_track, reason], {"from": before, "to": hut_track, "reason": reason})
     _check_specials()
+    if hut_listener.is_valid() and hut_track != before:
+        hut_listener.call(before, hut_track)
 
 func _check_specials() -> void:
     for s in module.get("special_tiles", []):
@@ -221,6 +276,7 @@ func to_dict() -> Dictionary:
         "bag": bag.entries.map(func(e: Dictionary) -> Dictionary: return {"id": String(e["def"]["id"]), "moon": bool(e["moon"])}),
         "hut_track": hut_track, "party_level": party_level, "has_key": has_key,
         "front_door": front_door.uid, "party_tile": party_tile.uid, "specials_entered": specials,
+        "crooked": crooked, "peeked": {} if _peeked.is_empty() else {"id": String(_peeked["def"]["id"]), "moon": bool(_peeked["moon"])},
         # 64-bit states as strings: a JSON number would lose precision.
         "rng_state": str(rng.get_state()), "cosmetic_rng_state": str(cosmetic_rng.get_state()),
     }
@@ -244,6 +300,10 @@ static func from_dict(data: Dictionary, module_in: Dictionary, rng_in: SeededRng
     ex._specials_entered.clear()
     for id in data.get("specials_entered", []):
         ex._specials_entered[String(id)] = true
+    ex.crooked = bool(data.get("crooked", false))
+    var peeked: Dictionary = data.get("peeked", {})
+    if not peeked.is_empty():
+        ex._peeked = {"def": defs[String(peeked["id"])], "moon": bool(peeked["moon"])}
     ex.rng.set_state(String(data["rng_state"]).to_int())
     ex.cosmetic_rng.set_state(String(data["cosmetic_rng_state"]).to_int())
     return ex
