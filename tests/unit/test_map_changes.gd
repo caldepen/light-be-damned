@@ -7,16 +7,16 @@ extends GutTest
 
 var module: Dictionary
 var ex: HutExplorer
-var den: PlacedTile    # (0, 1), doorways S and E: joined to the Front Door's N doorway
-var vault: PlacedTile  # (1, 0), turned so its one doorway faces W: a dead end off the Front Door
-var dark: PlacedTile   # (-1, 0), doorways S, E, W: joined to the Front Door's W doorway
+var well: PlacedTile    # (0, 1), doorways S and E: joined to the Front Door's N doorway
+var store: PlacedTile  # (1, 0), turned so its one doorway faces W: a dead end off the Front Door
+var cellar: PlacedTile   # (-1, 0), doorways S, E, W: joined to the Front Door's W doorway
 
 func before_each():
     module = BattleFixture.data()["module_witch_hut"]
     ex = HutExplorer.new(module, SeededRng.new(1), 1)
-    den = _put("lair_den", 0, Vector2i(0, 1))
-    vault = _put("vault", 1, Vector2i(1, 0))
-    dark = _put("dark_small", 0, Vector2i(-1, 0))
+    well = _put("well_room", 0, Vector2i(0, 1))
+    store = _put("storeroom", 1, Vector2i(1, 0))
+    cellar = _put("root_cellar", 0, Vector2i(-1, 0))
 
 func _entry(id: String) -> Dictionary:
     for def in module["tiles"]:
@@ -36,36 +36,36 @@ func _sides(t: PlacedTile) -> Array:
 
 func test_the_hut_never_makes_a_door_through_a_wall_token():
     assert_eq(ex.map.close_doorway(Vector2i(-1, 0), "W"), "")
-    var placements: Array[TilePlacement] = ex.map.wall_placements(_entry("witchs_workshop"), ex.party_tile)
+    var placements: Array[TilePlacement] = ex.map.wall_placements(_entry("inner_study"), ex.party_tile)
     assert_gt(placements.size(), 0)
     for p in placements:
         assert_false(p.hut_door.get("cell") == Vector2i(-1, 0) and p.hut_door.get("side") == "W", "the sealed edge stays sealed")
 
 func test_a_dead_end_turned_away_from_the_map_offers_no_doorways_to_the_party():
-    # Open question #77: the vault turned so its doorway faces east is cut off from everything.
-    assert_eq(ex.rotate_tile(vault, 3), "")
-    assert_false(ex.map.reachable_from(ex.front_door).has(vault))
+    # Open question #77: the Storeroom turned so its doorway faces east is cut off from everything.
+    assert_eq(ex.rotate_tile(store, 3), "")
+    assert_false(ex.map.reachable_from(ex.front_door).has(store))
     for d in ex.map.explored_open_doorways(ex.party_tile):
-        assert_ne(d.tile, vault, "the party can't walk to it, so it can't backtrack there")
-    var any_vault: bool = ex.map.explored_open_doorways().any(func(d: MapDoorway) -> bool: return d.tile == vault)
-    assert_true(any_vault, "it still has an open doorway on the map")
+        assert_ne(d.tile, store, "the party can't walk to it, so it can't explore from there")
+    var any_store: bool = ex.map.explored_open_doorways().any(func(d: MapDoorway) -> bool: return d.tile == store)
+    assert_true(any_store, "it still has an open doorway on the map")
 
-## The party in a room east of the den, reachable only through it.
-func _party_beyond_the_den() -> PlacedTile:
-    var beyond: PlacedTile = _put("dark_small", 0, Vector2i(1, 1))
+## The party in a room east of the Well Room, reachable only through it.
+func _party_beyond_the_well() -> PlacedTile:
+    var beyond: PlacedTile = _put("root_cellar", 0, Vector2i(1, 1))
     ex.party_tile = beyond
     assert_true(ex.map.reachable_from(ex.front_door).has(beyond))
     return beyond
 
 func test_a_tile_turns_in_place_and_its_doorways_open_or_close():
-    assert_eq(ex.rotate_tile(den, 2), "")
-    assert_eq(den.cells, [Vector2i(0, 1)] as Array[Vector2i])
-    assert_eq(_sides(den), ["N", "W"])
-    assert_false(ex.map.connected(ex.front_door, den), "its south doorway is gone")
+    assert_eq(ex.rotate_tile(well, 2), "")
+    assert_eq(well.cells, [Vector2i(0, 1)] as Array[Vector2i])
+    assert_eq(_sides(well), ["N", "W"])
+    assert_false(ex.map.connected(ex.front_door, well), "its south doorway is gone")
     assert_true(ex.log.has_type("tile_rotated"))
 
 func test_straight_tiles_only_turn_half_round_and_the_bent_corridor_never():
-    var hall: PlacedTile = _put("lair_long_hall", 0, Vector2i(3, 3))
+    var hall: PlacedTile = _put("laundry", 0, Vector2i(3, 3))
     assert_eq(ex.rotate_tile(hall, 1), "turned that way it wouldn't cover its own squares")
     assert_eq(ex.rotate_tile(hall, 2), "")
     assert_eq(hall.cells.size(), 2)
@@ -80,70 +80,70 @@ func test_straight_tiles_only_turn_half_round_and_the_bent_corridor_never():
 
 func test_turning_refuses_the_front_door_the_partys_room_special_and_unexplored_tiles():
     assert_eq(ex.rotate_tile(ex.front_door, 1), "the Front Door never moves")
-    ex.party_tile = den
-    assert_eq(ex.rotate_tile(den, 1), "the party is in that room")
+    ex.party_tile = well
+    assert_eq(ex.rotate_tile(well, 1), "the party is in that room")
     var study: PlacedTile = _put("inner_study", 0, Vector2i(5, 5))
     assert_eq(ex.rotate_tile(study, 1), "special tiles never move")
-    var unseen: PlacedTile = _put("vault", 0, Vector2i(-5, -5), false)
+    var unseen: PlacedTile = _put("storeroom", 0, Vector2i(-5, -5), false)
     assert_eq(ex.rotate_tile(unseen, 1), "only explored tiles")
-    assert_eq(ex.rotate_tile(vault, 1), "it already faces that way")
+    assert_eq(ex.rotate_tile(store, 1), "it already faces that way")
     assert_eq(ex.log.of_type("map_change_refused").size(), 5)
 
 func test_turning_never_cuts_the_party_off_from_the_front_door():
-    _party_beyond_the_den()
+    _party_beyond_the_well()
     for r in [1, 2, 3]:
-        assert_eq(ex.rotate_tile(den, r), "it would cut the party off from the Front Door")
-    assert_eq(den.rotation, 0, "unchanged")
-    assert_eq(_sides(den), ["E", "S"])
+        assert_eq(ex.rotate_tile(well, r), "it would cut the party off from the Front Door")
+    assert_eq(well.rotation, 0, "unchanged")
+    assert_eq(_sides(well), ["E", "S"])
 
 func test_two_tiles_of_the_same_shape_swap_doorways_and_all():
-    assert_eq(ex.swap_tiles(den, vault), "")
-    assert_eq(den.cells, [Vector2i(1, 0)] as Array[Vector2i])
-    assert_eq(vault.cells, [Vector2i(0, 1)] as Array[Vector2i])
-    assert_eq(_sides(den), ["E", "S"], "same orientation")
-    assert_eq(ex.map.tile_at(Vector2i(1, 0)), den)
-    assert_eq(ex.map.tile_at(Vector2i(0, 1)), vault)
-    assert_false(ex.map.connected(ex.front_door, vault), "the vault's doorway faces west now")
+    assert_eq(ex.swap_tiles(well, store), "")
+    assert_eq(well.cells, [Vector2i(1, 0)] as Array[Vector2i])
+    assert_eq(store.cells, [Vector2i(0, 1)] as Array[Vector2i])
+    assert_eq(_sides(well), ["E", "S"], "same orientation")
+    assert_eq(ex.map.tile_at(Vector2i(1, 0)), well)
+    assert_eq(ex.map.tile_at(Vector2i(0, 1)), store)
+    assert_false(ex.map.connected(ex.front_door, store), "the Storeroom's doorway faces west now")
 
 func test_swapping_refuses_different_shapes_fixed_tiles_and_cutting_the_party_off():
-    var hall: PlacedTile = _put("lair_long_hall", 0, Vector2i(3, 3))
-    assert_eq(ex.swap_tiles(den, hall), "the two tiles aren't the same size and shape")
-    assert_eq(ex.swap_tiles(den, ex.front_door), "the Front Door never moves")
-    assert_eq(ex.swap_tiles(den, den), "a tile can't swap with itself")
-    _party_beyond_the_den()
-    assert_eq(ex.swap_tiles(den, vault), "it would cut the party off from the Front Door")
-    assert_eq(den.cells, [Vector2i(0, 1)] as Array[Vector2i], "unchanged")
+    var hall: PlacedTile = _put("laundry", 0, Vector2i(3, 3))
+    assert_eq(ex.swap_tiles(well, hall), "the two tiles aren't the same size and shape")
+    assert_eq(ex.swap_tiles(well, ex.front_door), "the Front Door never moves")
+    assert_eq(ex.swap_tiles(well, well), "a tile can't swap with itself")
+    _party_beyond_the_well()
+    assert_eq(ex.swap_tiles(well, store), "it would cut the party off from the Front Door")
+    assert_eq(well.cells, [Vector2i(0, 1)] as Array[Vector2i], "unchanged")
 
 func test_collapse_removes_a_dead_end_for_the_run():
-    assert_eq(ex.remove_tile(vault), "")
-    assert_false(ex.map.tiles.has(vault))
+    assert_eq(ex.remove_tile(store), "")
+    assert_false(ex.map.tiles.has(store))
     assert_true(ex.map.is_free(Vector2i(1, 0)))
     assert_eq(ex.party_doorways().size(), 1, "the Front Door's east doorway is open again")
 
 func test_collapse_refuses_rooms_that_are_not_dead_ends_and_fixed_tiles():
-    assert_eq(ex.remove_tile(den), "it isn't a dead end: it still has an open doorway")
-    _put("vault", 3, Vector2i(-2, 0))   # doorway E, meets the dark room's W
-    _put("vault", 2, Vector2i(-1, -1))  # doorway N, meets the dark room's S
-    assert_eq(ex.remove_tile(dark), "it isn't a dead end: it connects to 3 rooms")
+    assert_eq(ex.remove_tile(well), "it isn't a dead end: it still has an open doorway")
+    _put("storeroom", 3, Vector2i(-2, 0))   # doorway E, meets the Root Cellar's W
+    _put("storeroom", 2, Vector2i(-1, -1))  # doorway N, meets the Root Cellar's S
+    assert_eq(ex.remove_tile(cellar), "it isn't a dead end: it connects to 3 rooms")
     assert_eq(ex.remove_tile(ex.front_door), "the Front Door never moves")
-    ex.party_tile = vault
-    assert_eq(ex.remove_tile(vault), "the party is in that room")
+    ex.party_tile = store
+    assert_eq(ex.remove_tile(store), "the party is in that room")
 
 func test_a_wall_token_closes_only_an_open_doorway():
-    var west: MapDoorway = MapDoorway.new(dark, Vector2i(-1, 0), "W")
+    var west: MapDoorway = MapDoorway.new(cellar, Vector2i(-1, 0), "W")
     assert_eq(ex.close_doorway(west), "")
-    assert_false(ex.map.open_doorways(dark).any(func(d: MapDoorway) -> bool: return d.side == "W"))
+    assert_false(ex.map.open_doorways(cellar).any(func(d: MapDoorway) -> bool: return d.side == "W"))
     assert_eq(ex.close_doorway(west), "that doorway is already closed")
-    assert_eq(ex.close_doorway(MapDoorway.new(dark, Vector2i(-1, 0), "E")), "that doorway isn't open: a room lies beyond it")
-    assert_eq(ex.close_doorway(MapDoorway.new(dark, Vector2i(-1, 0), "N")), "there is no doorway there")
+    assert_eq(ex.close_doorway(MapDoorway.new(cellar, Vector2i(-1, 0), "E")), "that doorway isn't open: a room lies beyond it")
+    assert_eq(ex.close_doorway(MapDoorway.new(cellar, Vector2i(-1, 0), "N")), "there is no doorway there")
 
 func test_whim_option_lists_hold_only_legal_changes():
     var turns: Array = ex.rotation_options().map(func(o: Dictionary) -> String: return "%s:%d" % [o["tile"].tile_id, o["rotation"]])
-    assert_true(turns.has("lair_den:1"))
+    assert_true(turns.has("well_room:1"))
     assert_false(turns.any(func(s: String) -> bool: return s.begins_with("front_door")))
-    assert_eq(ex.collapse_options(), [vault] as Array[PlacedTile])
-    assert_eq(ex.swap_options().size(), 3, "den, vault and dark room are all 1x1")
-    assert_eq(ex.open_doorway_options().size(), 3, "the den's E, the dark room's S and W; the Front Door's all lead somewhere")
+    assert_eq(ex.collapse_options(), [store] as Array[PlacedTile])
+    assert_eq(ex.swap_options().size(), 3, "the Well Room, Storeroom and Root Cellar are all 1x1")
+    assert_eq(ex.open_doorway_options().size(), 3, "the Well Room's E, the Root Cellar's S and W; the Front Door's all lead somewhere")
 
 # ------------------------------------------------------------------ save and load
 

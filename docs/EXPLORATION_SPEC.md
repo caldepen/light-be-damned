@@ -1,28 +1,30 @@
-# Exploration spec: room tiles on an open map (approved 2026-10-28; no fixed board since 2026-10-28)
+# Exploration spec: room tiles on an open map (approved 2026-10-28; no fixed board since 2026-10-28; rooms redesigned 2026-10-30)
 
-This replaces the v0.5 exploration rules in `docs/RULES.md` §8 ("The map": Tiles, Revealing, Rooms, Hidden doors) and the tile, room-deck, Hut-track and Iron Key parts of §10. Skill rolls, teamwork, traps, bandaging and camping are unchanged except where noted. It was balanced in the Python campaign simulator (blind draws, standard DM, 400 campaigns).
+This replaces the v0.5 exploration rules in `docs/RULES.md` §8 ("The map": Tiles, Revealing, Rooms, Hidden doors) and the tile, room-deck, Hut-track and Iron Key parts of §10. Skill rolls, traps, bandaging and camping are unchanged except where noted. The first version was balanced in the Python campaign simulator (blind draws, standard DM, 400 campaigns).
+
+**Redesign (2026-10-30).** Room types and their four decks became named rooms and one Hut deck; Hut Whims moved from a deck drawn at Hut 3/6/9 onto the rooms themselves; the Witch's Workshop and Iron Key (and the level-3 gate) became four component rooms; the single backtracking flip became a walking check per tile; the waking Hut now throws the party out instead of adding Lair fights. Removed: the Lair, Dark, Vault and Library decks, Ambush, Strange font, the Shrine, Pantry and Hearth, the Workshop, the Iron Key, Whim decks and thresholds. `docs/OPEN_QUESTIONS.md` lists the rulings this changed or retired.
 
 ## 1. Overview
 
-Exploring builds the Hut one room at a time. The party picks which doorway to open, draws a room tile **blind** from a bag, and places it there. **The party never chooses the room.** Their only choice is the doorway. Each tile is a single room (Castles of Mad King Ludwig style). The tile shows its room type once flipped; entering draws from that type's small room deck. The map is cleared between runs, so every run builds a new Hut.
+Exploring builds the Hut one room at a time. The party picks which doorway to open, draws a room tile **blind** from a bag, and places it there. **The party never chooses the room.** Their only choice is the doorway. Each tile is a single named room (Castles of Mad King Ludwig style). The first time the party enters a room in a run, its printed Hut Whim happens (if it has one) and then a Hut card is drawn. The map is cleared between runs, so every run builds a new Hut.
 
 ## 2. Components
 
 - **No map board:** tiles are laid directly on the table and the map can grow in any direction without limit. Coordinates (digital) are `[x, y]` from the Front Door at `[0, 0]`: x east, y north; both can go negative.
-- **Room tiles:** 26 in the bag (section 7). Three special tiles start outside the bag: Front Door, Witch's Workshop, Inner Study.
+- **Room tiles:** 26 in the bag, all different rooms (section 5). Two special tiles start outside the bag: the Front Door and the Inner Study.
 - **Tile bag:** a cloth bag at the table; a shuffled list in the digital version (seeded RNG).
-- **Room decks (36 cards):** Lair (8), Dark (12), Vault (8), Library (8). Section 8.
-- **Rooms with no deck:** Shrine, Pantry, Empty chamber, Hearth and corridors carry their rule on the tile.
+- **Hut deck (21 cards):** section 8.
+- **Component tokens (4):** one each from the Library, the Kitchen, the Armory and the Baths.
 - **Party marker:** the room the party is in.
 - **Rations:** 8 per run (unchanged).
 
 ## 3. Setup (each run)
 
-Lay the Front Door at `[0, 0]` (doorways N, E, W). Shuffle the 26 bag tiles into the bag. Workshop and Inner Study wait outside the bag (section 6). Hut track at 0. The party starts in the Front Door.
+Lay the Front Door at `[0, 0]` (doorways N, E, W). Shuffle the 26 bag tiles into the bag. The Inner Study waits outside the bag until the party holds all four components (section 6). Shuffle the Hut deck. Hut track at 0. The party starts in the Front Door. Components held from earlier runs stay held.
 
 ## 4. Exploring (one room at a time)
 
-1. **Pick a doorway.** Choose an open doorway of the room the party is in. If it has none left, or the party prefers another, they may first **backtrack** to an unopened doorway in any explored room (see below). This is the party's only choice. (Digital: always pick the doorway first, then flip. At the table it may be played more loosely: draw the tile, then lay it at whichever doorway of the party's room fits best.)
+1. **Pick a doorway.** Choose an open doorway of the room the party is in. If it has none left, or the party prefers another, they may **walk** to an open doorway in any other explored room, making the walking checks on the way (see below). This is the party's only choice. (Digital: always pick the doorway first, then flip. At the table it may be played more loosely: draw the tile, then lay it at whichever doorway of the party's room fits best.)
 2. **Draw and flip** 1 tile from the bag.
 3. **Place it** so one of its doorways meets the chosen doorway, rotating it to fit (any of 4 rotations). It must not overlap another tile. If no rotation fits there, place it at another open doorway of the same room, or else of any explored room. Its other doorways may face another tile's wall; those are simply closed. Two doorways that end up facing each other connect.
 4. **Moon:** if the tile shows a moon, the Hut track rises by 1.
@@ -32,118 +34,99 @@ An **open doorway** is a doorway of a placed tile whose neighbouring square is e
 
 **Nothing fits.** If the drawn tile fits at no open doorway on the map: the Hut stirs (+1, only once per exploration); set the tile aside and draw again until one fits; then shuffle the set-aside tiles back into the bag. If nothing in the bag fits, the party **breaks through** a wall: place a set-aside tile against any wall of an explored room where it fits (no doorway needed; the Hut makes one). If even that is impossible, the Hut has closed in and the party must head home. (Simulation, on the old 7×9 board: a redraw about once in 4 runs; a break-through almost never; closed in about 1 run in 50. Without board edges these rules are a safety net that should almost never trigger.)
 
-**Backtracking.** Walking back through explored rooms to open a doorway in a different room costs time. The hero with the most cards in their deck flips the top card; it is spent as in a skill roll (Exhausted if ▲ or ★). On a skill value of 1 or 2, wandering monsters spill out: fight 3 goblins (`wandering` encounter) before exploring. **This fight gives no loot and no XP**, though bandaging afterwards works as usual. Backtracking is meant to be a small cost the party can choose to pay, never something worth doing for its own sake. Walking through explored rooms is otherwise free and triggers nothing.
+**Walking through the Hut.** Walking through explored rooms, to a campsite or to an unopened doorway in another room, costs time. For each tile the party enters on the way, the leading hero (the Fighter, else the first of Thief, Cleric, Wizard who can flip) flips the top card of their deck; it is spent as in a skill roll (Exhausted if ▲ or ★). On a skill value of 1, wandering monsters attack: fight 3 goblins (`wandering` encounter) in that room, then carry on. **These fights give no loot and no XP**, though bandaging afterwards works as usual.
 
-**Leaving.** The party can walk back to the Front Door at any time (no backtracking check) to end the run.
+**Leaving.** Walking back to the Front Door to leave is free, with no walking checks, except when the Hut has woken and thrown the party out (section 7).
 
-**Hidden doors** (v0.5) are dropped for now.
+**Hidden doors** (v0.5) are dropped for now; they will come back as a skill roll.
 
 **DM mode at the table:** the DM holds 3 tiles and plays one onto the chosen doorway. The digital version has no DM tile hand yet (later milestone, with the human DM decision provider).
 
-## 5. Room types
+## 5. Rooms
 
-| Type | Bag tiles | On entering |
+| Kind | Bag tiles | On the first entry each run |
 | --- | --- | --- |
-| Lair | 9 | Draw a Lair card and fight it |
-| Dark room (?) | 5 | Draw a Dark card: a trap, an event, or an ambush |
-| Vault | 2 | Dead end. Draw a Vault card |
-| Library | 2 | Draw a Library card: a lock or puzzle |
-| Shrine | 1 | Once per run, a Spirit 4 roll. Success: every hero removes 2 Wounds (drawing replacements) and repairs 1 armor damage. Failure: Hut track +1 |
-| Pantry | 1 | Gain 1 ration. A campsite |
-| Empty chamber | 2 | A campsite |
-| Hearth | 1 | A campsite with no wandering-monster check |
+| Room with a Whim | 12 | Resolve the printed Whim (section 7), then draw a Hut card |
+| Room without a Whim | 4 | Draw a Hut card: Amphibian and Reptile Terrarium, Bone Closet, Potion Store, Well Room |
+| Component room | 4 | A set battle while the party lacks the component (section 6) |
+| Bedchamber | 3 | Nothing; a campsite (normal wandering check when camping) |
 | Corridor | 3 | Nothing happens. No moon; not a campsite |
+
+The rooms with a Whim: Cauldron Room (Bubbling Cauldron), Mirror Hall (Hall of Mirrors), Crypt (Bones Stir), Spinning Room (Shifting Walls), Root Cellar (Collapse), Storeroom (Locked In), Gallery (Vanishing Door), Great Hall (Doors Slam), Crow Loft (Crooked Corridor), Candle Nook (The Black Cat), Laundry (Keyhole), Garden (Gingerbread Garden). Each name sits on one of the old shapes with the same moons (section 9): Great Hall, Mirror Hall and the Armory on the 2×2s, the Storeroom, Bone Closet and Kitchen on the dead-end squares, the Bedchambers on the old campsite shapes.
 
 **Re-entering** an explored room never resolves it again.
 
-**Camping** works as in v0.5 but only in a campsite room the party has explored this run (Empty chamber, Pantry or Hearth): 1 ration per hero, Hut track +1, then the wandering-monster check (none at the Hearth). The campfire fully resets every hero.
+**Camping** works as in v0.5 but only in a campsite the party has explored this run (a Bedchamber or the Kitchen): 1 ration per hero, Hut track +1, the campfire resets every hero, then the wandering-monster check (skill 1–3). Walking to the campsite makes the walking checks.
 
-## 6. Special tiles
+## 6. Special tiles and components
 
 - **Front Door:** 1×1, doorways N, E, W, at `[0, 0]`. Leaving the Hut means walking back here.
-- **Witch's Workshop:** 1×1, one doorway (S), moon. Shuffled into the bag when the Hut track reaches 2, **only if the party is level 3 or higher and doesn't have the Iron Key**. Entering: take the Iron Key, then fight its guardians (draw a Lair card). Key rules otherwise unchanged (no slot; kept once the party escapes; lost if the party wipes on the run it was found). This replaces "the key is among the top three Treasure cards".
-- **Inner Study:** 2×2, one iron door (cell `[0,0]`, side S). Shuffled into the bag when the Hut track reaches 4. Without the key it is still placed, but its door stays shut. With the key, entering starts the boss battle.
-- **Both goal tiles ignore doorway matching:** place them against any wall of an explored room where they fit; the Hut makes a door. They always fit.
+- **Inner Study:** 2×2, one iron door (cell `[0,0]`, side S). Shuffled into the bag as soon as the party holds all four components, even mid-run. It ignores doorway matching: placed at the chosen doorway if it fits, else against any wall of an explored room where it fits; the Hut makes a door. It always fits. Entering starts the boss battle.
+
+**Component rooms.** Each is a set battle on the first visit while the party lacks that component (normal loot and XP, then the component):
+
+| Room | Guardians | Encounter | Also |
+| --- | --- | --- | --- |
+| Library | 5 skeletons, "the dusty dead" | `skeleton_band` | |
+| Kitchen | 5 goblins, "the cooks" | `standard` | Always a campsite; 1 ration on the first visit each run |
+| Armory | An ogre and 4 goblins | `tough` | |
+| Baths | 3 skeletons and 2 goblins | `baths_guardians` | Afterwards, once per run, every hero removes 2 Wounds and repairs 1 armor |
+
+Once the party holds a component, its room plays as a room without a Whim (a Hut card); the Kitchen stays a campsite and the Baths keep their healing. Components are kept if the party escapes and lost if it wipes on the run they were found. For Milestone 4, "components held at start" is a run setting.
 
 ## 7. Hut track and Hut Whims
 
-The Hut track (0–10) rises by 1 for: each moon tile placed, each failed skill roll, each campfire, each "nothing fits" stir. At 3, 6 and 9: draw a Hut Whim. At 2: Workshop enters the bag (if eligible). At 4: Inner Study enters the bag. At 10 the Hut wakes: every room entered from then on (except corridors) also draws a Lair card and that fight happens first.
+The Hut track (0–10) rises by 1 for: each moon tile placed, each failed skill roll, each campfire, each "nothing fits" stir; and as The Black Cat and Bubbling Cauldron say. **At 10 the Hut wakes and evicts the party:** no more exploring; the party must walk to the Front Door, making the walking check for every tile on the way (this time leaving is not free). There are no Whim thresholds.
 
-**Hut Whims (12):**
+**Hut Whims (12),** printed on their rooms:
 
-| Whim | Effect |
-| --- | --- |
-| Shifting Walls | Rotate an explored tile the party isn't in, in place. Doorways may open or close. If it would cut the party off from the Front Door, it doesn't turn |
-| Vanishing Door | Close one open doorway on the map with a wall token |
-| Locked In | The doorways of the party's room seal until they beat a Strength or Agility 4 roll (retries allowed; each failure Hut +1) |
-| Hall of Mirrors | Swap two explored tiles of the same size and shape, doorways and all (not the party's room, not the Front Door) |
-| Collapse | Remove a dead-end room the party isn't in (not a special tile); it leaves the game for this run |
-| Keyhole | For the next exploration, draw and look at the tile before choosing the doorway |
-| Doors Slam | Every open doorway of the party's room closes except one, chosen at random |
-| Crooked Corridor | The next tile must be placed as far (in squares, by path) from the Front Door as it can go |
-| The Black Cat | Offers a bargain: 1 loot card for a secret |
-| Bubbling Cauldron | Spirit 4 roll: success repairs 1 armor damage on each hero; failure deals 1 damage to each |
-| Gingerbread Pantry | Gain a ration |
-| Bones Stir | 3 skeletons attack (`bones_stir` encounter) |
+| Whim | Room | Effect |
+| --- | --- | --- |
+| Shifting Walls | Spinning Room | Rotate an explored tile the party isn't in, in place. Doorways may open or close. If it would cut the party off from the Front Door, it doesn't turn |
+| Vanishing Door | Gallery | Close one open doorway on the map with a wall token |
+| Locked In | Storeroom | Bash the door: Strength 4, retried until it gives way, each failure Hut +1. Nobody can roll: the door gives way, Hut +1 |
+| Hall of Mirrors | Mirror Hall | Swap two explored tiles of the same size and shape, doorways and all (not the party's room, not the Front Door) |
+| Collapse | Root Cellar | Remove a dead-end room the party isn't in (not a special tile); it leaves the game for this run |
+| Keyhole | Laundry | For the next exploration, draw and look at the tile before choosing the doorway |
+| Doors Slam | Great Hall | Every open doorway of the party's room closes except one, chosen at random |
+| Crooked Corridor | Crow Loft | The next tile must be placed as far (in squares, by path) from the Front Door as it can go |
+| The Black Cat | Candle Nook | Optional: tell the cat a secret for Hut track +1 and 1 loot card |
+| Bubbling Cauldron | Cauldron Room | Drink if you dare: each hero repairs 1 armor; Hut track +1 (no roll) |
+| Gingerbread Garden | Garden | Gain a ration |
+| Bones Stir | Crypt | 3 skeletons attack (`bones_stir` encounter); no loot, no XP |
 
-## 8. Room decks
+## 8. The Hut deck
 
-Skill rolls, teamwork, retries and "Hard or harder gives 1 XP" work as in v0.5 §8.
+21 cards, shuffled each run; it reshuffles its discards when empty.
 
-**Lair deck (8):** Goblin band ×4 (`standard`), Skeleton band ×2 (`skeleton_band`), Ogre and goblins ×2 (`tough`). Normal loot and XP after winning.
+- Monsters ×9: Goblin band ×5 (`standard`), Skeleton band ×2 (`skeleton_band`), Ogre and goblins ×2 (`tough`). Normal loot and XP.
+- Traps ×4: Pit (target 4, 2 damage), Poison needle (target 4, 2 damage), Falling ceiling ×2 (Hard, target 5, 3 damage). Traps work as in v0.5: hidden; a Wits roll at the target spots one; a spotted trap can be avoided or disarmed with an Agility roll for 1 loot card; an unspotted trap springs on the hero leading the party, who may make an Agility roll to dodge.
+- Chest ×3: draw 2 loot.
+- Locked chest ×1: Agility 5, one retry, each failure Hut +1; success draws 3 loot and gives 1 XP.
+- Abandoned pack ×2: draw 1 loot.
+- Quiet room ×2: nothing happens.
 
-**Dark deck (12):**
-- Pit ×2: trap, target 4, 2 damage.
-- Poison needle ×2: trap, target 4, 2 damage.
-- Falling ceiling ×2: trap, Hard (target 5), 3 damage.
-- Abandoned pack ×2: event, draw 1 loot card.
-- Strange font ×2: event, Spirit 4 roll: success repairs 1 armor damage on each hero; failure deals 1 damage to each.
-- Ambush ×2: fight 3 goblins (`wandering`), normal loot and XP.
+**Skill checks** are only for locked chests, traps (spot, disarm, dodge), bashing doors (Locked In) and, later, hidden doors.
 
-Traps work as in v0.5: they start hidden; a Wits roll at the trap's target spots it; a spotted trap can be avoided, or disarmed with an Agility roll for 1 loot card; an unspotted trap springs on the hero leading the party, who may make an Agility roll to dodge.
+## 9. Tile data
 
-**Vault deck (8):** Chest ×5 (draw 2 loot). Locked chest ×3 (Agility 5; success draws 3 loot and gives 1 XP; one retry; each failure Hut +1).
+Tile-local coordinates use the same axes as the map (x east, y north), with the tile's anchor cell at `[0, 0]`. Rotations are applied at placement. The exact cells, doorways, moons, Whims and component rules of every tile are in `data/module_witch_hut.json` (schema in `docs/DATA_SCHEMA.md`). The shapes and moons are the 2026-10-28 ones; only the names and what happens inside changed:
 
-**Library deck (8):** each is a lock or puzzle with a Type and target. Success draws 1 loot (Hard or harder also 1 XP); failure raises the Hut track by 1 and may be retried with another flip.
-- Lockbox ×2: Agility 4. Trapped lock ×1: Agility 5.
-- Rune lock ×2: Wits 4. Riddle door ×1: Wits 5.
-- Barred cellar ×1: Strength 4. Seized bookcase ×1: Strength 5.
-
-Room decks reshuffle when empty. They reset each run.
-
-## 9. Tile data (exact doorway positions)
-
-Tile-local coordinates use the same axes as the map (x east, y north), with the tile's anchor cell at `[0, 0]`. Rotations are applied at placement. `moon_qty` is how many of the `qty` copies show a moon.
-
-```json
-[
-  {"id": "corridor_straight", "type": "corridor", "qty": 1, "moon_qty": 0, "cells": [[0,0],[0,1]], "doors": [{"cell":[0,0],"side":"S"},{"cell":[0,1],"side":"N"},{"cell":[0,1],"side":"E"}]},
-  {"id": "corridor_t", "type": "corridor", "qty": 1, "moon_qty": 0, "cells": [[-1,0],[0,0],[1,0]], "doors": [{"cell":[-1,0],"side":"W"},{"cell":[1,0],"side":"E"},{"cell":[0,0],"side":"N"}]},
-  {"id": "corridor_bend", "type": "corridor", "qty": 1, "moon_qty": 0, "cells": [[0,0],[1,0],[1,1]], "doors": [{"cell":[0,0],"side":"W"},{"cell":[1,1],"side":"N"},{"cell":[1,0],"side":"E"}]},
-  {"id": "lair_great_hall", "type": "lair", "qty": 3, "moon_qty": 2, "cells": [[0,0],[1,0],[0,1],[1,1]], "doors": [{"cell":[0,0],"side":"S"},{"cell":[1,1],"side":"N"},{"cell":[1,0],"side":"E"}]},
-  {"id": "lair_long_hall", "type": "lair", "qty": 3, "moon_qty": 1, "cells": [[0,0],[0,1]], "doors": [{"cell":[0,0],"side":"S"},{"cell":[0,1],"side":"N"},{"cell":[0,1],"side":"E"}]},
-  {"id": "lair_den", "type": "lair", "qty": 3, "moon_qty": 2, "cells": [[0,0]], "doors": [{"cell":[0,0],"side":"S"},{"cell":[0,0],"side":"E"}]},
-  {"id": "dark_small", "type": "dark", "qty": 3, "moon_qty": 2, "cells": [[0,0]], "doors": [{"cell":[0,0],"side":"S"},{"cell":[0,0],"side":"E"},{"cell":[0,0],"side":"W"}]},
-  {"id": "dark_long", "type": "dark", "qty": 2, "moon_qty": 1, "cells": [[0,0],[0,1]], "doors": [{"cell":[0,0],"side":"S"},{"cell":[0,1],"side":"E"},{"cell":[0,1],"side":"N"}]},
-  {"id": "vault", "type": "vault", "qty": 2, "moon_qty": 1, "cells": [[0,0]], "doors": [{"cell":[0,0],"side":"S"}]},
-  {"id": "library_long", "type": "library", "qty": 1, "moon_qty": 1, "cells": [[0,0],[0,1]], "doors": [{"cell":[0,0],"side":"S"},{"cell":[0,1],"side":"W"}]},
-  {"id": "library_wide", "type": "library", "qty": 1, "moon_qty": 0, "cells": [[0,0],[1,0]], "doors": [{"cell":[0,0],"side":"S"},{"cell":[1,0],"side":"N"}]},
-  {"id": "shrine", "type": "shrine", "qty": 1, "moon_qty": 1, "cells": [[0,0]], "doors": [{"cell":[0,0],"side":"S"},{"cell":[0,0],"side":"N"}]},
-  {"id": "pantry", "type": "pantry", "qty": 1, "moon_qty": 0, "cells": [[0,0]], "doors": [{"cell":[0,0],"side":"S"}]},
-  {"id": "empty_chamber", "type": "empty", "qty": 2, "moon_qty": 0, "cells": [[0,0],[1,0]], "doors": [{"cell":[0,0],"side":"S"},{"cell":[1,0],"side":"E"},{"cell":[0,0],"side":"N"}]},
-  {"id": "hearth", "type": "hearth", "qty": 1, "moon_qty": 0, "cells": [[0,0]], "doors": [{"cell":[0,0],"side":"S"},{"cell":[0,0],"side":"N"}]}
-]
-```
-
-Specials:
-
-```json
-[
-  {"id": "front_door", "type": "front_door", "cells": [[0,0]], "doors": [{"cell":[0,0],"side":"N"},{"cell":[0,0],"side":"E"},{"cell":[0,0],"side":"W"}], "fixed_at": [0,0]},
-  {"id": "witchs_workshop", "type": "workshop", "moon": true, "cells": [[0,0]], "doors": [{"cell":[0,0],"side":"S"}], "ignores_doorway_matching": true},
-  {"id": "inner_study", "type": "inner_study", "moon": false, "cells": [[0,0],[1,0],[0,1],[1,1]], "doors": [{"cell":[0,0],"side":"S"}], "ignores_doorway_matching": true}
-]
-```
+| Old shape (2026-10-28) | Count, moons | Rooms now |
+| --- | --- | --- |
+| Great hall (2×2) | 3, 2 | Great Hall (moon), Mirror Hall (moon), Armory |
+| Long hall (2 squares, 3 doorways) | 3, 1 | Spinning Room, Crow Loft (moon), Laundry |
+| Den (1 square, 2 doorways at a corner) | 3, 2 | Candle Nook (moon), Potion Store (moon), Well Room |
+| Small dark room (1 square, 3 doorways) | 3, 2 | Crypt (moon), Cauldron Room (moon), Root Cellar |
+| Long dark room (2 squares, 3 doorways) | 2, 1 | Amphibian and Reptile Terrarium (moon), Garden |
+| Vault (dead end) | 2, 1 | Storeroom, Bone Closet (moon) |
+| Pantry (dead end) | 1, 0 | Kitchen |
+| Long library | 1, 1 | Library (moon) |
+| Wide library | 1, 0 | Gallery |
+| Shrine (1 square, 2 doorways opposite) | 1, 1 | Baths (moon) |
+| Empty chamber (2 squares) | 2, 0 | Bedchamber ×2 |
+| Hearth (1 square, 2 doorways opposite) | 1, 0 | Bedchamber |
+| Corridors | 3, 0 | Straight, T and bent corridor |
 
 Totals: 26 bag tiles, 11 with a moon.
 
@@ -176,3 +159,4 @@ The simulated party explores until the average deck drops below 9 cards, then ca
 - DM tile hand: check that a DM placing Lairs everywhere isn't too strong (tabletop / later human DM provider).
 - Map-shifting Whims (Shifting Walls, Hall of Mirrors, Collapse, Doors Slam): playtest for fun versus fiddliness.
 - Tile art: doorway positions are final for now; art comes in the art-pass milestone.
+

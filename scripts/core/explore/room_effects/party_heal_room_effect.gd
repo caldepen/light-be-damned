@@ -1,7 +1,7 @@
 class_name PartyHealRoomEffect
 extends RoomEffect
 
-## "party_heal_wounds": each hero removes Wounds, drawing replacements; a Down hero whose hand is
+## "party_heal_wounds" (the Baths): each hero removes Wounds, drawing replacements; a Down hero whose hand is
 ## no longer only Wounds gets up.
 
 func op_name() -> String:

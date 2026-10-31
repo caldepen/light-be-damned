@@ -90,15 +90,13 @@
     "wandering_encounter": "wandering",
     "lifts_curses": true
   },
-  "backtracking": {
-    "_doc": "The hero with the most deck cards flips (ties: party's choice); monsters on a skill value at or below this. No loot, no XP (RULES §8, rulings #46, #59, #61)",
-    "wandering_on_skill_at_most": 2,
+  "walking": {
+    "_doc": "For each tile the party walks into (to a campsite, to another room's doorway, or out when evicted), the leading hero flips; monsters on a skill value at or below this, fought in that room. No loot, no XP (RULES §8 Walking through the Hut)",
+    "wandering_on_skill_at_most": 1,
     "encounter": "wandering"
   },
-  "traps": {
-    "_doc": "An unspotted trap springs on the first standing hero in this order (ruling #55)",
-    "leader_order": ["fighter", "thief", "cleric", "wizard"]
-  },
+  "_leader_order_doc": "The hero leading the party: an unspotted trap springs on the first standing hero in this order (ruling #55); the walking check is flipped by the first who can flip (open question #78)",
+  "leader_order": ["fighter", "thief", "cleric", "wizard"],
   "run": {
     "rations": 8,
     "xp_for_walking_out": 2

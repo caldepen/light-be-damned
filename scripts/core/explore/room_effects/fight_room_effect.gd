@@ -7,5 +7,5 @@ func op_name() -> String:
     return "fight"
 
 func resolve(ctx: RoomContext, effect: Dictionary) -> void:
-    if ctx.run.fight(String(effect["encounter"]), bool(effect.get("rewards", true))) == HutRun.FIGHT_WIPE:
+    if ctx.run.fight(String(effect["encounter"]), bool(effect.get("rewards", true)), ctx.source) == HutRun.FIGHT_WIPE:
         ctx.stopped = true

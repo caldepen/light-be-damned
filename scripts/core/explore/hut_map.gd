@@ -120,6 +120,29 @@ func reachable_from(start: PlacedTile) -> Array[PlacedTile]:
                 frontier.append(n)
     return seen
 
+## The shortest way in tiles from `start` to `goal` through explored rooms: the tiles entered on the
+## way, `goal` included, `start` not (RULES §8 Walking through the Hut). Empty when `start` is
+## `goal` or there is no way.
+func route(start: PlacedTile, goal: PlacedTile) -> Array[PlacedTile]:
+    var path: Array[PlacedTile] = []
+    if start == goal:
+        return path
+    var came_from: Dictionary = {start: null}
+    var frontier: Array[PlacedTile] = [start]
+    while not frontier.is_empty() and not came_from.has(goal):
+        var t: PlacedTile = frontier.pop_front()
+        for n in neighbours(t):
+            if n.explored and not came_from.has(n):
+                came_from[n] = t
+                frontier.append(n)
+    if not came_from.has(goal):
+        return path
+    var at: PlacedTile = goal
+    while at != start:
+        path.push_front(at)
+        at = came_from[at]
+    return path
+
 ## Walking distance in squares from `start` to every square the party can reach: a step to a
 ## neighbouring square of the same tile, or through a connected doorway (Crooked Corridor).
 func path_distances(start: Vector2i) -> Dictionary:

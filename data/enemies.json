@@ -662,6 +662,16 @@
         "count": 3
       }
     ],
+    "baths_guardians": [
+      {
+        "type": "skeleton",
+        "count": 3
+      },
+      {
+        "type": "goblin",
+        "count": 2
+      }
+    ],
     "witch": [
       {
         "type": "witch",

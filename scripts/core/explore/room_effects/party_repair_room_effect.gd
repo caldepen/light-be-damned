@@ -1,7 +1,7 @@
 class_name PartyRepairRoomEffect
 extends RoomEffect
 
-## "party_repair_armor": each hero repairs armor damage.
+## "party_repair_armor": each hero repairs armor damage (the Baths, Bubbling Cauldron).
 
 func op_name() -> String:
     return "party_repair_armor"

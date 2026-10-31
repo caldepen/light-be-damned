@@ -1,27 +1,24 @@
 class_name LockInRoomEffect
 extends RoomEffect
 
-## "lock_in" (Locked In, ruling #58): the party's room seals until one of `types` beats `target`.
-## Rolled at once and retried until it succeeds; each failure raises the Hut track. A hero rolls
-## their own Type if it is listed, else the first listed Type (at -2). If nobody can roll, the seal
-## breaks on its own and the Hut track rises by 1 (ruling #72).
+## "lock_in" (Locked In, ruling #58): the door slams shut; bash it with a `type` roll at `target`.
+## Rolled at once and retried until it gives way; each failure raises the Hut track. Any hero may
+## bash, at -2 if it isn't their Type (open question #84). If nobody can roll, the door gives way
+## on its own and the Hut track rises by 1 (ruling #72).
 
 func op_name() -> String:
     return "lock_in"
 
 func resolve(ctx: RoomContext, effect: Dictionary) -> void:
     var run: HutRun = ctx.run
-    var types: Array = effect.get("types", ["strength"])
+    var type: String = String(effect.get("type", "strength"))
     var target: int = int(effect.get("target", 4))
-    run.log.record("locked_in", "The doorways seal shut.", {})
+    run.log.record("locked_in", "The door slams shut.", {})
     while not ctx.stopped and not run.wiped:
-        var pool: Array[HeroState] = run.party.can_roll()
-        if pool.is_empty():
-            run.log.record("seal_breaks", "Nobody can roll: the seal breaks on its own.", {})
-            run.raise_hut(int(effect.get("hut_if_nobody_rolls", 1)), "the seal breaks")
+        if run.party.can_roll().is_empty():
+            run.log.record("door_gives_way", "Nobody can bash it: the door gives way on its own.", {})
+            run.raise_hut(int(effect.get("hut_if_nobody_rolls", 1)), "the door gives way")
             return
-        var hero: HeroState = run.ask(RunRequest.ROLLER, null, pool, {"type": String(types[0]), "types": types, "target": target, "purpose": "locked in"})
-        var type: String = hero.hero_type if types.has(hero.hero_type) else String(types[0])
-        if bool(SkillRoll.roll(run, type, target, "locked in", true, hero).get("success", false)):
-            run.log.record("unlocked", "The doorways open again.", {})
+        if bool(SkillRoll.roll(run, type, target, "bash", true).get("success", false)):
+            run.log.record("unlocked", "The door gives way.", {})
             return

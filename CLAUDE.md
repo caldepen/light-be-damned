@@ -68,9 +68,9 @@ Godot 4.7.2 with GUT 9.7.0 (`addons/gut`). Use the console exe for headless runs
 
 # One whole run (HutRun.play: SimpleRunAi outside battle, TacticalAiProvider heroes, real battles) with its
 # full log and map, or a batch summary. Options: --dm automated|standard|ruthless (default standard),
-# --level N (party level for the Workshop gate; default 1, so no key and no boss), --stub (battles called won)
+# --components N|all (components held at the start; all four put the Inner Study in the bag), --stub (battles called won)
 & "C:\Program Files\Godot4_7_2\Godot_v4.7.2-stable_win64_console.exe" --headless --path . --script tools/run_map.gd '--' --rooms 7
-& "C:\Program Files\Godot4_7_2\Godot_v4.7.2-stable_win64_console.exe" --headless --path . --script tools/run_map.gd '--' --rooms --batch 300 --level 3
+& "C:\Program Files\Godot4_7_2\Godot_v4.7.2-stable_win64_console.exe" --headless --path . --script tools/run_map.gd '--' --rooms --batch 300 --components 3
 ```
 
 The playtest table (`scenes/table.tscn`, the main scene; single battles until exploration lands): press F5 in the editor, or run the editor exe without `--headless`:
@@ -132,7 +132,7 @@ Down = battles where any hero went Down. Wounds (from damage), armor damage left
 
 The `witch` encounter is left out: her Bone Storm extra turn is built (ruling #45) but Bone Ward isn't, and the batch uses the level 1 party rather than a level 3 party with items. The old Python simulator in `reference/` is prototype quality and no longer the baseline; it is still useful for porting AI heuristics.
 
-## Current status (2026-10-30)
+## Current status (2026-10-31)
 
 - 2026-10-29, movement and targeting (rulings #66-70 in `docs/RULES.md` §3, §5-§7): the free step is melee only (no step before a throw or ranged attack, either board); enemies flip first and decide before moving (top-Provoke hero in reach after the step, else throw at them, else melee only: step, then the best hero in reach); cards beat rules; a large enemy in a row or area takes the effect once; a melee card that can reach nobody is worth 0 (Go Fish, then step). `CardRunner.melee_plan` / `play_enemy_card`, `EnemyMoves.melee_cells`; the hero AI's `ThreatModel` predicts the same targets. 229 GUT tests; baseline re-recorded.
 
@@ -142,7 +142,7 @@ The `witch` encounter is left out: her Bone Storm extra turn is built (ruling #4
 - Milestone 3: `TacticalAiProvider` hero AI (threat model, Provoke-aware scoring, one-turn look-ahead for hero order; `--ai simple` keeps the old heuristics) and the batch balance runner with automated / standard / ruthless DM modes and `--detail` reports; 163 GUT tests; baseline above.
 
 **In progress: Milestone 4, exploration** (spec `docs/EXPLORATION_SPEC.md`, rulings #46-65)
-- Step 0 done: RULES.md §8 and §10 rewritten for room tiles; `module_witch_hut.json` holds the tiles, specials, room types, four room decks, Hut track and 12 Whims, validated on load (26 bag tiles, 11 moons, doorways on tile edges); DATA_SCHEMA.md documents them.
+- Step 0 done: RULES.md §8 and §10 rewritten for room tiles; `module_witch_hut.json` holds the tiles, specials, room types, Hut track and Whims, validated on load (26 bag tiles, 11 moons, doorways on tile edges); DATA_SCHEMA.md documents them. Rooms redesigned 2026-10-30/31 (see the bullet after 4.4): the 4.2-4.4 bullets below describe what was built then; where they mention room decks, the Workshop, the key, Whim thresholds, backtracking or the waking Hut's Lair fights, the redesign replaced them.
 - Steps: 4.1 table layout (placeholder visuals, reusable scenes, one Theme) → 4.1b flexible layout → 4.2 map and tile engine → 4.3 rooms, rolls, traps, camping, backtracking, Whims → 4.4 the run loop → 4.5 run decisions and exploration AI → 4.6 map UI → 4.7 run batch report. Commit each step as "M4.x: ...".
 - Party formation: 4.4 done (`HutRun.formation`, `set_formation` validates; every run battle and patch-up uses it). Still planned for 4.5: choosing it is a run decision (decision provider, with an AI choice) and the batch runner gets a formation option. Then run the all-back-row formation test (as far back as four heroes fit) and report it against the default formation.
 - 4.1 done: `scenes/table.tscn` (`TableScreen`) follows the wireframe: top bar; left the Hut track / rations / party armor meter (warns past half damaged) over the map; centre the DM board, the Provoke strip, the player board (front rows facing); right the decks, discards and Exhausted piles and the collapsible event log; bottom the prompt and the hand. Built from `scenes/components/` (panel frame, board square, figure token, card, deck pile, tile) via `UiScenes`, styled by one Theme `ui/theme.tres` (custom-drawn pieces read their colours from it), `canvas_items` stretch. The map is `MapView`: a SubViewport with a Camera2D and five layers; `ink_in()` is the placement hook; dimmed during battle.
@@ -176,6 +176,14 @@ The `witch` encounter is left out: her Bone Storm extra turn is built (ruling #4
   - Map fixes found by the batch (#77): backtracking and placement fallbacks only use rooms the party can walk to (a Whim can turn a dead end away from the map); the Hut never opens a wall-token edge.
   - Locked In with nobody able to roll breaks on its own, Hut +1 (#72 as decided); #71-74 recorded in RULES.md.
   - `run_map.gd --rooms` plays whole runs (options `--dm`, `--level`, `--stub`). 300 runs, standard DM, simple run AI: level 1: left 86.3%, wipe 13.7%, 5.2 fights, 0.9 camps, 8.7 rooms; level 3 (Workshop open): left 75.3%, boss reached 8.0%, wipe 16.7%, key 26%. About 1 s per run. 316 GUT tests; the battle baseline is unchanged.
+- Room redesign done (2026-10-31, user design change; RULES §8/§10, EXPLORATION_SPEC, DATA_SCHEMA; changed and retired rulings listed in OPEN_QUESTIONS "Design change: named rooms"; my readings are open questions #78-84):
+  - 26 named room tiles (same shapes and moons). 12 rooms carry a printed Whim (tile `whim`), resolved on the first entry, then a Hut card; 4 rooms just draw a Hut card; 4 component rooms (Library, Kitchen, Armory, Baths: `component` op, guardians while the party lacks the component, else a Hut card; the Kitchen is always a campsite with a ration, the Baths heal 2 Wounds and 1 armor); 3 Bedchambers (campsites); 3 corridors.
+  - `HutDeck` (21 cards, `draw_hut_card` op) replaces the four room decks. Gone: Workshop, Iron Key, level gate, Whim deck and thresholds, Shrine, Strange font, Ambush, library locks, `skill_check` / `take_key` / `party_damage` / `draw_room_card`.
+  - Components: `HutRun.components` (held, from the `components_at_start` constructor argument) and `found` (lost on a wipe, `components_after()`); the fourth puts the Inner Study in the bag (`HutExplorer.add_special`) and reopens exploring. The Inner Study is entered on placement (boss).
+  - Walking: `HutRun.walk(tile, purpose)` takes the shortest route in explored tiles (`HutMap.route`), the leading hero (`leader(true)`, rules `leader_order`) flips for every tile entered, a 1 brings 3 goblins (rules `walking`). Used for doorways in other rooms and campsites; leaving is free (`HutExplorer.walk_to`) unless evicted.
+  - Hut track `evicts_at` 10: `evicted`, only ACT_LEAVE, walking checks all the way out; a moon tile that evicts is never entered (ROOM_EVICTED).
+  - Fight events carry `source` (hut card, guardians, walking, campfire, a Whim's name). `run_map.gd --rooms` takes `--components N|all` and reports walking checks, wandering fights, Hut card fights, component fights and evictions.
+  - 300 runs, standard DM, SimpleRunAi: 0 components held: left 88.3%, wipe 11.3%, boss 0.3%; 4.6 fights (2.0 Hut card, 1.1 component, 1.6 wandering), 5.6 walking checks, 3.5 Whims, 0.38 evictions, 7.3 rooms, 1.09 components found. 3 held: left 86.3%, boss 7.3%, wipe 6.3%. No stalls. 334 GUT tests.
   - Open questions #71-74 (decided 2026-10-30). Over 1000 seeds the safety nets never fired; the whole bag gives maps of about 12 × 15 squares. Whims, the Hut waking, rooms and the party walking come in 4.3/4.4. Rotation: r quarter turns clockwise about the anchor, y up. The map has no fixed board (changed 2026-10-28): the Front Door is at [0,0] and coordinates can go negative; nothing fits / break-through / closed in stay as a rarely used safety net. Map UI (4.6): zoom to fit the whole map while keeping the party's room in view, optional drag pan and wheel zoom, a centre-on-party button, zoom toward the chosen doorway when placing; the 4.1 map panel hosts a SubViewport with a Camera2D for this. Art direction: an inked map on graph paper. The map view has separate layers, bottom to top: paper/grid, tiles, features, annotations (reserved, empty, UI only), overlay (doorway highlights, party marker, previews). Tile placement goes through an "ink in" hook (a short fade until Milestone 7). Decorations come from optional `features` on room types and tiles (DATA_SCHEMA "Map features"); placeholders until Milestone 7.
 
 **Known follow-ups**
@@ -191,8 +199,8 @@ The `witch` encounter is left out: her Bone Storm extra turn is built (ruling #4
 1. Battle engine, headless, with tests ✔
 2. Minimal battle UI ✔
 3. Hero AI, batch balance runner, DM modes ✔
-4. **Exploration:** table layout, the open map and room tiles, rooms and room decks, skill rolls and traps, Hut track and Whims, camping and rations, backtracking, a full run from the Front Door until the party leaves or wipes, exploration AI and a run batch report. Loot, levels and the boss are stubbed.
-5. **Loot, equipment, levels, runs, town and wipes:** real loot draws and items, XP and levels, the Workshop's level gate, wipes, a campaign batch runner (many runs per campaign), then re-check campaign balance under standard DM against the spec's simulation numbers.
+4. **Exploration:** table layout, the open map and named room tiles, Whims and the Hut deck, component rooms, skill rolls and traps, the Hut track and eviction, camping and rations, walking checks, a full run from the Front Door until the party leaves or wipes, exploration AI and a run batch report. Loot, levels and the boss are stubbed.
+5. **Loot, equipment, levels, runs, town and wipes:** real loot draws and items, XP and levels, components carried between runs, wipes, a campaign batch runner (many runs per campaign), then re-check campaign balance under standard DM against the spec's simulation numbers.
 6. **The witch and the full Witch's Hut module:** Bone Ward, the boss fight in the Inner Study, escaping after the win, Whim polish, and a witch baseline with a level 3 party with items.
 7. **Art pass:** retro ink on graph paper. Swap the reusable scenes and the shared Theme; design card frames that the print version will share. The map becomes an inked map on graph paper: an animated ink-in when a tile is placed (replacing the placeholder fade in the ink-in hook), hand-drawn features, a wobbly line style and paper texture.
 8. **Tabletop export:** printable cards, tiles and boards from the data.

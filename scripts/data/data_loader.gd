@@ -14,7 +14,7 @@ const ITEM_OPS: Array[String] = [
 ## Effect fields that hold nested effect lists.
 const NESTED_FIELDS: Array[String] = ["otherwise", "fallback", "effects", "effect"]
 ## Fields of exploration effects that hold nested effect lists.
-const EXPLORE_NESTED_FIELDS: Array[String] = ["success", "failure", "effects"]
+const EXPLORE_NESTED_FIELDS: Array[String] = ["success", "failure", "effects", "otherwise"]
 const DECK_SIZE := 30
 const ENEMY_TAGS: Array[String] = ["", "phase", "top"]
 const HERO_TIERS: Array[String] = ["basic", "top", "signature", "recovery", "advancement"]
@@ -69,65 +69,83 @@ func validate(data: Dictionary) -> bool:
     for list_name in ["white", "loot", "consumables"]:
         for item in items.get(list_name, []):
             _validate_effects(item.get("effects", []), "item '%s'" % item.get("id", "?"), ITEM_OPS)
-    for key in rules.get("traps", {}).get("leader_order", []):
+    for key in rules.get("leader_order", []):
         if not heroes.has(key):
-            _fail("rules.traps.leader_order names '%s', which is not in heroes.json." % key)
-    for section in ["camping", "backtracking"]:
+            _fail("rules.leader_order names '%s', which is not in heroes.json." % key)
+    for section in ["camping", "walking"]:
         var encounter_name: String = String(rules.get(section, {}).get("wandering_encounter" if section == "camping" else "encounter", ""))
         if not encounters.has(encounter_name):
             _fail("rules.%s names unknown encounter '%s'." % [section, encounter_name])
     _validate_module(data.get("module_witch_hut", {}), encounters)
     return errors.is_empty()
 
-## The module: tiles (bag size, moons, doorway geometry), room types, room decks and Hut Whims.
+## The module: tiles (bag size, moons, doorway geometry, Whims, own effects), room types, the
+## components, the Hut deck and the Hut track.
 func _validate_module(module: Dictionary, encounters: Dictionary) -> void:
     if module.is_empty():
         _fail("module_witch_hut.json is empty.")
         return
     var room_types: Dictionary = module.get("room_types", {})
-    var decks: Dictionary = module.get("room_decks", {})
+    var components: Dictionary = {}
+    for c in module.get("components", []):
+        components[String(c.get("id", ""))] = c
     var map: Dictionary = module.get("map", {})
     var bag_tiles: int = 0
     var bag_moons: int = 0
     var tile_ids: Dictionary = {}
+    var whim_ids: Dictionary = {}
+    var component_rooms: Dictionary = {}  # component id -> tile ids that give it
     for tile in module.get("tiles", []):
         _validate_tile(tile, room_types, tile_ids)
         bag_tiles += int(tile.get("qty", 1))
         bag_moons += int(tile.get("moon_qty", 0))
         if int(tile.get("moon_qty", 0)) < 0 or int(tile.get("moon_qty", 0)) > int(tile.get("qty", 1)):
             _fail("Tile '%s' has moon_qty %d for qty %d." % [tile.get("id", "?"), int(tile.get("moon_qty", 0)), int(tile.get("qty", 1))])
+        var context: String = "tile '%s'" % tile.get("id", "?")
+        if tile.has("whim"):
+            var whim: Dictionary = tile["whim"]
+            var whim_id: String = String(whim.get("id", ""))
+            if whim_id.is_empty() or whim_ids.has(whim_id):
+                _fail("Tile '%s' has a Whim with a missing or repeated id '%s'." % [tile.get("id", "?"), whim_id])
+            whim_ids[whim_id] = true
+            _validate_explore_effects(whim.get("effects", []), "Hut Whim '%s'" % whim_id, components, encounters)
+        _validate_explore_effects(tile.get("effects", []), context, components, encounters)
+        for e in tile.get("effects", []):
+            if String(e.get("op", "")) == "component":
+                var cid: String = String(e.get("component", ""))
+                var rooms: Array = component_rooms.get(cid, [])
+                rooms.append(String(tile.get("id", "")))
+                component_rooms[cid] = rooms
     if bag_tiles != int(module.get("bag_size", -1)):
         _fail("The tile bag has %d tiles; bag_size says %d." % [bag_tiles, int(module.get("bag_size", -1))])
     if bag_moons != int(module.get("bag_moons", -1)):
         _fail("The tile bag has %d moons; bag_moons says %d." % [bag_moons, int(module.get("bag_moons", -1))])
+    if whim_ids.size() != int(module.get("whim_count", -1)):
+        _fail("The tiles carry %d Hut Whims; whim_count says %d." % [whim_ids.size(), int(module.get("whim_count", -1))])
+    for cid in components:
+        var room_id: String = String(components[cid].get("room", ""))
+        if component_rooms.get(cid, []) != [room_id]:
+            _fail("Component '%s' should be given by exactly one room, '%s'; found %s." % [cid, room_id, str(component_rooms.get(cid, []))])
     for tile in module.get("special_tiles", []):
         _validate_tile(tile, room_types, tile_ids)
         if tile.has("fixed_at") and (typeof(tile["fixed_at"]) != TYPE_ARRAY or tile["fixed_at"].size() != 2):
             _fail("Special tile '%s' has a bad fixed_at %s." % [tile.get("id", "?"), str(tile["fixed_at"])])
+        if tile.has("enters_bag") and tile["enters_bag"] != {"all_components": true}:
+            _fail("Special tile '%s' has an unknown enters_bag rule %s." % [tile.get("id", "?"), str(tile["enters_bag"])])
     if not tile_ids.has(String(map.get("entrance_tile", ""))):
         _fail("map.entrance_tile '%s' is not a tile." % map.get("entrance_tile", ""))
     for type_name in room_types:
         var room: Dictionary = room_types[type_name]
-        if room.has("deck") and not decks.has(String(room["deck"])):
-            _fail("Room type '%s' uses unknown room deck '%s'." % [type_name, room["deck"]])
-        _validate_explore_effects(room.get("effects", []), "room type '%s'" % type_name, decks, encounters)
+        _validate_explore_effects(room.get("effects", []), "room type '%s'" % type_name, components, encounters)
         if room.has("features"):
             _validate_features(room["features"], "Room type '%s'" % type_name, {})
-    var sizes: Dictionary = module.get("room_deck_sizes", {})
-    for deck_name in decks:
-        var total: int = sum_deck_quantity(decks[deck_name])
-        if total != int(sizes.get(deck_name, -1)):
-            _fail("Room deck '%s' has %d cards; room_deck_sizes says %d." % [deck_name, total, int(sizes.get(deck_name, -1))])
-        for card in decks[deck_name]:
-            _validate_explore_effects(card.get("effects", []), "room card '%s'" % card.get("id", "?"), decks, encounters)
-    var whims: Array = module.get("hut_whims", [])
-    if whims.size() != 12:
-        _fail("There are %d Hut Whims; expected 12." % whims.size())
-    for whim in whims:
-        _validate_explore_effects(whim.get("effects", []), "Hut Whim '%s'" % whim.get("id", "?"), decks, encounters)
-    var hut: Dictionary = module.get("hut_track", {})
-    if not decks.has(String(hut.get("wake_extra_deck", ""))):
-        _fail("hut_track.wake_extra_deck '%s' is not a room deck." % hut.get("wake_extra_deck", ""))
+    var deck: Array = module.get("hut_deck", [])
+    if sum_deck_quantity(deck) != int(module.get("hut_deck_size", -1)):
+        _fail("The Hut deck has %d cards; hut_deck_size says %d." % [sum_deck_quantity(deck), int(module.get("hut_deck_size", -1))])
+    for card in deck:
+        _validate_explore_effects(card.get("effects", []), "Hut card '%s'" % card.get("id", "?"), components, encounters)
+    if int(module.get("hut_track", {}).get("evicts_at", 0)) <= 0:
+        _fail("hut_track.evicts_at is missing.")
 
 ## A tile has a known type, cells with no duplicates, and doorways on its own cells' outer edges.
 func _validate_tile(tile: Dictionary, room_types: Dictionary, tile_ids: Dictionary) -> void:
@@ -194,8 +212,9 @@ func _validate_features(features: Variant, context: String, tile_cells: Dictiona
         if int(slot.get("count", 1)) < 0:
             _fail("%s has a feature slot with a negative count." % context)
 
-## Ops must be exploration ops; fights name known encounters, rolls a hero Type, room cards a deck.
-func _validate_explore_effects(effects: Array, context: String, decks: Dictionary, encounters: Dictionary) -> void:
+## Ops must be exploration ops; fights name known encounters, rolls a hero Type, component rooms a
+## component of the module.
+func _validate_explore_effects(effects: Array, context: String, components: Dictionary, encounters: Dictionary) -> void:
     for effect in effects:
         if typeof(effect) != TYPE_DICTIONARY:
             _fail("%s has an effect that is not an object." % context)
@@ -203,19 +222,15 @@ func _validate_explore_effects(effects: Array, context: String, decks: Dictionar
         var op: String = String(effect.get("op", ""))
         if not _room_effects.has(op):
             _fail("%s has unknown op '%s'." % [context, op])
-        if op in ["fight", "boss"] and not encounters.has(String(effect.get("encounter", ""))):
+        if op in ["fight", "boss", "component"] and not encounters.has(String(effect.get("encounter", ""))):
             _fail("%s fights unknown encounter '%s'." % [context, effect.get("encounter", "")])
-        if op == "draw_room_card" and not decks.has(String(effect.get("deck", ""))):
-            _fail("%s draws from unknown room deck '%s'." % [context, effect.get("deck", "")])
-        if op in ["lock", "skill_check"] and not HERO_TYPES.has(String(effect.get("type", ""))):
+        if op == "component" and not components.has(String(effect.get("component", ""))):
+            _fail("%s gives unknown component '%s'." % [context, effect.get("component", "")])
+        if op in ["lock", "lock_in"] and not HERO_TYPES.has(String(effect.get("type", ""))):
             _fail("%s rolls unknown Type '%s'." % [context, effect.get("type", "")])
-        if op == "lock_in":
-            for t in effect.get("types", []):
-                if not HERO_TYPES.has(String(t)):
-                    _fail("%s rolls unknown Type '%s'." % [context, t])
         for field_name in EXPLORE_NESTED_FIELDS:
             if typeof(effect.get(field_name, null)) == TYPE_ARRAY:
-                _validate_explore_effects(effect[field_name], context, decks, encounters)
+                _validate_explore_effects(effect[field_name], context, components, encounters)
 
 func _validate_hero(hero_id: String, hero: Dictionary, items: Dictionary) -> void:
     var deck: Array = hero.get("deck", [])

@@ -3,7 +3,8 @@ extends RefCounted
 
 ## Building the Hut one room at a time (RULES §8 Exploring, Nothing fits; §10 Special tiles and
 ## Hut track). Owns the map, the tile bag and the Hut track for one run; draws use the run's
-## gameplay RNG, map features the cosmetic stream. Everything that happens goes to `log`.
+## gameplay RNG, map features the cosmetic stream. Everything that happens goes to `log`. The run
+## shuffles the Inner Study in (add_special) once the party holds every component.
 ##
 ## Choices among legal placements go through `chooser`: func(kind: String, options: Array) -> int
 ## (kind "placement"). The default takes the first option; run decisions arrive in Milestone 4.5.
@@ -18,12 +19,9 @@ var cosmetic_rng: SeededRng
 var log: EventLog
 var chooser: Callable = func(_kind: String, _options: Array) -> int: return 0
 var hut_track: int = 0
-var party_level: int = 1
-var has_key: bool = false
 var front_door: PlacedTile
 var party_tile: PlacedTile
-## Called after every change of the Hut track with (before, after): the run resolves Whims and the
-## Hut waking here.
+## Called after every change of the Hut track with (before, after): the run wakes the Hut here.
 var hut_listener: Callable = Callable()
 ## Crooked Corridor: the next tile goes as far from the Front Door as it can (then clears).
 var crooked: bool = false
@@ -64,7 +62,8 @@ func enter(tile: PlacedTile) -> void:
     party_tile = tile
     log.record("enter_room", "The party enters the %s." % String(tile.def.get("name", tile.tile_id)), {"tile": tile.uid, "type": tile.room_type})
 
-## Walk through explored rooms to `tile` (free, RULES §8 Walking). Returns "" or why not.
+## Walk through explored rooms to `tile` with no walking checks (leaving, RULES §8 Leaving).
+## Returns "" or why not.
 func walk_to(tile: PlacedTile) -> String:
     if tile == party_tile:
         return ""
@@ -125,8 +124,8 @@ func explore(doorway: MapDoorway) -> ExploreResult:
     return result
 
 ## Where a drawn tile may go, in the rules' order: at the chosen doorway; else at another open
-## doorway of the same room; else of any explored room. Goal tiles (ignores_doorway_matching)
-## go at the chosen doorway if they fit, else against any wall of an explored room (ruling #48).
+## doorway of the same room; else of any explored room. The Inner Study (ignores_doorway_matching)
+## goes at the chosen doorway if it fits, else against any wall of an explored room (ruling #48).
 ## "Explored room" here means one the party can walk to (open question #77).
 func placement_options(entry: Dictionary, doorway: MapDoorway) -> Array[TilePlacement]:
     var options: Array[TilePlacement] = []
@@ -171,31 +170,27 @@ func farthest_options(entry: Dictionary) -> Array[TilePlacement]:
             result.append(p)
     return result
 
-## The Hut track rises (moons, failed rolls, campfires, a stir). Special tiles whose time has
-## come enter the bag. Whims and the Hut waking are Milestone 4.3.
+## The Hut track rises (moons, failed rolls, campfires, a stir, some Whims); the listener wakes the
+## Hut at the top.
 func raise_hut(amount: int, reason: String) -> void:
     var hut: Dictionary = module.get("hut_track", {})
     var before: int = hut_track
     hut_track = clampi(hut_track + amount, 0, int(hut.get("max", 10)))
     log.record("hut_track", "Hut track %d -> %d (%s)." % [before, hut_track, reason], {"from": before, "to": hut_track, "reason": reason})
-    _check_specials()
     if hut_listener.is_valid() and hut_track != before:
         hut_listener.call(before, hut_track)
 
-func _check_specials() -> void:
-    for s in module.get("special_tiles", []):
-        var rule: Dictionary = s.get("enters_bag", {})
-        var id: String = String(s.get("id", ""))
-        if rule.is_empty() or _specials_entered.has(id) or hut_track < int(rule.get("at_hut", 0)):
-            continue
-        if party_level < int(rule.get("min_party_level", 0)):
-            continue
-        if bool(rule.get("unless_party_has_key", false)) and has_key:
-            continue
-        _specials_entered[id] = true
-        var more: Array[Dictionary] = [{"def": s, "moon": bool(s.get("moon", false))}]
-        bag.put_back(more, rng)
-        log.record("special_enters_bag", "The %s is shuffled into the bag." % String(s.get("name", id)), {"tile": id})
+## Shuffle a special tile into the bag (the Inner Study once the party holds every component),
+## once per run. Returns false if it was already in.
+func add_special(id: String) -> bool:
+    if _specials_entered.has(id):
+        return false
+    _specials_entered[id] = true
+    var s: Dictionary = special_def(id)
+    var more: Array[Dictionary] = [{"def": s, "moon": bool(s.get("moon", false))}]
+    bag.put_back(more, rng)
+    log.record("special_enters_bag", "The %s is shuffled into the bag." % String(s.get("name", id)), {"tile": id})
+    return true
 
 # ------------------------------------------------------------------ map changes (Hut Whims)
 # Each returns "" when the change happened, else why not; both are logged.
@@ -275,7 +270,7 @@ func to_dict() -> Dictionary:
     return {
         "map": map.to_dict(),
         "bag": bag.entries.map(func(e: Dictionary) -> Dictionary: return {"id": String(e["def"]["id"]), "moon": bool(e["moon"])}),
-        "hut_track": hut_track, "party_level": party_level, "has_key": has_key,
+        "hut_track": hut_track,
         "front_door": front_door.uid, "party_tile": party_tile.uid, "specials_entered": specials,
         "crooked": crooked, "peeked": {} if _peeked.is_empty() else {"id": String(_peeked["def"]["id"]), "moon": bool(_peeked["moon"])},
         # 64-bit states as strings: a JSON number would lose precision.
@@ -294,8 +289,6 @@ static func from_dict(data: Dictionary, module_in: Dictionary, rng_in: SeededRng
     for e in data.get("bag", []):
         ex.bag.entries.append({"def": defs[String(e["id"])], "moon": bool(e["moon"])})
     ex.hut_track = int(data["hut_track"])
-    ex.party_level = int(data["party_level"])
-    ex.has_key = bool(data["has_key"])
     ex.front_door = ex.map.tile_by_uid(int(data["front_door"]))
     ex.party_tile = ex.map.tile_by_uid(int(data["party_tile"]))
     ex._specials_entered.clear()

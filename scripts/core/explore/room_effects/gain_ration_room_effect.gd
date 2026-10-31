@@ -1,7 +1,7 @@
 class_name GainRationRoomEffect
 extends RoomEffect
 
-## "gain_ration": rations +amount (the Pantry, Gingerbread Pantry).
+## "gain_ration": rations +amount (the Kitchen, Gingerbread Garden).
 
 func op_name() -> String:
     return "gain_ration"

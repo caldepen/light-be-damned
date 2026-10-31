@@ -247,30 +247,35 @@ func test_walking_out_ends_the_run_with_the_walking_out_xp():
 
 func test_a_wipe_ends_the_run_and_its_finds_are_lost():
     run.fight_runner = func(_r: HutRun, _e: String, _rw: bool) -> String: return HutRun.FIGHT_WIPE
-    run.room_decks.stack("lair", "goblin_band")
-    run.explorer.bag.entries.push_back(_entry("lair_den"))
+    run.hut_deck.stack("goblin_band")
+    run.explorer.bag.entries.push_back(_entry("well_room"))
     provider.then(RunRequest.ACTION, HutRun.ACT_EXPLORE)
     assert_eq(run.play(), HutRun.RUN_WIPE)
     assert_eq(String(run.log.of_type("run_end")[0]["message"]).contains("(lost)"), true)
 
 func test_camping_is_offered_only_in_an_explored_campsite_with_enough_rations():
     assert_false(run.actions().has(HutRun.ACT_CAMP))
-    var pantry: PlacedTile = run.explorer.map.add(TilePlacement.make(_entry("pantry"), 0, Vector2i(0, 1), null, {}))
-    pantry.explored = true
-    if run.explorer.map.connected(pantry, run.explorer.front_door):
-        assert_true(run.actions().has(HutRun.ACT_CAMP))
+    var kitchen: PlacedTile = run.explorer.map.add(TilePlacement.make(_entry("kitchen"), 0, Vector2i(0, 1), null, {}))
+    kitchen.explored = true
+    if run.explorer.map.connected(kitchen, run.explorer.front_door):
+        assert_true(run.actions().has(HutRun.ACT_CAMP), "the Kitchen is always a campsite")
         run.rations = 3
         assert_false(run.actions().has(HutRun.ACT_CAMP), "4 heroes need 4 rations")
     else:
-        fail_test("the pantry should connect to the Front Door's north doorway")
+        fail_test("the kitchen should connect to the Front Door's north doorway")
 
-func test_with_the_key_the_party_walks_to_the_inner_study_and_the_run_stops_at_the_boss():
-    var study: PlacedTile = run.explorer.map.add(TilePlacement.make(_entry("inner_study"), 0, Vector2i(0, 1), null, {}))
-    assert_true(run.explorer.map.connected(study, run.explorer.front_door), "the iron door faces the Front Door")
-    assert_false(run.actions().has(HutRun.ACT_STUDY), "no key")
-    run.explorer.has_key = true
-    assert_true(run.actions().has(HutRun.ACT_STUDY))
-    provider.then(RunRequest.ACTION, HutRun.ACT_STUDY)
+func test_with_every_component_the_inner_study_comes_out_of_the_bag_and_the_run_stops_at_the_boss():
+    for c in run.module["components"]:
+        run.gain_component(String(c["id"]))
+    var bag: Array[Dictionary] = run.explorer.bag.entries
+    var study: Dictionary = {}
+    for e in bag:
+        if e["def"]["id"] == "inner_study":
+            study = e
+    assert_false(study.is_empty(), "the fourth component put it in the bag")
+    bag.erase(study)
+    bag.push_back(study)
+    provider.then(RunRequest.ACTION, HutRun.ACT_EXPLORE)
     assert_eq(run.play(), HutRun.RUN_BOSS)
 
 func test_a_whole_run_replays_exactly_from_its_seed():

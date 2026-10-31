@@ -73,14 +73,34 @@ func test_tile_bag_has_26_tiles_and_11_moons():
     assert_eq(bag, 26)
     assert_eq(moons, 11)
 
-func test_room_decks_hold_36_cards_and_there_are_12_whims():
+func test_the_hut_deck_holds_21_cards_and_12_rooms_carry_a_whim():
     var module: Dictionary = BattleFixture.data()["module_witch_hut"]
-    var total: int = 0
-    for deck_name in module["room_decks"]:
-        total += DataLoader.new().sum_deck_quantity(module["room_decks"][deck_name])
-    assert_eq(total, 36)
-    assert_eq(module["hut_whims"].size(), 12)
+    assert_eq(DataLoader.new().sum_deck_quantity(module["hut_deck"]), 21)
+    var whims: Array = module["tiles"].filter(func(t: Dictionary) -> bool: return t.has("whim"))
+    assert_eq(whims.size(), 12)
+    assert_eq(module["components"].size(), 4)
 
+func test_a_missing_whim_or_a_repeated_whim_is_rejected():
+    var data := _data_copy()
+    data["module_witch_hut"]["tiles"][3].erase("whim")
+    assert_string_contains(_module_errors(data), "whim_count")
+    data = _data_copy()
+    data["module_witch_hut"]["tiles"][4]["whim"]["id"] = data["module_witch_hut"]["tiles"][3]["whim"]["id"]
+    assert_string_contains(_module_errors(data), "repeated")
+
+func test_a_component_without_its_room_or_an_unknown_component_is_rejected():
+    var data := _data_copy()
+    for tile in data["module_witch_hut"]["tiles"]:
+        if tile["id"] == "kitchen":
+            tile["effects"][0]["component"] = "cauldron"
+    var errors: String = _module_errors(data)
+    assert_string_contains(errors, "unknown component 'cauldron'")
+    assert_string_contains(errors, "Component 'kitchen'")
+
+func test_a_wrong_hut_deck_size_is_rejected():
+    var data := _data_copy()
+    data["module_witch_hut"]["hut_deck"][0]["qty"] = 6
+    assert_string_contains(_module_errors(data), "hut_deck_size")
 func test_a_missing_bag_tile_is_rejected():
     var data := _data_copy()
     data["module_witch_hut"]["tiles"][3]["qty"] = 2
@@ -93,7 +113,7 @@ func test_a_wrong_moon_count_is_rejected():
 
 func test_a_doorway_inside_the_tile_is_rejected():
     var data := _data_copy()
-    # lair_great_hall: [0,0] side E faces its own cell [1,0]
+    # great_hall: [0,0] side E faces its own cell [1,0]
     data["module_witch_hut"]["tiles"][3]["doors"][0] = {"cell": [0, 0], "side": "E"}
     assert_string_contains(_module_errors(data), "not on the tile's edge")
 
@@ -109,17 +129,20 @@ func test_a_duplicate_cell_is_rejected():
 
 func test_an_unknown_room_op_is_rejected():
     var data := _data_copy()
-    data["module_witch_hut"]["room_decks"]["dark"][0]["effects"] = [{"op": "summon_dragon"}]
+    data["module_witch_hut"]["hut_deck"][3]["effects"] = [{"op": "summon_dragon"}]
     assert_string_contains(_module_errors(data), "summon_dragon")
 
-func test_an_unknown_op_nested_in_a_skill_check_is_rejected():
+func test_an_unknown_op_nested_in_a_whim_or_a_component_room_is_rejected():
     var data := _data_copy()
-    data["module_witch_hut"]["hut_whims"][9]["effects"][0]["failure"] = [{"op": "explode"}]
-    assert_string_contains(_module_errors(data), "explode")
+    data["module_witch_hut"]["tiles"][11]["whim"]["effects"][0]["effects"] = [{"op": "explode"}]  # the Black Cat's bargain
+    data["module_witch_hut"]["tiles"][5]["effects"][0]["otherwise"] = [{"op": "implode"}]
+    var errors: String = _module_errors(data)
+    assert_string_contains(errors, "explode")
+    assert_string_contains(errors, "implode")
 
 func test_a_room_fight_with_an_unknown_encounter_is_rejected():
     var data := _data_copy()
-    data["module_witch_hut"]["room_decks"]["lair"][0]["effects"][0]["encounter"] = "dragons"
+    data["module_witch_hut"]["hut_deck"][0]["effects"][0]["encounter"] = "dragons"
     assert_string_contains(_module_errors(data), "dragons")
 
 func test_the_map_has_no_fixed_board_and_the_front_door_is_at_the_origin():
@@ -155,8 +178,8 @@ func test_a_feature_slot_off_the_tile_is_rejected():
 
 func test_a_bad_feature_chance_or_weight_is_rejected():
     var data := _data_copy()
-    data["module_witch_hut"]["room_types"]["lair"]["features"]["chance"] = 1.5
-    data["module_witch_hut"]["room_types"]["dark"]["features"]["pool"][0]["weight"] = 0
+    data["module_witch_hut"]["room_types"]["room"]["features"]["chance"] = 1.5
+    data["module_witch_hut"]["room_types"]["bedchamber"]["features"]["pool"][0]["weight"] = 0
     var errors: String = _module_errors(data)
     assert_string_contains(errors, "chance")
     assert_string_contains(errors, "weight")

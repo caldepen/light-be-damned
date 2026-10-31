@@ -2,23 +2,21 @@ class_name RoomEffectRegistry
 extends RefCounted
 
 ## One handler per exploration op (DATA_SCHEMA "Exploration effect ops"). The data loader checks
-## every op in room cards, room types and Hut Whims against this, so unknown ops fail loudly.
+## every op in Hut cards, Whims, tiles and room types against this, so unknown ops fail loudly.
 
 var _handlers: Dictionary = {}
 
 func _init() -> void:
     for h in [
         FightRoomEffect.new(),
-        DrawRoomCardEffect.new(),
+        DrawHutCardEffect.new(),
+        ComponentRoomEffect.new(),
         TrapRoomEffect.new(),
         LockRoomEffect.new(),
-        SkillCheckRoomEffect.new(),
         LootRoomEffect.new(),
         GainRationRoomEffect.new(),
-        PartyDamageRoomEffect.new(),
         PartyRepairRoomEffect.new(),
         PartyHealRoomEffect.new(),
-        TakeKeyRoomEffect.new(),
         BossRoomEffect.new(),
         HutTrackRoomEffect.new(),
         OptionalRoomEffect.new(),

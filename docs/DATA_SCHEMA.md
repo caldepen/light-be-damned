@@ -10,7 +10,7 @@ All game content lives in `data/*.json`. Code interprets it; it never hard-codes
 | `heroes.json` | The four heroes: Type, hand size, starting gear, 30-card starting deck, advancement cards (levels 2–3) |
 | `enemies.json` | Enemy stat lines (armor, Hit Dice, Draw, size), their shared action decks, and named encounters |
 | `items.json` | White starting gear, the loot deck (gear with `copies`), and consumables |
-| `module_witch_hut.json` | Module 1: room tiles (bag and specials), room types, the four room decks, Hut track, Hut Whims |
+| `module_witch_hut.json` | Module 1: named room tiles (bag and specials) with their Whims, room types, the components, the Hut deck, the Hut track |
 
 ## Hero card
 
@@ -91,83 +91,92 @@ All game content lives in `data/*.json`. Code interprets it; it never hard-codes
 ## Room tiles (module file `tiles`, `special_tiles`)
 
 ```json
-{ "id": "lair_long_hall", "name": "Long hall", "type": "lair", "qty": 3, "moon_qty": 1,
+{ "id": "crow_loft", "name": "Crow Loft", "type": "room", "qty": 1, "moon_qty": 1,
   "cells": [[0,0],[0,1]],
-  "doors": [{"cell": [0,0], "side": "S"}, {"cell": [0,1], "side": "N"}, {"cell": [0,1], "side": "E"}] }
+  "doors": [{"cell": [0,0], "side": "S"}, {"cell": [0,1], "side": "N"}, {"cell": [0,1], "side": "E"}],
+  "whim": {"id": "crooked_corridor", "name": "Crooked Corridor", "text": "...", "effects": [{"op": "crooked_corridor"}]} }
 ```
 
 - **Coordinates.** There is no fixed board: the map grows in any direction without limit. Map squares are `[x, y]` from the Front Door at `[0, 0]`: x east, y north (N is +y, E is +x); both can be negative. Tile-local cells use the same axes, with the tile's anchor cell at `[0, 0]`; other cells may be negative (`corridor_t` has `[-1, 0]`).
 - **Doorways.** `{"cell", "side"}`: an opening on that side (N, E, S, W) of one of the tile's own cells. It must be on the tile's outer edge: the square it faces is not one of the tile's cells. A cell may have several doorways.
 - **Rotation.** A placed tile has a rotation r from 0 to 3: r quarter turns **clockwise** about the anchor, applied to every cell (`(x, y) → (y, −x)` per turn) and every doorway side (N → E → S → W). The engine then shifts the tile so it lands where it is placed. `TileGeometry` implements this.
-- `type`: a key of `room_types`.
-- `qty`: copies in the tile bag. `moon_qty`: how many of those copies show a moon (0 to `qty`).
+- `type`: a key of `room_types` (`room`, `component`, `bedchamber`, `corridor`).
+- `qty`: copies in the tile bag. `moon_qty`: how many of those copies show a moon (0 to `qty`). Every named room has `qty` 1; the two-square Bedchamber has 2.
 - Bag totals are checked on load against `bag_size` (26) and `bag_moons` (11).
+- `whim` (optional): the Hut Whim printed on the room, `{"id", "name", "text", "effects"}`. It resolves the first time the party enters the room in a run, before the room's own effects. Whim ids are unique, and there must be `whim_count` (12) of them.
+- `effects` (optional): the room's own effects, resolved on the first entry after its Whim and before its room type's effects (the component rooms).
+- `campsite` (optional): the party may camp here once it is explored, whatever its type (the Kitchen).
 - **Special tiles** start outside the bag. They use `moon` (true/false) instead of `qty`/`moon_qty`, and may have:
   - `fixed_at`: the map square of the anchor (Front Door, `[0, 0]`).
-  - `ignores_doorway_matching`: placed against any wall of an explored room where it fits; the Hut makes the door (Workshop, Inner Study).
-  - `enters_bag`: `{"at_hut": N}` shuffles it into the bag when the Hut track reaches N; optional `min_party_level` and `unless_party_has_key`.
+  - `ignores_doorway_matching`: placed at the chosen doorway if it fits there, else against any wall of an explored room where it fits; the Hut makes the door (Inner Study).
+  - `enters_bag`: `{"all_components": true}` shuffles it into the bag as soon as the party holds every component in `components`.
 - `map.entrance_tile` names the tile the party starts in.
 
 ## Room types (module file `room_types`)
 
 Keyed by tile `type`. Fields: `name`, `text` (printed rule), and any of:
 
-- `deck`: entering draws a card from this room deck and resolves it.
-- `effects`: resolved on entering (rooms without a deck: Shrine, Pantry, Workshop, Inner Study).
-- `campsite`: the party may camp here once it is explored. `wandering_check: false` skips the campfire's wandering-monster flip (Hearth).
-- `requires_key`: the door stays shut without the Iron Key (Inner Study). `exit`: the way out (Front Door).
+- `effects`: resolved on the first entry each run, after the tile's Whim and the tile's own effects (`room`: draw a Hut card; `inner_study`: the boss).
+- `campsite`: the party may camp in tiles of this type once explored (Bedchambers). `wandering_check: false` would skip the campfire's wandering-monster flip (no room does now).
+- `exit`: the way out (Front Door).
 - `features`: decorations for tiles of this type (see Map features).
 
-`hut_track.wake_skips_types` lists the types that draw no extra Lair card once the Hut wakes (corridors, Lairs, the Front Door).
+## Components (module file `components`)
+
+```json
+{ "id": "kitchen", "name": "Kitchen component", "room": "kitchen" }
+```
+
+The four things the Inner Study needs. `room` names the tile whose `component` effect gives it; every component must have exactly one such room.
 
 ## Map features (decorations)
 
 Purely cosmetic hand-drawn details on placed tiles (bones, cobwebs, bookshelves). They never affect play. Art comes in Milestone 7; until then the ids are drawn as placeholders.
 
 ```json
-"lair": { "name": "Lair", "deck": "lair",
-          "features": {"slots_per_cell": 1, "chance": 0.6,
-                       "pool": [{"id": "bones", "weight": 1}, {"id": "claw_marks", "weight": 1}]} }
+"room": { "name": "Room", "effects": [{"op": "draw_hut_card"}],
+          "features": {"slots_per_cell": 1, "chance": 0.5,
+                       "pool": [{"id": "cobweb", "weight": 1}, {"id": "rubble", "weight": 1}]} }
 ```
 
 - **Room type** `features`: `slots_per_cell` (decoration slots on each cell of a tile of this type, default 1), `chance` (0–1, how likely each slot gets a decoration, default 1) and `pool` (`{"id", "weight"}` entries to pick from).
-- **Tile** `features` (optional): `slots` (`[{"cell": [x, y], "count": n}]` on the tile's own cells, replacing the type's `slots_per_cell` for that tile) and `pool` (extra entries added to the type's pool).
+- **Tile** `features` (optional): `slots` (`[{"cell": [x, y], "count": n}]` on the tile's own cells, replacing the type's `slots_per_cell` for that tile) and `pool` (extra entries added to the type's pool: the Crypt's bones, the Library's bookshelves).
 - **Picking.** When a tile is placed, the engine walks its slots in data order (cells, then count), rolls `chance` for each, and makes a weighted pick from the pool. The result is stored on the placed tile in map coordinates and logged with the `tile_placed` event.
 - **A separate seeded stream.** Picks use the run's cosmetic RNG, derived from the run seed, not the gameplay RNG. A replay draws the same map, and changing feature data never changes how a seeded run plays.
 
-## Room cards and Hut Whims (module file `room_decks`, `hut_whims`)
+## The Hut deck (module file `hut_deck`)
 
 ```json
-{ "id": "locked_chest", "name": "Locked chest", "qty": 3, "text": "Agility 5, one retry: draw 3 loot and gain 1 XP",
+{ "id": "locked_chest", "name": "Locked chest", "qty": 1, "text": "Agility 5, one retry: draw 3 loot and gain 1 XP",
   "effects": [ {"op": "lock", "type": "agility", "target": 5, "retries": 1,
                 "success": [ {"op": "loot", "count": 3} ]} ] }
 ```
 
-`room_decks` maps a deck name to its cards (with `qty`); `room_deck_sizes` gives each deck's expected size, checked on load. Hut Whims have `id`, `name`, `text` and `effects`, and there must be 12.
+`hut_deck` lists the cards (with `qty`); `hut_deck_size` (21) is checked on load. A card with no effects does nothing (Quiet room).
 
 XP for beating a Hard or harder obstacle (target ≥ `rules.json` `skill_rolls.difficulty.hard`) is given by the engine, so it is not written into `success` lists.
 
 ## Exploration effect ops
 
+Used in Hut cards, Whims, tiles' `effects` and room types' `effects`. Each op has one handler (`scripts/core/explore/room_effects/`); the data loader rejects ops without one.
+
 | op | Fields | Meaning |
 | --- | --- | --- |
 | `fight` | `encounter`, optional `rewards` (default true) | Fight a named encounter. `rewards: false` for wandering monsters (no loot, no XP) |
-| `draw_room_card` | `deck` | Draw a card from a room deck and resolve it (Workshop guardians) |
+| `draw_hut_card` | | Draw a card from the Hut deck and resolve it |
+| `component` | `component`, `encounter`, `guardians` (their name), `otherwise` | While the party lacks `component`: fight `encounter` (normal loot and XP), then take the component. Once it holds it: resolve `otherwise` (a Hut card) |
 | `trap` | `target`, `damage`, `salvage_loot` | A hidden trap: optional Wits spot, then avoid or Agility disarm (salvage), or it springs on the leader, who may dodge (Agility). All rolls at `target` |
-| `lock` | `type`, `target`, `retries` (number, or `"unlimited"`), `success` | An obstacle the party may attempt; each failure Hut +1; `success` effects on beating it |
-| `skill_check` | `type`, `target`, optional `optional` (default false), `success`, `failure` | One roll. `optional: true` means the party may decline and come back later (Shrine, Strange font) |
+| `lock` | `type`, `target`, `retries` (number, or `"unlimited"`), `success` | An obstacle the party may attempt (a locked chest); each failure Hut +1; `success` effects on beating it |
 | `loot` | `count` | Draw loot cards (Milestone 4 logs the count only) |
 | `gain_ration` | `amount` | Rations +amount |
-| `party_damage` | `amount` | Each standing hero takes damage (not an attack): armor first, then Wounds |
 | `party_repair_armor` | `amount` | Each hero repairs armor damage |
 | `party_heal_wounds` | `amount` | Each hero removes Wounds, drawing replacements; a Down hero whose hand is no longer all Wounds gets up |
-| `take_key` | | The party takes the Iron Key |
 | `boss` | `encounter` | The boss battle (Milestone 4 ends the run as "boss reached") |
 | `hut_track` | `amount` | Raise the Hut track |
 | `optional` | `prompt`, `effects` | The party may accept (resolve `effects`) or refuse (The Black Cat) |
 | `rotate_tile` | | Shifting Walls |
 | `close_doorway` | | Vanishing Door: a random open doorway gets a wall token |
-| `lock_in` | `types`, `target`, `hut_if_nobody_rolls` | Locked In: the party's room seals until one of `types` beats `target`; roll at once, retry until success. If nobody can roll, the seal breaks and the Hut track rises by `hut_if_nobody_rolls` (default 1, ruling #72) |
+| `lock_in` | `type`, `target`, `hut_if_nobody_rolls` | Locked In: bash the door with a `type` roll at `target`, at once, retried until it gives way (each failure Hut +1). If nobody can roll, it gives way and the Hut track rises by `hut_if_nobody_rolls` (default 1, ruling #72) |
 | `swap_tiles` | | Hall of Mirrors |
 | `collapse` | | Collapse: remove a dead-end room |
 | `keyhole` | | The next exploration draws the tile before the doorway is chosen |
@@ -177,9 +186,11 @@ XP for beating a Hard or harder obstacle (target ≥ `rules.json` `skill_rolls.d
 ## Exploration rules (`rules.json`)
 
 - `camping`: `rations_per_hero`, `hut_track`, `wandering_on_skill_at_most` (the campfire flip: monsters on this skill value or lower), `wandering_encounter`.
-- `backtracking`: `wandering_on_skill_at_most`, `encounter`.
-- `traps.leader_order`: an unspotted trap springs on the first standing hero in this order.
+- `walking`: `wandering_on_skill_at_most` (the flip for each tile walked into: monsters on this value or lower), `encounter`.
+- `leader_order`: the hero leading the party: an unspotted trap springs on the first standing hero in this order; the walking check is flipped by the first who can flip.
 - `skill_rolls`: off-Type penalty, minimum, teamwork threshold, difficulty targets, `failure_hut_track`, `xp_for_hard_or_better`.
+- `run`: `rations`, `xp_for_walking_out`.
+- Module `hut_track`: `start`, `max`, `evicts_at` (the Hut wakes and throws the party out).
 
 ## Conventions
 

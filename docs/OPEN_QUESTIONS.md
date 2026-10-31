@@ -10,7 +10,47 @@ From the run loop (Milestone 4.4, 2026-10-30). The engine as built is described;
 | --- | --- | --- |
 | 75 | Patch up (§8 After a won battle): there is no board between battles, so who is "adjacent" (Mend) or "within 1" (Rally), and which cards count? | The heroes stand in the party's formation, so adjacency and areas use their formation squares (the battle board with no enemies on it). A card counts if it has a heal, repair, cleanse, recover or Wound-transfer effect, or Consecrate; only those effects happen (and the draw on Greater Heal), never damage, Guard or Provoke. Fix Armor uses its between-battles text |
 | 76 | At the round cap the enemies withdraw (ruling #65). Does the party bandage and patch up afterwards? | No: it isn't a won battle, so no bandage and no patch up, as well as no loot or XP. (No battle has reached the cap in any batch so far) |
-| 77 | Shifting Walls may turn a dead end so it no longer connects to the map (only cutting the *party* off is forbidden). Can the party still use that room's open doorway (backtracking, or the "any explored room" placement fallback)? | No: only rooms the party can walk to count, for backtracking, for placing a tile that doesn't fit at the chosen doorway, and for break-throughs. The turned room stays on the map, unreachable, until another Whim moves it. Likewise an edge sealed by a wall token (Vanishing Door) is never a wall the Hut opens for a goal tile or a break-through. (Both found by the run batch: the party was stranded once by each) |
+| 77 | Shifting Walls may turn a dead end so it no longer connects to the map (only cutting the *party* off is forbidden). Can the party still use that room's open doorway (walking to it, or the "any explored room" placement fallback)? | No: only rooms the party can walk to count, for walking to a doorway, for placing a tile that doesn't fit at the chosen doorway, and for break-throughs. The turned room stays on the map, unreachable, until another Whim moves it. Likewise an edge sealed by a wall token (Vanishing Door) is never a wall the Hut opens for the Inner Study or a break-through. (Both found by the run batch: the party was stranded once by each) |
+
+From the room redesign (2026-10-30). The engine as built is described; the proposal keeps it.
+
+| # | Question | Engine now (proposal: keep) |
+| --- | --- | --- |
+| 78 | Who is "the leading hero" for a walking check? | The first hero in the leader order (Fighter, Thief, Cleric, Wizard) who can flip: standing, with cards in their deck. If nobody can flip, there is no check (as #74) |
+| 79 | Which way does the party walk, and which tiles count? | The shortest way through explored rooms, counted in tiles. Every tile entered counts, the destination included, the starting room not. A wandering fight happens in the room where it was flipped; then the party carries on |
+| 80 | When exactly does the waking Hut throw the party out? | At once, but the room the party is in finishes resolving (a failed bash at 10 is still retried until the door gives way, then the Hut card). A tile whose moon takes the track to 10 is placed but never entered. Camping that takes it to 10 finishes (reset and wandering check). After that the party can only leave: no exploring, no camping. Walking out still earns the walking-out XP |
+| 81 | A component room's guardians reach the round cap and withdraw (#65): does the party get the component? | Yes: the guardians are gone, so the party takes the component, but no loot, no XP and no bandage (#76) |
+| 82 | When do the Kitchen's ration and the Baths' healing happen, and does the Baths' Wound removal get a Down hero up? | Both come after the guardian fight (or after the Hut card once the component is held). The Baths' healing works like bandaging: a Down hero whose hand is no longer all Wounds gets up |
+| 83 | The fourth component is found when the bag is empty or the Hut has closed in | The Inner Study goes into the bag and exploring opens again (it ignores doorway matching, so it always fits). With all four components held at the start of a run, it starts in the bag |
+| 84 | Locked In says "bash the door, Strength 4". Who may bash? | Any standing hero with cards in their deck; a hero who isn't a Strength hero rolls at −2 as usual. The AI picks the Fighter |
+
+## Design change: named rooms (2026-10-30)
+
+Rooms with types and four room decks became named rooms with printed Whims and one Hut deck; the Workshop and Iron Key became four component rooms; the backtracking flip became a walking check per tile; the waking Hut evicts the party (RULES §8, §10; EXPLORATION_SPEC). Rulings this changed or retired:
+
+| # | Was | Now |
+| --- | --- | --- |
+| 46 | Only a doorway the party chooses outside its room is a backtrack (with the check) | **Changed.** A doorway the party chooses outside its room means walking there, with a walking check per tile. A tile the Hut forces to another doorway still needs no walking |
+| 48 | Placing the Workshop and Inner Study | **Changed.** The Inner Study only (the Workshop is gone); same placement |
+| 49 | Walking to a shut Study after finding the key is free | **Retired.** No key and no shut door: the Study is entered as soon as it is placed |
+| 50 | Empty bag: camp, walk to a placed Study, or leave | **Changed.** Camp or leave. The Inner Study entering the bag opens exploring again (#83) |
+| 51 | Place, moon, Hut track, Whims, then enter | **Changed.** No Whims or special tiles come from the track; a moon that wakes the Hut evicts the party before it enters (#80) |
+| 52 | Hut 10: an extra Lair fight in every room | **Retired.** At 10 the Hut evicts the party |
+| 53 | Whim deck shuffled, drawn without repeats | **Retired.** Whims are printed on their rooms and happen on the first entry each run |
+| 54 | Down outside battle until bandage, Shrine or campfire | **Changed.** The Baths replace the Shrine |
+| 55 | Traps; every failed roll Hut +1; locks | **Kept** for traps. The rolls left are the locked chest and bashing a door |
+| 56 | Optional rooms (Shrine, Strange font) | **Retired.** Both are gone; the Black Cat is still optional (#64) |
+| 57 | Library locks unlimited retries; locked chest one retry | **Changed.** Library locks are gone; the locked chest keeps one retry |
+| 58 | Locked In: Strength or Agility 4, at once, retry until success | **Changed.** Bash the door: Strength 4, at once, retry until it gives way |
+| 59 | Backtrack flip ties: the party chooses | **Retired.** The leading hero flips each walking check (#78) |
+| 61 | No rewards from wandering fights (backtracking, camping, Bones Stir) | **Changed.** Wandering = walking checks, camping, Bones Stir. Fights that pay: Hut deck monsters and component guardians |
+| 62 | Walking to a campsite is free | **Changed.** It makes the walking checks |
+| 71 | A Whim mid-room when the track crosses 3, 6 or 9 | **Retired.** No Whim thresholds |
+| 72 | Nobody can roll: a must-make check fails (Cauldron); Locked In breaks, Hut +1 | **Changed.** The Cauldron no longer rolls. Locked In: the door gives way, Hut +1 |
+| 73 | One wake Lair fight per room | **Retired** with #52 |
+| 74 | Who can flip for wandering checks | **Changed.** The walking check is flipped by the leading hero (#78); the campfire flip is unchanged |
+
+Unchanged: #47 (break-through), #60 (campfire check, now in a Bedchamber or the Kitchen), #63 (the Hut picks for map Whims), #64 (The Black Cat), #65 (battles in a run).
 
 ## Resolved (rooms and Whims, 2026-10-30)
 
@@ -27,6 +67,7 @@ Not rule questions; things to check later.
 
 - **Balance under standard DM (2026-10-26).** Standard DM is the intended default. Re-check campaign balance (wipes, runs to beat the witch) under standard DM once exploration and runs exist. The battle baseline is in CLAUDE.md (Balance baseline).
 - **Exploration playtest (2026-10-28).** From `EXPLORATION_SPEC.md` §11: whether a DM placing Lairs everywhere is too strong (with the DM tile hand, later), and whether the map-shifting Whims (Shifting Walls, Hall of Mirrors, Collapse, Doors Slam) are fun or fiddly.
+- **Hut deck tuning (2026-10-30).** The 4.7 run report counts Whims, walking checks, wandering fights, evictions and component fights per run, to tune how many of the Hut deck's 21 cards are monsters (9 now).
 
 ## Resolved (free step, 2026-10-29)
 

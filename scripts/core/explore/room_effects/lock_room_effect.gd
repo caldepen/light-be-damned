@@ -1,7 +1,7 @@
 class_name LockRoomEffect
 extends RoomEffect
 
-## "lock": an obstacle the party may attempt (RULES §8, ruling #57). Each failure raises the Hut
+## "lock": an obstacle the party may attempt, a locked chest (RULES §8, ruling #57). Each failure raises the Hut
 ## track; `retries` is a number or "unlimited". Stopping leaves it shut for good.
 
 func op_name() -> String:
