@@ -1,6 +1,6 @@
 # Card RPG — Rules v0.5
 
-Version 0.5 · 25 October 2026 · exploration (§8, §10) revised 28 October 2026: room tiles laid out on an open map with no fixed board (`docs/EXPLORATION_SPEC.md`, rulings #46–65) · rooms redesigned 30 October 2026: named rooms with printed Whims, one Hut deck, the four components, walking checks and eviction
+Version 0.5 · 25 October 2026 · exploration (§8, §10) revised 28 October 2026: room tiles laid out on an open map with no fixed board (`docs/EXPLORATION_SPEC.md`, rulings #46–65) · rooms redesigned 30 October 2026: named rooms with printed Whims, one Hut deck, the four components, wandering checks on entering a room and eviction
 
 ## 1. Overview
 
@@ -105,9 +105,9 @@ Each hero has one **Type**, which decides the cards they use and the skill rolls
 
 **Out of battle**
 
-1. Pick an open doorway of your room, or walk to another explored room's doorway (a flip for each room you walk into: on a 1, wandering monsters).
+1. Pick an open doorway of your room, or walk to another explored room's doorway.
 2. Draw a room tile blind from the bag and place it at that doorway. A moon raises the Hut track.
-3. Enter and resolve the room the first time: its printed Whim, then a Hut card; a component room's guardians; a Bedchamber or corridor does nothing.
+3. Enter and resolve the room the first time: its printed Whim, then a Hut card; a component room's guardians; a Bedchamber or corridor does nothing. Every room you enter without a fight, new or walked through, gets a wandering check: flip, and on a 1 wandering monsters attack.
 4. After a won battle: bandage (each hero removes 2 Wounds), draw loot, +1 XP (none from wandering monsters).
 5. Camp in an explored campsite when decks run low; walk back to the Front Door when it's time to go home (free, unless the Hut has woken and thrown you out). When your armor is gone, the next fight hits your hand.
 
@@ -287,7 +287,7 @@ An enemy's **power** (unmarked armor + unmarked Hd) is what cards like Ambush us
 3. **Loot.** Draw 1 loot card (2 if a Draw 2 monster was in the fight). See section 9.
 4. **XP.** The party gains 1 XP.
 
-**Wandering monsters never pay.** Fights with wandering monsters give no loot and no XP: from a walking check, at a campfire, and from a Hut Whim (Bones Stir). Bandaging afterwards works as usual. Monsters from the Hut deck and a component room's guardians give loot and XP as normal (ruling #61).
+**Wandering monsters never pay.** Fights with wandering monsters give no loot and no XP: from the wandering check on entering a room, at a campfire, and from a Hut Whim (Bones Stir). Bandaging afterwards works as usual. Monsters from the Hut deck and a component room's guardians give loot and XP as normal (ruling #61).
 
 **Battles in a run.** Heroes carry their hands, decks, discards, Exhausted cards, Wounds and armor damage from fight to fight; only the campfire resets them. Provoke, Guard, Bleed, Stun and other battle effects end with each battle. Enemy action decks are shuffled fresh for each battle. A hero with no cards in their deck sits out every battle until the party camps; if every hero is sitting out when a fight starts, the run is a wipe. Losing a battle (every hero Down) is a wipe (ruling #65).
 
@@ -303,11 +303,11 @@ The party explores the Hut one room at a time, building a map from room tiles dr
 
 **Exploring (one room at a time)**
 
-1. **Pick a doorway.** Choose an open doorway of the room the party is in. If it has none left, or the party prefers another, it may **walk** to an open doorway of any other explored room instead, making the walking checks on the way (see Walking through the Hut). (At the table this may be played loosely: draw the tile, then lay it at whichever doorway of the party's room fits best. The digital game always picks the doorway first.)
+1. **Pick a doorway.** Choose an open doorway of the room the party is in. If it has none left, or the party prefers another, it may **walk** to an open doorway of any other explored room instead, with a wandering check in every room it walks into (see Entering a room). (At the table this may be played loosely: draw the tile, then lay it at whichever doorway of the party's room fits best. The digital game always picks the doorway first.)
 2. **Draw** 1 tile from the bag and turn it face up.
-3. **Place it** so one of its doorways meets the chosen doorway, turning it to fit (any of 4 rotations). It must not overlap another tile. If no rotation fits there, place it at another open doorway of the same room, or else of any explored room (the party chooses). That is the Hut's doing, not a walk: there are no walking checks (ruling #46).
+3. **Place it** so one of its doorways meets the chosen doorway, turning it to fit (any of 4 rotations). It must not overlap another tile. If no rotation fits there, place it at another open doorway of the same room, or else of any explored room (the party chooses). That is the Hut's doing, not a walk: the party doesn't walk through other rooms, so the only wandering check is the one in the new room (ruling #46).
 4. **Moon.** If the tile shows a moon, the Hut track rises by 1. If that wakes the Hut (§10), the party is thrown out at once, while still in the room it came from, and never enters the new room (ruling #51).
-5. **Enter.** The party moves in and resolves the room (Room types, below).
+5. **Enter.** The party moves in and resolves the room (Room types, below), then makes the wandering check if no fight happened there (Entering a room).
 
 **Nothing fits.** With no board edges this should almost never happen, but other tiles can still box a doorway in. If the drawn tile fits at no open doorway on the map, the Hut stirs: Hut track +1 (only once per exploration). Set the tile aside and draw again until one fits, then shuffle the set-aside tiles back into the bag.
 
@@ -315,12 +315,14 @@ The party explores the Hut one room at a time, building a map from room tiles dr
 - **Closed in.** If even that is impossible, the Hut has closed in: no more exploring this run.
 - **Empty bag.** No more exploring either. Closed in or with an empty bag, the party can still camp at a known campsite or leave (ruling #50). If the Inner Study enters the bag later (§10), exploring opens again: it ignores doorway matching, so it always fits.
 
-**Walking through the Hut.** Walking through explored rooms, to a campsite to camp or to an open doorway of another room to explore from it, costs time. For **each tile the party enters on the way** (the room it walks to included, the room it starts in not), the leading hero flips the top card of their deck. The card is spent as in a skill roll: discarded, or Exhausted if ▲ or ★. On a skill value of **1**, wandering monsters attack: fight 3 goblins in that room, then carry on walking. **These fights give no loot and no XP.** The party takes the shortest way, counted in tiles.
+**Entering a room: the wandering check.** Whenever the party enters a tile and no fight happens there, the leading hero flips the top card of their deck. This applies to every tile and every visit: a new room after it resolves, or a room the party walks back through; corridors, campsites, Whim rooms and the Front Door alike. The card is spent as in a skill roll: discarded, or Exhausted if ▲ or ★. On a skill value of **1** or less (1 in 6; the threshold is a setting of the digital game), wandering monsters attack: fight 3 goblins in that room. **These fights give no loot and no XP.**
 
+- **First visit.** The room's own content comes first: its Whim, its Hut card, its guardians. Only if none of that was a fight does the wandering check follow.
+- **Walking.** Walking through explored rooms, to a campsite to camp or to an open doorway of another room to explore from it, means a wandering check in every tile the party enters on the way (the room it walks to included, the room it starts in not). After a wandering fight the party carries on walking. The party takes the shortest way, counted in tiles (open question #79).
 - **The leading hero** is the Fighter, or if they can't flip (Down, or no cards in their deck), the first of Thief, Cleric, Wizard who can. If nobody can flip, there is no check (ruling #74).
-- Exploring from a doorway of the party's own room, and a tile the Hut places at another doorway because it doesn't fit (step 3), need no walking.
+- A tile the party never enters (a moon that wakes the Hut, step 4) has no check. Neither does the Inner Study: entering it starts the boss battle.
 
-**Leaving.** The party can walk out through the Front Door at any time to end the run. Walking back to the Front Door to leave is free: no walking checks. The one exception is when the Hut has woken and thrown the party out (§10): then the party makes the walking check for every tile on the way, the Front Door included.
+**Leaving.** The party can walk out through the Front Door at any time to end the run. Walking back to the Front Door to leave is free: no wandering checks on the way. The one exception is when the Hut has woken and thrown the party out (§10): then the party makes the wandering check in every tile on the way, the Front Door included.
 
 **DM mode at the table.** The DM holds 3 tiles and plays one onto the chosen doorway. (The digital game has no DM tile hand yet.)
 
@@ -368,7 +370,7 @@ Beating a Hard or harder obstacle (target 5 or more) earns 1 XP. Spotting and do
 3. **Not spotted:** it springs on the hero leading the party: the Fighter, or if they are Down, the first standing hero of Thief, Cleric, Wizard.
 4. **Sprung:** the hero may make an Agility roll at the trap's target to dodge it; otherwise they take its damage (armor first, then Wounds).
 
-**Camping.** In a campsite the party has explored this run (a Bedchamber or the Kitchen), the party may camp. Walking there makes the walking checks as usual (rulings #60, #62).
+**Camping.** In a campsite the party has explored this run (a Bedchamber or the Kitchen), the party may camp. Walking there makes the wandering checks as usual, the campsite included (rulings #60, #62).
 
 1. Spend 1 ration per hero, Down heroes included. Without enough rations, the party can't camp.
 2. Hut track +1.
@@ -472,7 +474,7 @@ A small hut that never stands in the same place twice. Inside it is far larger t
 
 **The Hut track (0–10).** It rises by 1 for each moon tile placed, each failed skill roll, each campfire and each "nothing fits" stir, and as some Whims say (The Black Cat, Bubbling Cauldron). It never goes above 10.
 
-- **At 10 the Hut wakes and throws the party out.** No more exploring and no more camping: the party must walk to the Front Door and leave, making the walking check for every tile on the way, the Front Door included (§8 Walking through the Hut). If the party is in the middle of a room, the room finishes resolving first. If the track reaches 10 when a moon tile is placed, the party never enters that room.
+- **At 10 the Hut wakes and throws the party out.** No more exploring and no more camping: the party must walk to the Front Door and leave, making the wandering check in every tile on the way, the Front Door included (§8 Entering a room). If the party is in the middle of a room, the room finishes resolving first. If the track reaches 10 when a moon tile is placed, the party never enters that room.
 
 **Hut Whims (12).** Each is printed on its room and happens the first time the party enters that room in a run, before the room's Hut card. Whims are never optional (The Black Cat asks the party a question, but the cat always comes). Where a Whim picks a tile or doorway, the Hut picks at random among the legal options (a DM chooses in DM mode) (ruling #63).
 

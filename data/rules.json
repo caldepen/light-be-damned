@@ -95,12 +95,12 @@
     "wandering_encounter": "wandering",
     "lifts_curses": true
   },
-  "walking": {
-    "_doc": "For each tile the party walks into (to a campsite, to another room's doorway, or out when evicted), the leading hero flips; monsters on a skill value at or below this, fought in that room. No loot, no XP (RULES §8 Walking through the Hut)",
+  "entering": {
+    "_doc": "Whenever the party enters a tile (a first visit after the room's own content, or walking through; any tile) and no fight happened there, the leading hero flips; wandering monsters on a skill value at or below this, fought in that room. No loot, no XP. Leaving is free except after eviction (RULES §8 Entering a room)",
     "wandering_on_skill_at_most": 1,
     "encounter": "wandering"
   },
-  "_leader_order_doc": "The hero leading the party: an unspotted trap springs on the first standing hero in this order (ruling #55); the walking check is flipped by the first who can flip (open question #78)",
+  "_leader_order_doc": "The hero leading the party: an unspotted trap springs on the first standing hero in this order (ruling #55); the wandering check on entering a room is flipped by the first who can flip (open question #78)",
   "leader_order": ["fighter", "thief", "cleric", "wizard"],
   "run": {
     "rations": 8,

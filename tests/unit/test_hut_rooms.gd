@@ -336,13 +336,14 @@ func test_walking_to_another_room_s_doorway_flips_for_each_tile_entered():
     provider.then(RunRequest.DOORWAY, func(d: MapDoorway) -> bool: return d.tile == run.explorer.front_door and d.side == "W")
     run.explore_step()
     var checks: Array = run.log.of_type("wandering_check")
-    assert_eq(checks.size(), 2, "the Terrarium and the Front Door; not the Well Room it starts in")
+    assert_eq(checks[1]["details"]["tile"], run.explorer.front_door.uid)
+    assert_false(checks.any(func(e: Dictionary) -> bool: return e["details"]["tile"] == rooms[1].uid), "not the Well Room it starts in")
     assert_eq(checks[0]["details"]["tile"], rooms[0].uid)
     assert_eq(checks[0]["details"]["hero"], "fighter", "the leading hero flips")
     assert_eq(checks[0]["details"]["value"], 1)
     assert_eq(fights[0], "wandering (no rewards)", "a 1 brings wandering monsters, fought in the Terrarium")
     assert_lt(_types().find("fight"), _types().rfind("wandering_check"), "before walking on")
-    assert_eq(run.log.of_type("fight")[0]["details"]["source"], "walking")
+    assert_eq(run.log.of_type("fight")[0]["details"]["source"], "entering")
 
 func test_doorway_options_say_how_many_tiles_away_they_are():
     _two_rooms_north()
@@ -369,6 +370,93 @@ func test_walking_out_to_leave_is_free():
     assert_eq(run.result, HutRun.RUN_LEFT)
     assert_false(run.log.has_type("wandering_check"))
 
+# ------------------------------------------------------------------ the wandering check on entering a room
+
+## The checks so far, as [tile uid, value].
+func _entry_checks() -> Array:
+    return run.log.of_type("wandering_check").filter(func(e: Dictionary) -> bool: return e["details"]["purpose"] == "entering")
+
+func test_a_new_room_without_a_fight_gets_a_check_after_its_content():
+    run.hut_deck.stack("chest")
+    _top(_hero("fighter"), 1)
+    run.enter_room(_room("well_room"))
+    assert_eq(_entry_checks().size(), 1)
+    assert_eq(_entry_checks()[0]["details"]["hero"], "fighter", "the leading hero flips")
+    assert_lt(_types().find("hut_card"), _types().find("wandering_check"), "the room's content first")
+    assert_eq(fights, ["wandering (no rewards)"], "a 1: 3 goblins, no loot or XP")
+    assert_eq(run.log.of_type("fight")[0]["details"]["source"], "entering")
+
+func test_a_room_whose_hut_card_is_a_fight_gets_no_check():
+    run.hut_deck.stack("goblin_band")
+    run.enter_room(_room("well_room"))
+    assert_eq(fights, ["standard"])
+    assert_eq(_entry_checks().size(), 0)
+
+func test_a_whim_fight_or_the_guardians_mean_no_check():
+    run.hut_deck.stack("quiet_room")
+    run.enter_room(_room("crypt"))
+    run.enter_room(_room("library", Vector2i(20, 20)))
+    assert_eq(fights, ["bones_stir (no rewards)", "skeleton_band"])
+    assert_eq(_entry_checks().size(), 0)
+
+func test_whim_rooms_corridors_and_campsites_get_the_check_too():
+    run.hut_deck.stack("quiet_room")
+    run.enter_room(_room("garden"))
+    run.enter_room(_room("corridor_bend", Vector2i(20, 20)))
+    run.enter_room(_room("small_bedchamber", Vector2i(30, 30)))
+    assert_eq(_entry_checks().size(), 3)
+
+func test_re_entering_a_room_gets_a_check_but_never_resolves_it_again():
+    run.hut_deck.stack("quiet_room")
+    var well: PlacedTile = _room("well_room")
+    run.enter_room(well)
+    assert_eq(run.enter_room(well), HutRun.ROOM_REVISITED)
+    assert_eq(_entry_checks().size(), 2)
+    assert_eq(run.log.of_type("hut_card").size(), 1)
+
+func test_the_threshold_comes_from_the_rules():
+    run.rules = run.rules.duplicate(true)
+    run.rules["entering"]["wandering_on_skill_at_most"] = 2
+    var fighter: HeroState = _hero("fighter")
+    _top(fighter, 2)
+    run.enter_room(_room("corridor_bend"))
+    assert_eq(fights, ["wandering (no rewards)"], "a 2 is enough at threshold 2")
+    _top(fighter, 3)
+    run.enter_room(_room("corridor_t", Vector2i(20, 20)))
+    assert_eq(fights.size(), 1, "a 3 is not")
+
+func test_a_skill_value_above_the_threshold_is_quiet():
+    _top(_hero("fighter"), 2)
+    run.enter_room(_room("corridor_bend"))
+    assert_true(fights.is_empty())
+    assert_false(_entry_checks()[0]["details"]["monsters"])
+
+func test_the_inner_study_and_a_room_left_unentered_get_no_check():
+    run.enter_room(_room("inner_study", Vector2i(30, 30)))
+    assert_eq(_entry_checks().size(), 0, "the boss instead")
+    _new_run([])
+    run.explorer.hut_track = 9
+    run.explorer.bag.entries.push_back(_entry("potion_store", true))
+    run.explore_step()
+    assert_eq(_entry_checks().size(), 0, "thrown out before entering")
+
+func test_nobody_able_to_flip_means_no_check():
+    for h in run.party.heroes:
+        _empty_deck(h)
+    run.enter_room(_room("corridor_bend"))
+    assert_eq(_entry_checks().size(), 0)
+
+func test_a_tile_the_hut_moves_to_another_doorway_gets_only_its_own_check():
+    # Squares around (0, 1) are taken, so a two-square tile chosen for the north doorway can't fit
+    # there and the Hut lays it at another doorway: no walking, one check in the new room.
+    for c in [Vector2i(0, 2), Vector2i(-1, 1), Vector2i(1, 1)]:
+        run.explorer.map.add(TilePlacement.make(_entry("storeroom"), 0, c, null, {}))
+    run.explorer.bag.entries.push_back(_entry("corridor_straight"))
+    provider.then(RunRequest.DOORWAY, func(d: MapDoorway) -> bool: return d.side == "N")
+    run.explore_step()
+    assert_false(run.explorer.party_tile.has_cell(Vector2i(0, 1)), "it went to another doorway")
+    assert_eq(_entry_checks().size(), 1)
+    assert_eq(_entry_checks()[0]["details"]["tile"], run.explorer.party_tile.uid)
 # ------------------------------------------------------------------ the Hut wakes
 
 func test_at_10_the_hut_throws_the_party_out_and_leaving_is_all_it_can_do():
@@ -420,7 +508,7 @@ func test_camping_walks_there_with_a_check_costs_rations_raises_the_hut_and_rese
     assert_eq(_hero("fighter").wound_count(), 0)
     assert_eq(run.explorer.party_tile, camp, "the party walked there")
     var purposes: Array = run.log.of_type("wandering_check").map(func(e: Dictionary) -> String: return e["details"]["purpose"])
-    assert_eq(purposes, ["walking", "campfire"])
+    assert_eq(purposes, ["entering", "campfire"])
 
 func test_camping_needs_a_campsite_and_enough_rations():
     var well: PlacedTile = _room("well_room")

@@ -4,9 +4,9 @@ extends RefCounted
 ## One run in the Witch's Hut (RULES §8, §10): the map (HutExplorer), the party between fights
 ## (PartyState), the Hut deck, the components, rations, XP and the loot count. It enters and
 ## resolves rooms through the room effect handlers (a room's printed Whim, its own effects, then
-## its type's: a Hut card), the walking checks, camping, the Hut waking at 10 and throwing the
-## party out, and the run loop (`play`): explore, camp or walk out, until the party leaves, wipes
-## or reaches the boss.
+## its type's: a Hut card), the wandering check on entering a room, walking, camping, the Hut
+## waking at 10 and throwing the party out, and the run loop (`play`): explore, camp or walk out,
+## until the party leaves, wipes or reaches the boss.
 ##
 ## Battles go through `fight_runner` (func(run, encounter, rewards) -> FIGHT_*), by default RunFight:
 ## the party's own heroes in the run's `formation`, `battle_decisions` choosing for them, `dm_mode`
@@ -60,9 +60,11 @@ var loot_drawn: int = 0
 var keyhole: bool = false
 var wiped: bool = false
 var boss_reached: bool = false
-## The Hut woke and threw the party out: it can only walk out, with walking checks (RULES §10).
+## The Hut woke and threw the party out: it can only walk out, with wandering checks (RULES §10).
 var evicted: bool = false
 var can_explore: bool = true
+## Fights so far this run: a room with a fight gets no wandering check.
+var fights_fought: int = 0
 var result: String = ""
 
 ## `components_at_start`: the components the party holds from earlier runs (a run setting until
@@ -160,10 +162,11 @@ func loot(count: int, reason: String) -> void:
     loot_drawn += count
     log.record("loot", "Draw %d loot card%s (%s)." % [count, "" if count == 1 else "s", reason], {"count": count, "total": loot_drawn})
 
-## A battle. `source` says where it came from ("hut card", "guardians", "walking", "campfire", a
+## A battle. `source` says where it came from ("hut card", "guardians", "entering", "campfire", a
 ## Whim's name) for the reports. A wipe ends the run.
 func fight(encounter: String, rewards: bool, source: String = "") -> String:
     log.record("fight", "Fight: %s%s." % [encounter, "" if rewards else " (no loot, no XP)"], {"encounter": encounter, "rewards": rewards, "source": source})
+    fights_fought += 1
     var outcome: String = String(fight_runner.call(self, encounter, rewards))
     if outcome == FIGHT_WIPE:
         wiped = true
@@ -188,7 +191,7 @@ func check_wipe(ctx: RoomContext) -> void:
 
 ## The hero leading the party (rules leader_order). An unspotted trap springs on the first standing
 ## hero (ruling #55); with `can_flip`, the first standing hero with cards in their deck, who makes
-## the walking check (open question #78).
+## the wandering check on entering a room (open question #78).
 func leader(can_flip: bool = false) -> HeroState:
     for key in rules.get("leader_order", []):
         var h: HeroState = party.hero(String(key))
@@ -245,9 +248,18 @@ func run_effects(ctx: RoomContext, list: Array) -> void:
 
 ## The party enters `tile` and, the first time this run, resolves it (RULES §8 Room types): its
 ## printed Whim, then the tile's own effects (a component room), then its type's (a Hut card; the
-## boss). Re-entering never resolves a room again.
+## boss). Re-entering never resolves a room again. Then, if no fight happened, the wandering check.
 func enter_room(tile: PlacedTile) -> String:
     explorer.enter(tile)
+    var fights_before: int = fights_fought
+    var status: String = _resolve_room(tile)
+    if status != ROOM_WIPE and status != ROOM_BOSS and fights_fought == fights_before:
+        entry_check(tile)
+        if wiped:
+            return ROOM_WIPE
+    return status
+
+func _resolve_room(tile: PlacedTile) -> String:
     var state: Dictionary = tile.room_state
     if bool(state.get("resolved", false)):
         return ROOM_REVISITED
@@ -278,10 +290,19 @@ func _on_hut_track(_before: int, after: int) -> void:
 
 # ------------------------------------------------------------------ walking and camping
 
-## Walk through explored rooms to `tile` (RULES §8 Walking through the Hut): the shortest way in
-## tiles; for each tile entered the leading hero flips, and on a low skill value wandering monsters
-## attack in that room before the party goes on. Returns "" (also after a wipe on the way) or why
-## the party can't walk there.
+## The wandering check on entering a tile where no fight happened (RULES §8 Entering a room): the
+## leading hero flips (nobody able to: no check, #78); at or below the threshold wandering
+## monsters attack in that room. No loot, no XP.
+func entry_check(tile: PlacedTile) -> void:
+    var flipper: HeroState = leader(true)
+    if flipper == null:
+        return
+    var entering: Dictionary = rules.get("entering", {})
+    _wandering_flip(flipper, int(entering.get("wandering_on_skill_at_most", 1)), String(entering.get("encounter", "wandering")), "entering", tile)
+
+## Walk through explored rooms to `tile` (RULES §8 Entering a room, Walking): the shortest way in
+## tiles, with the wandering check in each tile entered; after a wandering fight the party goes on.
+## Returns "" (also after a wipe on the way) or why the party can't walk there.
 func walk(tile: PlacedTile, purpose: String) -> String:
     if tile == explorer.party_tile:
         return ""
@@ -290,12 +311,9 @@ func walk(tile: PlacedTile, purpose: String) -> String:
         return "the party can't walk there"
     log.record("walk", "The party walks to the %s (%d room%s)." % [_name(tile), way.size(), "" if way.size() == 1 else "s"],
         {"tile": tile.uid, "tiles": way.size(), "purpose": purpose})
-    var walking: Dictionary = rules.get("walking", {})
     for t in way:
         explorer.party_tile = t
-        var flipper: HeroState = leader(true)
-        if flipper != null:
-            _wandering_flip(flipper, int(walking.get("wandering_on_skill_at_most", 1)), String(walking.get("encounter", "wandering")), "walking", t)
+        entry_check(t)
         if wiped:
             return ""
     return ""
@@ -303,7 +321,7 @@ func walk(tile: PlacedTile, purpose: String) -> String:
 func is_campsite(tile: PlacedTile) -> bool:
     return bool(tile.def.get("campsite", module.get("room_types", {}).get(tile.room_type, {}).get("campsite", false)))
 
-## Camp in an explored campsite (RULES §8 Camping, rulings #60, #62): walk there (walking checks),
+## Camp in an explored campsite (RULES §8 Camping, rulings #60, #62): walk there (wandering checks),
 ## 1 ration per hero (Down heroes too), Hut +1, the campfire resets everyone, then the
 ## wandering-monster flip. Returns "" or why the party can't camp there.
 func camp(tile: PlacedTile) -> String:
@@ -357,7 +375,7 @@ static func _name(tile: PlacedTile) -> String:
 # ------------------------------------------------------------------ one exploration
 
 ## Pick a doorway (Keyhole shows the tile first; Crooked Corridor takes the choice away), walk to
-## it if it is in another room (walking checks), draw and place, then enter and resolve the new
+## it if it is in another room (wandering checks), draw and place, then enter and resolve the new
 ## room. Returns a ROOM_* status, or the ExploreResult status when no tile was placed.
 func explore_step() -> String:
     var peeked: String = ""
@@ -455,7 +473,7 @@ func campsites() -> Array[PlacedTile]:
     return result_list
 
 ## Walk back to the Front Door and out (RULES §8 Leaving, §9): free, unless the Hut has thrown the
-## party out, when every tile on the way gets a walking check. The run ends well and the party
+## party out, when every tile on the way gets the wandering check. The run ends well and the party
 ## gains its walking-out XP.
 func leave() -> void:
     var why: String = walk(explorer.front_door, "evicted") if evicted else explorer.walk_to(explorer.front_door)

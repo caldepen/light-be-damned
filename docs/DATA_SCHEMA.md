@@ -186,8 +186,8 @@ Used in Hut cards, Whims, tiles' `effects` and room types' `effects`. Each op ha
 ## Exploration rules (`rules.json`)
 
 - `camping`: `rations_per_hero`, `hut_track`, `wandering_on_skill_at_most` (the campfire flip: monsters on this skill value or lower), `wandering_encounter`.
-- `walking`: `wandering_on_skill_at_most` (the flip for each tile walked into: monsters on this value or lower), `encounter`.
-- `leader_order`: the hero leading the party: an unspotted trap springs on the first standing hero in this order; the walking check is flipped by the first who can flip.
+- `entering`: `wandering_on_skill_at_most` (the wandering check whenever the party enters a tile and no fight happened there: monsters on this skill value or lower; default 1), `encounter`.
+- `leader_order`: the hero leading the party: an unspotted trap springs on the first standing hero in this order; the wandering check on entering a room is flipped by the first who can flip.
 - `skill_rolls`: off-Type penalty, minimum, teamwork threshold, difficulty targets, `failure_hut_track`, `xp_for_hard_or_better`.
 - `run`: `rations`, `xp_for_walking_out`.
 - `formations`: named formations `{hero_id: [row, lane]}` the party chooses from when a run starts (`RunRequest.FORMATION`). `default` must equal `default_formation`; `back_row` puts three heroes in the back row and the Fighter in the middle. Each hero needs their own square.

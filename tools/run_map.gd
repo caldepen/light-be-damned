@@ -80,6 +80,8 @@ func _batch(module: Dictionary, runs: int) -> void:
 ##                        list; all four put the Inner Study in the bag from the start)
 ##            --run-ai explorer|simple  the party's exploring AI (default ExplorationAi; simple = SimpleRunAi)
 ##            --formation NAME  a key of rules.json "formations" for every run (default: the AI's choice)
+##            --wandering N  the wandering check on entering a room fires on a skill value of N or less
+##                        (rules.json "entering", default 1)
 ##            --stub      battles are recorded and called won (the 4.3 smoke test)
 func _rooms(data: Dictionary, args: PackedStringArray) -> void:
     var options: Dictionary = {"dm": Battle.DM_STANDARD, "components": 0, "stub": false, "batch": 0, "seed": 1, "run_ai": "explorer", "formation": ""}
@@ -101,6 +103,9 @@ func _rooms(data: Dictionary, args: PackedStringArray) -> void:
             "--formation":
                 i += 1
                 options["formation"] = args[i]
+            "--wandering":
+                i += 1
+                data["rules"]["entering"]["wandering_on_skill_at_most"] = int(args[i])
             "--stub":
                 options["stub"] = true
             _:
@@ -120,7 +125,7 @@ func _rooms_batch(data: Dictionary, options: Dictionary) -> void:
     var results: Dictionary = {}
     var totals: Dictionary = {}
     var keys: Array[String] = ["fight", "enemies_withdraw", "camp", "whim", "skill_roll", "evicted", "patch_up", "bandage", "sits_out", "down"]
-    var sums: Dictionary = {"rooms": 0, "xp": 0, "loot": 0, "hut": 0, "rations": 0, "found": 0, "walking_checks": 0, "wandering_fights": 0, "component_fights": 0, "hut_card_fights": 0}
+    var sums: Dictionary = {"rooms": 0, "xp": 0, "loot": 0, "hut": 0, "rations": 0, "found": 0, "entry_checks": 0, "wandering_fights": 0, "component_fights": 0, "hut_card_fights": 0}
     var stalled: Array[int] = []
     for s in range(1, runs + 1):
         var run: HutRun = play_run(data, s, options)
@@ -130,7 +135,7 @@ func _rooms_batch(data: Dictionary, options: Dictionary) -> void:
         for key in keys:
             totals[key] = int(totals.get(key, 0)) + run.log.of_type(key).size()
         for e in run.log.of_type("wandering_check"):
-            sums["walking_checks"] += 1 if e["details"]["purpose"] == "walking" else 0
+            sums["entry_checks"] += 1 if e["details"]["purpose"] == "entering" else 0
         for e in run.log.of_type("fight"):
             var source: String = String(e["details"].get("source", ""))
             sums["wandering_fights"] += 0 if bool(e["details"]["rewards"]) else 1
@@ -145,8 +150,8 @@ func _rooms_batch(data: Dictionary, options: Dictionary) -> void:
         sums["hut"] += run.explorer.hut_track
         sums["rations"] += run.rations
         sums["found"] += run.found.size()
-    print("%d runs (seeds 1-%d), %s DM, %d components held at the start, formation %s%s, %s run AI + TacticalAiProvider, %.1f s." %
-        [runs, runs, options["dm"], mini(int(options["components"]), 4), "AI's choice" if String(options["formation"]).is_empty() else options["formation"],
+    print("%d runs (seeds 1-%d), %s DM, %d components held at the start, wandering on %d or less, formation %s%s, %s run AI + TacticalAiProvider, %.1f s." %
+        [runs, runs, options["dm"], mini(int(options["components"]), 4), int(data["rules"]["entering"]["wandering_on_skill_at_most"]), "AI's choice" if String(options["formation"]).is_empty() else options["formation"],
          ", battles stubbed as won" if options["stub"] else "", options["run_ai"], (Time.get_ticks_msec() - started) / 1000.0])
     var parts: PackedStringArray = []
     for r in results:
@@ -156,8 +161,8 @@ func _rooms_batch(data: Dictionary, options: Dictionary) -> void:
         print("Stalled (hit the step cap): seeds %s" % str(stalled))
     print("Per run: rooms explored %.1f, XP %.2f, loot kept %.2f, Hut track at the end %.1f, rations left %.1f, components found %.2f." %
         [float(sums["rooms"]) / runs, float(sums["xp"]) / runs, float(sums["loot"]) / runs, float(sums["hut"]) / runs, float(sums["rations"]) / runs, float(sums["found"]) / runs])
-    print("Per run: walking checks %.2f, wandering fights %.2f, Hut card fights %.2f, component fights %.2f." %
-        [float(sums["walking_checks"]) / runs, float(sums["wandering_fights"]) / runs, float(sums["hut_card_fights"]) / runs, float(sums["component_fights"]) / runs])
+    print("Per run: wandering checks on entering %.2f, wandering fights %.2f, Hut card fights %.2f, component fights %.2f." %
+        [float(sums["entry_checks"]) / runs, float(sums["wandering_fights"]) / runs, float(sums["hut_card_fights"]) / runs, float(sums["component_fights"]) / runs])
     print("Events per run (\"down\" counts heroes and enemies):")
     for key in keys:
         print("  %-18s %.2f" % [key, float(totals[key]) / runs])

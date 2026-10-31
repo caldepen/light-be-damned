@@ -82,7 +82,7 @@ func validate(data: Dictionary) -> bool:
     for key in rules.get("leader_order", []):
         if not heroes.has(key):
             _fail("rules.leader_order names '%s', which is not in heroes.json." % key)
-    for section in ["camping", "walking"]:
+    for section in ["camping", "entering"]:
         var encounter_name: String = String(rules.get(section, {}).get("wandering_encounter" if section == "camping" else "encounter", ""))
         if not encounters.has(encounter_name):
             _fail("rules.%s names unknown encounter '%s'." % [section, encounter_name])
