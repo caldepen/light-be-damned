@@ -16,6 +16,8 @@ const WOUND_DISCARD := "wound_discard"  # options: Card (discarded to make room 
 const FLIPPER := "flipper"              # options: HeroState (who flips for the campfire check)
 const SIGNATURE := "signature"          # options: Dictionary (the wizard's signature, chosen at each campfire)
 const ACTION := "action"                # options: String, HutRun.ACT_* (explore, camp, leave)
+const PLACEMENT := "placement"          # options: TilePlacement (where the drawn tile goes when several fit; break-throughs too, ruling #47)
+const FORMATION := "formation"          # options: String, a key of rules.json "formations" (asked when the run starts)
 const CAMPSITE := "campsite"            # options: PlacedTile (where to camp; details.walk: Array[int], tiles to walk per option)
 
 var kind: String = ""

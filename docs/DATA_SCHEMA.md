@@ -190,6 +190,7 @@ Used in Hut cards, Whims, tiles' `effects` and room types' `effects`. Each op ha
 - `leader_order`: the hero leading the party: an unspotted trap springs on the first standing hero in this order; the walking check is flipped by the first who can flip.
 - `skill_rolls`: off-Type penalty, minimum, teamwork threshold, difficulty targets, `failure_hut_track`, `xp_for_hard_or_better`.
 - `run`: `rations`, `xp_for_walking_out`.
+- `formations`: named formations `{hero_id: [row, lane]}` the party chooses from when a run starts (`RunRequest.FORMATION`). `default` must equal `default_formation`; `back_row` puts three heroes in the back row and the Fighter in the middle. Each hero needs their own square.
 - Module `hut_track`: `start`, `max`, `evicts_at` (the Hut wakes and throws the party out).
 
 ## Conventions

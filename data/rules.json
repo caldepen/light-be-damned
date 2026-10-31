@@ -26,6 +26,11 @@
     ]
   },
   "_formation_doc": "[row, lane] on the hero board; row 0 = front, lane 0 = the players' left (shared by both boards)",
+  "_formations_doc": "Formations the party may choose at the start of a run (RunRequest.FORMATION). 'back_row': as far back as four heroes fit, three in the back row and the Fighter in the middle in front of them",
+  "formations": {
+    "default": {"thief": [0, 0], "fighter": [0, 1], "cleric": [0, 2], "wizard": [2, 1]},
+    "back_row": {"fighter": [1, 1], "thief": [2, 0], "wizard": [2, 1], "cleric": [2, 2]}
+  },
   "battle": {
     "round_cap": 30,
     "_round_cap_doc": "Digital engine only: a battle still running after this many rounds ends as a draw. In a run the enemies withdraw: no loot or XP, no wipe (ruling #65)"

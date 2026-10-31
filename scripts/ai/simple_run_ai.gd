@@ -10,7 +10,7 @@ extends RunDecisionProvider
 ##   twice, and not once the Hut track reaches 8.
 ## - Traps: spot, dodge and disarm (Normal traps only) when someone of the right Type can roll.
 ## - The Black Cat below Hut 8.
-## - Wound discards: the card with the lowest skill value; flips: the first offered.
+## - Wound discards: the card with the lowest skill value; flips and placements: the first offered.
 ## - Next action: rest when worn down (camp, or walk out without the rations); otherwise explore;
 ##   else leave. Worn down: a hero sitting out, a hero with 3 or more Wounds, the fighters' average
 ##   deck below 8, or less than a quarter of the party's armor left ("armor gone means leave").
@@ -22,6 +22,9 @@ const REST_WOUNDS := 3
 const MAX_LOCK_FAILURES := 3
 const RETRY_HUT_LIMIT := 8
 
+## The formation to pick at the start of a run ("" = "default").
+var formation_name: String = ""
+
 func decide(request: RunRequest, run: HutRun) -> int:
     match request.kind:
         RunRequest.ACTION:
@@ -31,6 +34,8 @@ func decide(request: RunRequest, run: HutRun) -> int:
             if options.has(HutRun.ACT_EXPLORE):
                 return options.find(HutRun.ACT_EXPLORE)
             return options.find(HutRun.ACT_LEAVE)
+        RunRequest.FORMATION:
+            return maxi(0, request.options.find(formation_name if not formation_name.is_empty() else "default"))
         RunRequest.DOORWAY, RunRequest.CAMPSITE:
             return _shortest_walk(request.details.get("walk", []))
         RunRequest.ROLLER:

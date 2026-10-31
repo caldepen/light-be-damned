@@ -28,6 +28,16 @@ func discard(card: Dictionary) -> void:
 func size() -> int:
     return _draw.size()
 
+## The cards still to come before the next reshuffle, {card id: copies}: the whole deck less the
+## discards. Public knowledge (every card drawn was seen), so the party's AI may count it.
+func unseen() -> Dictionary:
+    var counts: Dictionary = {}
+    for c in _defs:
+        counts[String(c.get("id", ""))] = int(c.get("qty", 1))
+    for c in _discard:
+        counts[String(c.get("id", ""))] -= 1
+    return counts
+
 ## The card definition with this id.
 func card(card_id: String) -> Dictionary:
     for c in _defs:

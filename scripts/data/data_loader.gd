@@ -57,6 +57,16 @@ func validate(data: Dictionary) -> bool:
             _fail("rules.hero_order names '%s', which is not in heroes.json." % key)
         if not rules.get("default_formation", {}).has(key):
             _fail("rules.default_formation has no square for '%s'." % key)
+    var formations: Dictionary = rules.get("formations", {})
+    if not formations.has("default") or formations.get("default") != rules.get("default_formation", {}):
+        _fail("rules.formations needs a 'default' equal to rules.default_formation.")
+    for formation_name in formations:
+        var used: Dictionary = {}
+        for key in rules.get("hero_order", []):
+            var pos: Array = formations[formation_name].get(key, [])
+            if pos.size() != 2 or int(pos[0]) < 0 or int(pos[0]) > 2 or int(pos[1]) < 0 or int(pos[1]) > 2 or used.has(str(pos)):
+                _fail("rules.formations.%s puts '%s' on %s: every hero needs their own square on the board." % [formation_name, key, str(pos)])
+            used[str(pos)] = true
     for hero_id in heroes:
         _validate_hero(String(hero_id), heroes[hero_id], items)
     for enemy_type in enemies:

@@ -72,15 +72,17 @@ func _batch(module: Dictionary, runs: int) -> void:
         [100.0 * stirs / runs, 100.0 * breaks / runs, 100.0 * closed / runs])
     print("Tiles placed per run: %.1f. Average map size: %.1f x %.1f squares." % [float(tiles) / runs, float(width) / runs, float(height) / runs])
 
-## Whole runs (HutRun.play) with real battles: SimpleRunAi outside battle, TacticalAiProvider heroes.
+## Whole runs (HutRun.play) with real battles: ExplorationAi (or SimpleRunAi) outside battle, TacticalAiProvider heroes.
 ##   --rooms [seed]             one run: the event log (battles included), the map, the result
 ##   --rooms --batch N          N runs (seeds 1-N), a summary
 ##   options: --dm automated|standard|ruthless (default standard)
 ##            --components N|all  components held at the start (the first N in the module's
 ##                        list; all four put the Inner Study in the bag from the start)
+##            --run-ai explorer|simple  the party's exploring AI (default ExplorationAi; simple = SimpleRunAi)
+##            --formation NAME  a key of rules.json "formations" for every run (default: the AI's choice)
 ##            --stub      battles are recorded and called won (the 4.3 smoke test)
 func _rooms(data: Dictionary, args: PackedStringArray) -> void:
-    var options: Dictionary = {"dm": Battle.DM_STANDARD, "components": 0, "stub": false, "batch": 0, "seed": 1}
+    var options: Dictionary = {"dm": Battle.DM_STANDARD, "components": 0, "stub": false, "batch": 0, "seed": 1, "run_ai": "explorer", "formation": ""}
     var i: int = 1
     while i < args.size():
         match args[i]:
@@ -93,6 +95,12 @@ func _rooms(data: Dictionary, args: PackedStringArray) -> void:
             "--batch":
                 i += 1
                 options["batch"] = int(args[i])
+            "--run-ai":
+                i += 1
+                options["run_ai"] = args[i]
+            "--formation":
+                i += 1
+                options["formation"] = args[i]
             "--stub":
                 options["stub"] = true
             _:
@@ -137,8 +145,9 @@ func _rooms_batch(data: Dictionary, options: Dictionary) -> void:
         sums["hut"] += run.explorer.hut_track
         sums["rations"] += run.rations
         sums["found"] += run.found.size()
-    print("%d runs (seeds 1-%d), %s DM, %d components held at the start%s, SimpleRunAi + TacticalAiProvider, %.1f s." %
-        [runs, runs, options["dm"], mini(int(options["components"]), 4), ", battles stubbed as won" if options["stub"] else "", (Time.get_ticks_msec() - started) / 1000.0])
+    print("%d runs (seeds 1-%d), %s DM, %d components held at the start, formation %s%s, %s run AI + TacticalAiProvider, %.1f s." %
+        [runs, runs, options["dm"], mini(int(options["components"]), 4), "AI's choice" if String(options["formation"]).is_empty() else options["formation"],
+         ", battles stubbed as won" if options["stub"] else "", options["run_ai"], (Time.get_ticks_msec() - started) / 1000.0])
     var parts: PackedStringArray = []
     for r in results:
         parts.append("%s %.1f%%" % [r, 100.0 * int(results[r]) / runs])
@@ -158,7 +167,9 @@ static func play_run(data: Dictionary, seed_value: int, options: Dictionary) -> 
     for c in data["module_witch_hut"]["components"]:
         if held.size() < int(options.get("components", 0)):
             held.append(String(c["id"]))
-    var run := HutRun.new(data, seed_value, SimpleRunAi.new(), held)
+    var ai: RunDecisionProvider = SimpleRunAi.new() if String(options.get("run_ai", "explorer")) == "simple" else ExplorationAi.new()
+    ai.set("formation_name", String(options.get("formation", "")))
+    var run := HutRun.new(data, seed_value, ai, held)
     run.battle_decisions = TacticalAiProvider.new()
     run.dm_mode = String(options.get("dm", Battle.DM_STANDARD))
     if bool(options.get("stub", false)):

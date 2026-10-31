@@ -77,6 +77,7 @@ func _init(data_in: Dictionary, seed_value: int, decisions_in: RunDecisionProvid
     party = PartyState.create(data, rng)
     explorer = HutExplorer.new(module, rng, seed_value, log)
     explorer.hut_listener = _on_hut_track
+    explorer.chooser = _choose_placement
     hut_deck = HutDeck.new(module.get("hut_deck", []), rng)
     rations = int(rules.get("run", {}).get("rations", 8))
     formation = rules.get("default_formation", {}).duplicate(true)
@@ -101,6 +102,19 @@ func set_formation(new_formation: Dictionary) -> String:
     formation = new_formation.duplicate(true)
     log.record("formation", "The party's formation: %s." % _formation_text(), {"formation": formation.duplicate(true)})
     return ""
+
+## Several legal placements for a drawn tile: the party chooses (RunRequest.PLACEMENT, ruling #47).
+func _choose_placement(_kind: String, options: Array) -> int:
+    return decisions.decide(RunRequest.new(RunRequest.PLACEMENT, null, options, {}), self)
+
+## The party picks one of the rules' formations for the run (RunRequest.FORMATION).
+func choose_formation() -> void:
+    var presets: Dictionary = rules.get("formations", {})
+    var chosen: Variant = ask(RunRequest.FORMATION, null, presets.keys())
+    if chosen != null:
+        var why: String = set_formation(presets[chosen])
+        if not why.is_empty():
+            push_error("Formation '%s': %s." % [chosen, why])
 
 func _formation_text() -> String:
     var parts: PackedStringArray = []
@@ -387,6 +401,7 @@ func explore_step() -> String:
 ## step the party picks an action (RunRequest.ACTION). `max_steps` stops a simulation that never
 ## ends (RUN_STALLED). Returns `result`.
 func play(max_steps: int = 300) -> String:
+    choose_formation()
     log.record("run_start", "== Run (seed %d): %s; components %s ==" % [rng.seed_value, _formation_text(), _components_text(components)], {"seed": rng.seed_value, "components": components.duplicate()})
     var steps: int = 0
     while result.is_empty():
