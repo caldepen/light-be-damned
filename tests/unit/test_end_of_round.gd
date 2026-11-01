@@ -68,3 +68,15 @@ func test_lightning_orb_strikes_for_two_rounds():
     b.end_round()
     b.end_round()
     assert_eq(near.armor_damage + near.marked_hd, 2, "1 at the end of each of two rounds")
+
+func test_lightning_orb_strikes_a_large_enemy_on_the_diagonal_at_the_end_of_the_round():
+    # The Wizard in the right lane of the front row, an ogre filling the left and middle lanes of
+    # the DM's front two rows: diagonal across the boards, so in melee.
+    var ob := BattleFixture.battle(ScriptedProvider.new().always_pass())
+    var wizard := BattleFixture.hero(ob, "wizard", 0, 2, ["lightning_orb"])
+    var ogre := BattleFixture.enemy(ob, "ogre", 0, 0)
+    (ob.decisions as ScriptedProvider).fallback = SimpleAiProvider.new()
+    BattleFixture.play(ob, wizard, "lightning_orb")
+    assert_eq(ogre.armor_damage + ogre.marked_hd, 0, "nothing when played")
+    ob.end_round()
+    assert_eq(ogre.armor_damage + ogre.marked_hd, 1, "struck at the end of the round, once though it fills two squares in reach")
