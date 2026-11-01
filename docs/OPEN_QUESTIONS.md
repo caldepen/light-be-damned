@@ -24,6 +24,37 @@ From the room redesign (2026-10-30). The engine as built is described; the propo
 | 83 | The fourth component is found when the bag is empty or the Hut has closed in | The Inner Study goes into the bag and exploring opens again (it ignores doorway matching, so it always fits). With all four components held at the start of a run, it starts in the bag |
 | 84 | Locked In says "bash the door, Strength 4". Who may bash? | Any standing hero with cards in their deck; a hero who isn't a Strength hero rolls at −2 as usual. The AI picks the Fighter |
 
+From the cards-come-back change (2026-11-01). The engine as built is described; the proposal keeps it.
+
+| # | Question | Engine now (proposal: keep) |
+| --- | --- | --- |
+| 85 | When, after a battle, do the discards shuffle back: before bandaging, or last? | Last: the battle, then bandage and patch up (after a win), then every hero shuffles their whole discard pile back into their deck, so the cards played to patch up come back too. Also after the enemies withdraw at the round cap |
+| 86 | In battle, a flipped ▲ or ★ card with no legal effect (#5): does it still Exhaust, now that "only cards played can Exhaust"? | Yes, unchanged: in battle a flipped card counts as played. Only flips for skill rolls and wandering checks go back into the deck |
+| 87 | Eviction (#80) when the Hut track comes back: the Front Door is no longer an exit | Undecided; the engine keeps the old rule (walk out through the Front Door with wandering checks) behind `hut_track_enabled` |
+| 88 | A component room whose component the party already holds (no guardians), or whose guardians withdrew: a campsite? | Yes, at once: there are no guardians left to beat |
+| 89 | Returning to town from a campsite: does walking there make the wandering checks, the campsite included? | Yes, as for camping. Once there the run ends: +2 XP, components and loot kept |
+| 90 | No campsite the party can reach and nothing left to explore (an empty bag, the Hut closed in) | The party is stranded: it walks out through the Front Door after all, keeping what it found but without the 2 XP. Never seen in a batch so far |
+
+## Design change: cards come back, the Hut track off, leaving from campsites (2026-11-01)
+
+After every battle the heroes' discards shuffle back into their decks; cards flipped for skill rolls and wandering checks go straight back (never Exhausted); only played cards Exhaust, and they return at a campfire or in town. The Hut track is switched off (`rules.json` `hut_track_enabled`). The party returns to town only from a campsite (or after beating the witch); the Front Door is the entrance. All four component rooms are campsites once their guardians are beaten. Rulings this changes:
+
+| # | Was | Now |
+| --- | --- | --- |
+| 5 | A flipped card with no legal effect: ▲/★ still Exhaust | **Kept in battle** (#86). Flips for skill rolls and wandering checks go back into the deck instead |
+| 47 | Break-through: no Hut +1 beyond the one stir | **Changed:** the stir is off with the Hut track |
+| 50 | Empty bag: camp or leave | **Changed:** camp or return to town from a campsite; stranded with neither (#90) |
+| 51 | A moon that wakes the Hut evicts the party before it enters | **Off** with the Hut track |
+| 55 | Every failed skill roll Hut +1; the flipped card is spent | **Changed:** no Hut +1 while the track is off; the flipped card goes back into the deck, never Exhausted |
+| 57 | Locked chest: one retry, each failure Hut +1 | One retry; no Hut +1 while the track is off |
+| 58, 72 | Locked In: each failure Hut +1; nobody can roll: the door gives way, Hut +1 | Same rolls; no Hut +1 while the track is off |
+| 60 | Campfire: Hut +1; the flipped card is spent | No Hut +1 while the track is off; the flipped card goes back into the deck |
+| 64 | The Black Cat: Hut +1 and 1 loot | Just the loot while the track is off |
+| 65 | A hero with an empty deck sits out until the party camps; everyone sitting out is a wipe | **Kept**, but rare: discards come back after every battle, so a deck is only empty if every other card is Exhausted or in hand |
+| 74 | Wandering flips: only a hero with cards in their deck | Kept (rare now) |
+| 80 | The Hut wakes at 10 and throws the party out to the Front Door | **Off**; needs a new rule when the track comes back (#87) |
+| Leaving | Walk out through the Front Door any time (free; +2 XP) | **Changed:** only from a campsite or after beating the witch; +2 XP for returning to town |
+| Empty deck (§5) | A hero whose deck runs out sits out every battle until the party camps | **Changed:** their discards come back after the battle; they sit out only if the deck is still empty |
 ## Design change: named rooms (2026-10-30)
 
 Rooms with types and four room decks became named rooms with printed Whims and one Hut deck; the Workshop and Iron Key became four component rooms; the backtracking flip became a walking check per tile; the waking Hut evicts the party (RULES §8, §10; EXPLORATION_SPEC). Rulings this changed or retired:

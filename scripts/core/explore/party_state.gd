@@ -1,10 +1,11 @@
 class_name PartyState
 extends RefCounted
 
-## The four heroes between battles (RULES §8): hands, decks, discards, Exhausted cards, Wounds and
-## armor damage carry from room to room; only the campfire resets them. Damage outside battle is
+## The four heroes between battles (RULES §8): hands, decks, Exhausted cards, Wounds and armor
+## damage carry from room to room (discards come back after each battle); only the campfire resets
+## everything. Damage outside battle is
 ## not an attack: armor first, then Wounds (discard a non-Wound card for each). A hero whose hand
-## holds only Wounds is Down until bandaged, healed by the Shrine or reset at a campfire (ruling #54).
+## holds only Wounds is Down until bandaged, healed by the Baths or reset at a campfire (ruling #54).
 
 var heroes: Array[HeroState] = []
 var rules: Dictionary = {}
@@ -71,7 +72,7 @@ func all_down() -> bool:
     return standing().is_empty()
 
 ## Heroes who fight the next battle: standing, with cards in their deck. The rest sit out: Down
-## heroes, and heroes whose deck ran out, until the party camps (RULES §5 Empty deck, §8).
+## heroes, and heroes whose deck is still empty after their discards came back (RULES §5 Empty deck).
 func fighters() -> Array[HeroState]:
     return can_roll()
 
@@ -107,16 +108,25 @@ func draw(hero_in: HeroState, count: int) -> int:
         drawn += 1
     return drawn
 
-## The top card of the deck, spent as in a skill roll: discarded, or Exhausted if ▲ or ★.
-func flip(hero_in: HeroState) -> Card:
+## The top card of the deck for a skill roll or a wandering check: read, then shuffled straight back
+## into the deck, never Exhausted (RULES §8 Skill rolls).
+func flip(hero_in: HeroState, rng: SeededRng) -> Card:
     if hero_in.deck.is_empty():
         return null
     var card: Card = hero_in.deck.pop_back()
-    if card.exhausts():
-        hero_in.exhausted.append(card)
-    else:
-        hero_in.discard.append(card)
+    hero_in.deck.insert(rng.int_range(0, hero_in.deck.size()), card)
     return card
+
+## After a battle (RULES §8 After a battle): the discard pile shuffles back into the deck. Exhausted
+## cards and the hand stay. Returns how many cards came back.
+func return_discards(hero_in: HeroState, rng: SeededRng) -> int:
+    var n: int = hero_in.discard.size()
+    if n == 0:
+        return 0
+    hero_in.deck.append_array(hero_in.discard)
+    hero_in.discard.clear()
+    rng.shuffle(hero_in.deck)
+    return n
 
 ## Damage outside battle: armor first, then each point is a Wound; `discard_choice` picks the
 ## non-Wound card to discard (func(hero, cards) -> Card). Returns Wounds taken.

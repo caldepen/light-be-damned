@@ -2,8 +2,9 @@ extends GutTest
 
 ## RULES §8 outside battle: the party between fights (damage armor first then Wounds, Down when
 ## the hand is only Wounds, healing gets a hero up, the campfire reset) and skill rolls (flip and
-## read the skill value, off-Type −2 with a minimum of 1, the card spent or Exhausted, teamwork
-## above 6, a failure raises the Hut track, Hard or harder gives XP).
+## read the skill value, off-Type −2 with a minimum of 1, the card shuffled straight back into the
+## deck and never Exhausted, teamwork above 6, a failure raises the Hut track only while it is on,
+## Hard or harder gives XP).
 
 var run: HutRun
 var provider: ScriptedRunProvider
@@ -58,7 +59,7 @@ func test_a_hand_of_only_wounds_is_down_until_healed():
 func test_the_campfire_resets_every_hero():
     var fighter: HeroState = _hero("fighter")
     run.damage_hero(fighter, 8, "test")
-    run.party.flip(fighter)
+    fighter.exhausted.append(fighter.deck.pop_back())
     run.party.campfire_reset(fighter, run.rng)
     assert_eq(fighter.armor_damage, 0)
     assert_eq(fighter.wound_count(), 0)
@@ -66,14 +67,17 @@ func test_the_campfire_resets_every_hero():
     assert_eq(fighter.deck.size() + fighter.hand.size(), 30, "discards and Exhausted cards back in the deck")
     assert_true(fighter.discard.is_empty() and fighter.exhausted.is_empty())
 
-func test_a_roll_reads_the_skill_value_and_spends_the_card():
+func test_a_roll_reads_the_skill_value_and_shuffles_the_card_back_into_the_deck():
     var thief: HeroState = _hero("thief")
     var card: Card = _top(thief, 5)
+    var deck_size: int = thief.deck.size()
     provider.then(RunRequest.ROLLER, thief)
     var result: Dictionary = SkillRoll.roll(run, "agility", 4, "lock", true)
     assert_true(result["success"])
     assert_eq(result["value"], 5)
-    assert_true(thief.discard.has(card))
+    assert_true(thief.deck.has(card), "back in the deck")
+    assert_eq(thief.deck.size(), deck_size)
+    assert_true(thief.discard.is_empty())
     assert_eq(run.explorer.hut_track, 0)
 
 func test_another_type_rolls_at_minus_2_with_a_minimum_of_1():
@@ -85,19 +89,34 @@ func test_another_type_rolls_at_minus_2_with_a_minimum_of_1():
     provider.then(RunRequest.ROLLER, fighter)
     assert_eq(SkillRoll.roll(run, "agility", 4, "lock", true)["value"], 1)
 
-func test_a_failed_roll_raises_the_hut_track_and_a_top_tier_card_is_exhausted():
+func test_a_failed_roll_raises_the_hut_track_only_while_it_is_on():
     var thief: HeroState = _hero("thief")
-    var card: Card = _top(thief, 2)
+    _top(thief, 2)
     provider.then(RunRequest.ROLLER, thief)
-    var result: Dictionary = SkillRoll.roll(run, "agility", 4, "lock", true)
-    assert_false(result["success"])
-    assert_eq(run.explorer.hut_track, 1)
-    var top: Card = _top(thief, 6, "top")
+    assert_false(SkillRoll.roll(run, "agility", 4, "lock", true)["success"])
+    assert_eq(run.explorer.hut_track, 0, "rules.json hut_track_enabled is false")
+    run.explorer.hut_enabled = true
+    _top(thief, 2)
     provider.then(RunRequest.ROLLER, thief)
     SkillRoll.roll(run, "agility", 4, "lock", true)
-    if top.exhausts():
-        assert_true(thief.exhausted.has(top), "a ▲ card flipped for a roll is Exhausted")
-    assert_true(thief.discard.has(card))
+    assert_eq(run.explorer.hut_track, 1)
+
+func test_a_top_tier_card_flipped_for_a_roll_is_never_exhausted():
+    var thief: HeroState = _hero("thief")
+    var top: Card = _top(thief, 6, "top")
+    assert_true(top.exhausts(), "a ▲ card")
+    provider.then(RunRequest.ROLLER, thief)
+    SkillRoll.roll(run, "agility", 4, "lock", true)
+    assert_true(thief.deck.has(top))
+    assert_true(thief.exhausted.is_empty())
+
+func test_the_wandering_check_card_goes_back_into_the_deck_too():
+    var fighter: HeroState = _hero("fighter")
+    _top(fighter, 3, "top")  # a quiet check with a ▲ card on top
+    var deck_size: int = fighter.deck.size()
+    run.entry_check(run.explorer.front_door)
+    assert_eq(fighter.deck.size(), deck_size)
+    assert_true(fighter.discard.is_empty() and fighter.exhausted.is_empty())
 
 func test_beating_a_hard_obstacle_gives_xp_but_spotting_never_does():
     var thief: HeroState = _hero("thief")

@@ -16,6 +16,7 @@ func before_each():
 func _new_run(components: Array) -> void:
     provider = ScriptedRunProvider.new()
     run = HutRun.new(BattleFixture.data(), 1, provider, components)
+    run.explorer.hut_enabled = true  # most tests here watch the Hut track; see the hut_track_enabled tests
     fights = []
     run.fight_runner = func(_r: HutRun, encounter: String, rewards: bool) -> String:
         fights.append("%s%s" % [encounter, "" if rewards else " (no rewards)"])
@@ -364,12 +365,78 @@ func test_a_leader_who_cannot_flip_passes_the_check_on_and_nobody_means_no_check
     run.walk(run.explorer.front_door, "test")
     assert_eq(run.log.of_type("wandering_check").size(), 2, "nobody can flip: no more checks")
 
-func test_walking_out_to_leave_is_free():
-    _two_rooms_north()
+# ------------------------------------------------------------------ returning to town (2026-11-01)
+
+## A Bedchamber west of the Front Door, explored.
+func _bedchamber_west() -> PlacedTile:
+    var bed: PlacedTile = run.explorer.map.add(TilePlacement.make(_entry("small_bedchamber"), 1, Vector2i(-1, 0), null, {}))  # doorways W and E
+    bed.explored = true
+    bed.room_state["resolved"] = true
+    assert_true(run.explorer.map.connected(bed, run.explorer.front_door))
+    return bed
+
+func test_the_front_door_is_no_exit_the_party_returns_to_town_from_a_campsite():
+    assert_eq(run.actions(), [HutRun.ACT_EXPLORE], "no campsite yet: only exploring")
+    var bed: PlacedTile = _bedchamber_west()
+    assert_eq(run.actions(), [HutRun.ACT_EXPLORE, HutRun.ACT_CAMP, HutRun.ACT_RETURN])
+    _top(_hero("fighter"), 4)
+    assert_eq(run.return_to_town(bed), "")
+    assert_eq(run.result, HutRun.RUN_RETURNED)
+    assert_eq(run.explorer.party_tile, bed)
+    assert_eq(run.log.of_type("wandering_check").size(), 1, "walking there checks, the campsite included")
+    assert_eq(run.xp, 2)
+
+func test_returning_to_town_keeps_the_components_and_loot_found():
+    var bed: PlacedTile = _bedchamber_west()
+    run.enter_room(_room("library"))
+    run.loot(3, "test")
+    run.explorer.party_tile = bed
+    run.return_to_town(bed)
+    assert_eq(run.components_after(), ["library"] as Array[String])
+    assert_true(String(run.log.of_type("run_end")[0]["message"]).contains("(kept)"))
+
+func test_return_to_town_needs_no_rations_but_camping_does():
+    _bedchamber_west()
+    run.rations = 3
+    assert_eq(run.actions(), [HutRun.ACT_EXPLORE, HutRun.ACT_RETURN])
+
+func test_stranded_with_no_campsite_and_nothing_to_explore_the_party_walks_out_without_the_xp():
+    run.can_explore = false
+    assert_eq(run.actions(), [HutRun.ACT_LEAVE], "open question #90")
     run.leave()
     assert_eq(run.result, HutRun.RUN_LEFT)
-    assert_false(run.log.has_type("wandering_check"))
+    assert_eq(run.xp, 0)
+    assert_true(run.log.of_type("leave")[0]["details"].get("stranded", false))
 
+func test_every_component_room_is_a_campsite_once_its_guardians_are_beaten():
+    for id in ["library", "kitchen", "armory", "baths"]:
+        var room: PlacedTile = _room(id, Vector2i(10 * (["library", "kitchen", "armory", "baths"].find(id) + 1), 10))
+        assert_true(run.is_campsite(room), id)
+        assert_false(run.usable_campsites().has(room), "not explored yet")
+    var library: PlacedTile = run.explorer.map.add(TilePlacement.make(_entry("library"), 0, Vector2i(0, 1), null, {}))  # doorway S meets the Front Door
+    run.enter_room(library)
+    assert_true(run.usable_campsites().has(library), "the dusty dead are beaten")
+
+# ------------------------------------------------------------------ the Hut track switched off (2026-11-01)
+
+func test_with_the_hut_track_off_nothing_raises_it_and_nothing_evicts():
+    _new_run([])
+    run.explorer.hut_enabled = bool(run.rules["hut_track_enabled"])
+    assert_false(run.explorer.hut_enabled, "rules.json switches it off")
+    run.explorer.bag.entries.push_back(_entry("potion_store", true))
+    run.explore_step()
+    assert_eq(run.explorer.hut_track, 0, "no moon")
+    run.raise_hut(10, "test")
+    assert_eq(run.explorer.hut_track, 0)
+    assert_false(run.evicted)
+    var bed: PlacedTile = _bedchamber_west()
+    run.camp(bed)
+    assert_eq(run.explorer.hut_track, 0, "no campfire rise")
+    assert_false(run.log.has_type("hut_track"))
+
+func test_a_fresh_run_reads_the_switch_from_the_rules():
+    var plain := HutRun.new(BattleFixture.data(), 1, ScriptedRunProvider.new())
+    assert_false(plain.explorer.hut_enabled)
 # ------------------------------------------------------------------ the wandering check on entering a room
 
 ## The checks so far, as [tile uid, value].

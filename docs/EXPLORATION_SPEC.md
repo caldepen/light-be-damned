@@ -20,23 +20,25 @@ Exploring builds the Hut one room at a time. The party picks which doorway to op
 
 ## 3. Setup (each run)
 
-Lay the Front Door at `[0, 0]` (doorways N, E, W). Shuffle the 26 bag tiles into the bag. The Inner Study waits outside the bag until the party holds all four components (section 6). Shuffle the Hut deck. Hut track at 0. The party starts in the Front Door. Components held from earlier runs stay held.
+Lay the Front Door at `[0, 0]` (doorways N, E, W). Shuffle the 26 bag tiles into the bag. The Inner Study waits outside the bag until the party holds all four components (section 6). Shuffle the Hut deck. Hut track at 0 (switched off for now, section 7). The party starts in the Front Door. Components held from earlier runs stay held.
 
 ## 4. Exploring (one room at a time)
 
 1. **Pick a doorway.** Choose an open doorway of the room the party is in. If it has none left, or the party prefers another, they may **walk** to an open doorway in any other explored room, with a wandering check in every room entered on the way (see below). This is the party's only choice. (Digital: always pick the doorway first, then flip. At the table it may be played more loosely: draw the tile, then lay it at whichever doorway of the party's room fits best.)
 2. **Draw and flip** 1 tile from the bag.
 3. **Place it** so one of its doorways meets the chosen doorway, rotating it to fit (any of 4 rotations). It must not overlap another tile. If no rotation fits there, place it at another open doorway of the same room, or else of any explored room. Its other doorways may face another tile's wall; those are simply closed. Two doorways that end up facing each other connect.
-4. **Moon:** if the tile shows a moon, the Hut track rises by 1.
+4. **Moon:** if the tile shows a moon, the Hut track rises by 1 (only while the track is on).
 5. **Enter.** The party moves in and resolves the room (section 5).
 
 An **open doorway** is a doorway of a placed tile whose neighbouring square is empty.
 
 **Nothing fits.** If the drawn tile fits at no open doorway on the map: the Hut stirs (+1, only once per exploration); set the tile aside and draw again until one fits; then shuffle the set-aside tiles back into the bag. If nothing in the bag fits, the party **breaks through** a wall: place a set-aside tile against any wall of an explored room where it fits (no doorway needed; the Hut makes one). If even that is impossible, the Hut has closed in and the party must head home. (Simulation, on the old 7×9 board: a redraw about once in 4 runs; a break-through almost never; closed in about 1 run in 50. Without board edges these rules are a safety net that should almost never trigger.)
 
-**Entering a room (2026-10-31).** Whenever the party enters a tile and no fight happens there (a new room after its Whim, Hut card or guardians; any room it walks back through; corridors, campsites and Whim rooms too), the leading hero (the Fighter, else the first of Thief, Cleric, Wizard who can flip) flips the top card of their deck; it is spent as in a skill roll (Exhausted if ▲ or ★). On a skill value at or below the threshold (`rules.json` `entering`, default 1), wandering monsters attack: fight 3 goblins (`wandering` encounter) in that room. **These fights give no loot and no XP**, though bandaging afterwards works as usual. Walking to a campsite or an unopened doorway in another room means a check in every tile entered on the way.
+**Entering a room (2026-10-31).** Whenever the party enters a tile and no fight happens there (a new room after its Whim, Hut card or guardians; any room it walks back through; corridors, campsites and Whim rooms too), the leading hero (the Fighter, else the first of Thief, Cleric, Wizard who can flip) flips the top card of their deck; it goes back into the deck, shuffled in (never Exhausted, since 2026-11-01). On a skill value at or below the threshold (`rules.json` `entering`, default 1), wandering monsters attack: fight 3 goblins (`wandering` encounter) in that room. **These fights give no loot and no XP**, though bandaging afterwards works as usual. Walking to a campsite or an unopened doorway in another room means a check in every tile entered on the way.
 
-**Leaving.** Walking back to the Front Door to leave is free, with no wandering checks, except when the Hut has woken and thrown the party out (section 7).
+**Returning to town (2026-11-01).** The Front Door is the entrance, not an exit. The party returns to town only from a campsite (walking there with the usual wandering checks) or after beating the witch. At a campsite it chooses: camp (rations, full reset, keep exploring) or return to town (the run ends; components and loot are kept; +2 XP).
+
+**Cards come back (2026-11-01).** After every battle, each hero's discards (not Exhausted cards) shuffle back into their deck. A card flipped for a skill roll or a wandering check goes straight back into its deck, shuffled in, and is never Exhausted, even a ▲ or ★ card. Only cards played in battle or while patching up Exhaust; they return at a campfire or in town. Wounds are unaffected.
 
 **Hidden doors** (v0.5) are dropped for now; they will come back as a skill roll.
 
@@ -50,17 +52,18 @@ An **open doorway** is a doorway of a placed tile whose neighbouring square is e
 | Room without a Whim | 4 | Draw a Hut card: Amphibian and Reptile Terrarium, Bone Closet, Potion Store, Well Room |
 | Component room | 4 | A set battle while the party lacks the component (section 6) |
 | Bedchamber | 3 | Nothing; a campsite (normal wandering check when camping) |
+| (campsites) | 7 | The 3 Bedchambers and the 4 component rooms, a component room once its guardians are beaten |
 | Corridor | 3 | Nothing happens. No moon; not a campsite |
 
 The rooms with a Whim: Cauldron Room (Bubbling Cauldron), Mirror Hall (Hall of Mirrors), Crypt (Bones Stir), Spinning Room (Shifting Walls), Root Cellar (Collapse), Storeroom (Locked In), Gallery (Vanishing Door), Great Hall (Doors Slam), Crow Loft (Crooked Corridor), Candle Nook (The Black Cat), Laundry (Keyhole), Garden (Gingerbread Garden). Each name sits on one of the old shapes with the same moons (section 9): Great Hall, Mirror Hall and the Armory on the 2×2s, the Storeroom, Bone Closet and Kitchen on the dead-end squares, the Bedchambers on the old campsite shapes.
 
 **Re-entering** an explored room never resolves it again.
 
-**Camping** works as in v0.5 but only in a campsite the party has explored this run (a Bedchamber or the Kitchen): 1 ration per hero, Hut track +1, the campfire resets every hero, then the wandering-monster check (skill 1–3). Walking to the campsite makes the wandering checks.
+**Camping** works as in v0.5 but only in a campsite the party has explored this run (a Bedchamber, or a component room whose guardians are beaten): 1 ration per hero, Hut track +1 (when on), the campfire resets every hero, then the wandering-monster check (skill 1–3). Walking to the campsite makes the wandering checks.
 
 ## 6. Special tiles and components
 
-- **Front Door:** 1×1, doorways N, E, W, at `[0, 0]`. Leaving the Hut means walking back here.
+- **Front Door:** 1×1, doorways N, E, W, at `[0, 0]`. The way in only.
 - **Inner Study:** 2×2, one iron door (cell `[0,0]`, side S). Shuffled into the bag as soon as the party holds all four components, even mid-run. It ignores doorway matching: placed at the chosen doorway if it fits, else against any wall of an explored room where it fits; the Hut makes a door. It always fits. Entering starts the boss battle.
 
 **Component rooms.** Each is a set battle on the first visit while the party lacks that component (normal loot and XP, then the component):
@@ -68,15 +71,15 @@ The rooms with a Whim: Cauldron Room (Bubbling Cauldron), Mirror Hall (Hall of M
 | Room | Guardians | Encounter | Also |
 | --- | --- | --- | --- |
 | Library | 5 skeletons, "the dusty dead" | `skeleton_band` | |
-| Kitchen | 5 goblins, "the cooks" | `standard` | Always a campsite; 1 ration on the first visit each run |
+| Kitchen | 5 goblins, "the cooks" | `standard` | 1 ration on the first visit each run |
 | Armory | An ogre and 4 goblins | `tough` | |
 | Baths | 3 skeletons and 2 goblins | `baths_guardians` | Afterwards, once per run, every hero removes 2 Wounds and repairs 1 armor |
 
-Once the party holds a component, its room plays as a room without a Whim (a Hut card); the Kitchen stays a campsite and the Baths keep their healing. Components are kept if the party escapes and lost if it wipes on the run they were found. For Milestone 4, "components held at start" is a run setting.
+Every component room is a campsite once its guardians are beaten. Once the party holds a component, its room plays as a room without a Whim (a Hut card); the Kitchen keeps its ration and the Baths their healing. Components are kept if the party escapes and lost if it wipes on the run they were found. For Milestone 4, "components held at start" is a run setting.
 
 ## 7. Hut track and Hut Whims
 
-The Hut track (0–10) rises by 1 for: each moon tile placed, each failed skill roll, each campfire, each "nothing fits" stir; and as The Black Cat and Bubbling Cauldron say. **At 10 the Hut wakes and evicts the party:** no more exploring; the party must walk to the Front Door, making the wandering check in every tile on the way (this time leaving is not free). There are no Whim thresholds.
+**Switched off (2026-11-01):** `rules.json` `hut_track_enabled` is false, so there are no moons, no rises and no eviction; the data and code stay for when it comes back (eviction will need a new rule, since the Front Door is no longer an exit). When on, the Hut track (0–10) rises by 1 for: each moon tile placed, each failed skill roll, each campfire, each "nothing fits" stir; and as The Black Cat and Bubbling Cauldron say. **At 10 the Hut wakes and evicts the party:** no more exploring; the party must walk to the Front Door, making the wandering check in every tile on the way (this time leaving is not free). There are no Whim thresholds.
 
 **Hut Whims (12),** printed on their rooms:
 

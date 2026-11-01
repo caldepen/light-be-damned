@@ -40,7 +40,8 @@ func test_the_party_chooses_among_legal_placements():
     assert_eq(run.explorer.map.tiles.back().rotation, options[2].rotation)
 
 func test_the_formation_is_chosen_when_the_run_starts():
-    provider.then(RunRequest.FORMATION, "back_row").then(RunRequest.ACTION, HutRun.ACT_LEAVE)
+    provider.then(RunRequest.FORMATION, "back_row")
+    run.wiped = true  # stop the run at once; the formation is chosen before anything else
     run.play()
     assert_eq(provider.requests_of(RunRequest.FORMATION)[0].options, ["default", "back_row"])
     assert_eq(run.formation, run.rules["formations"]["back_row"])
@@ -67,21 +68,37 @@ func test_the_monster_chance_counts_the_hut_cards_not_yet_seen():
         run.hut_deck.discard(run.hut_deck.card(id))
     assert_almost_eq(ExplorationAi.monster_chance(run), 7.0 / 18.0, 0.001)
 
-func test_a_fresh_party_explores_and_a_worn_one_camps_or_walks_out():
+func test_a_fresh_party_explores_and_a_worn_one_camps_or_returns_to_town():
     var ai := ExplorationAi.new()
-    var all: Array = [HutRun.ACT_EXPLORE, HutRun.ACT_CAMP, HutRun.ACT_LEAVE]
+    var all: Array = [HutRun.ACT_EXPLORE, HutRun.ACT_CAMP, HutRun.ACT_RETURN]
     assert_eq(ai.decide(_request(RunRequest.ACTION, all), run), 0, "fresh: explore")
     for h in run.party.heroes:
         h.armor_damage = h.armor_slots
     assert_true(ExplorationAi.needs_rest(run), "no armor left")
     assert_eq(ai.decide(_request(RunRequest.ACTION, all), run), 1, "camp")
-    assert_eq(ai.decide(_request(RunRequest.ACTION, [HutRun.ACT_EXPLORE, HutRun.ACT_LEAVE]), run), 1, "no campsite: walk out")
+    assert_eq(ai.decide(_request(RunRequest.ACTION, [HutRun.ACT_EXPLORE, HutRun.ACT_RETURN]), run), 1, "no rations: return to town")
+    assert_eq(ai.decide(_request(RunRequest.ACTION, [HutRun.ACT_EXPLORE]), run), 0, "no campsite known yet: explore on to find one")
     run.explorer.hut_track = 8
-    assert_eq(ai.decide(_request(RunRequest.ACTION, all), run), 2, "too close to eviction to camp")
+    assert_eq(ai.decide(_request(RunRequest.ACTION, all), run), 2, "too close to eviction to camp (when the track is on)")
 
-func test_with_nothing_left_to_explore_the_ai_walks_out():
+func test_with_nothing_left_to_explore_the_ai_returns_to_town():
     var ai := ExplorationAi.new()
-    assert_eq(ai.decide(_request(RunRequest.ACTION, [HutRun.ACT_CAMP, HutRun.ACT_LEAVE]), run), 1)
+    assert_eq(ai.decide(_request(RunRequest.ACTION, [HutRun.ACT_CAMP, HutRun.ACT_RETURN]), run), 1)
+
+func test_exhausted_cards_and_wounds_wear_the_party_down_but_deck_size_does_not():
+    for h in run.party.heroes:
+        while h.deck.size() > 2:
+            h.discard.append(h.deck.pop_back())
+    assert_false(ExplorationAi.needs_rest(run), "thin decks alone: the discards come back after the next battle")
+    var thief: HeroState = run.party.hero("thief")
+    for i in range(ExplorationAi.REST_EXHAUSTED):
+        thief.exhausted.append(thief.discard.pop_back())
+    assert_true(ExplorationAi.needs_rest(run), "8 Exhausted cards")
+    thief.discard.append_array(thief.exhausted)
+    thief.exhausted.clear()
+    for i in range(ExplorationAi.REST_WOUNDS):
+        run.party.hero("cleric").hand.append(Card.make_wound(run.party.new_uid()))
+    assert_true(ExplorationAi.needs_rest(run), "3 Wounds on one hero")
 
 func test_the_armor_the_ai_wants_grows_with_the_monsters_left():
     for h in run.party.heroes:

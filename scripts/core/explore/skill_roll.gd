@@ -3,8 +3,8 @@ extends RefCounted
 
 ## Skill rolls (RULES §8): flip the top card of a hero's deck and read its skill value, −2 (minimum
 ## 1) for a hero of another Type; a target above 6 needs two heroes who add their values. The card
-## is spent (Exhausted if ▲ or ★). Every failure raises the Hut track by 1. Beating Hard or harder
-## gives 1 XP when `gives_xp` (never for spotting or dodging).
+## goes straight back into the deck, never Exhausted. Every failure raises the Hut track by 1 (when
+## it is on). Beating Hard or harder gives 1 XP when `gives_xp` (never for spotting or dodging).
 
 ## Returns {"success", "value", "heroes"} or {} when nobody can roll. `roller` fixes the hero
 ## (a trap's victim dodging); otherwise the party chooses.
@@ -27,7 +27,7 @@ static func roll(run: HutRun, type: String, target: int, purpose: String, gives_
     var value: int = 0
     var parts: PackedStringArray = []
     for h in rollers:
-        var card: Card = run.party.flip(h)
+        var card: Card = run.party.flip(h, run.rng)
         var v: int = int(card.def.get("skill", 0))
         if h.hero_type != type:
             v = maxi(int(rules.get("minimum", 1)), v + int(rules.get("off_type_penalty", -2)))

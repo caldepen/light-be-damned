@@ -3,7 +3,7 @@ extends RefCounted
 
 ## A battle inside a run (RULES §8 Battles in a run, After a won battle; ruling #65). The party's own
 ## heroes fight, carrying their hands, decks, discards, Exhausted cards, Wounds and armor damage in
-## and out; Down heroes and heroes with empty decks sit out, and if nobody can fight it is a wipe.
+## and out (the discards shuffle back into the decks after the battle); Down heroes and heroes with empty decks sit out, and if nobody can fight it is a wipe.
 ## Heroes stand in the run's formation. Battle effects (Provoke, Guard, Bleed, Stun, statuses) end
 ## with the battle and enemy decks are fresh. After a win: bandage, patch up, then loot and XP
 ## unless the fight is a wandering one. At the round cap the enemies withdraw. Every battle event
@@ -40,11 +40,21 @@ static func play(run: HutRun, encounter_name: String, rewards: bool) -> String:
     match result:
         Battle.RESULT_HEROES:
             after_win(run, battle, rewards)
+            return_discards(run)
             return HutRun.FIGHT_WON
         Battle.RESULT_DRAW:
             run.log.record("enemies_withdraw", "The enemies withdraw: no loot, no XP (ruling #65).", {})
+            return_discards(run)
             return HutRun.FIGHT_WITHDREW
     return HutRun.FIGHT_WIPE
+
+## RULES §8 After a battle: every hero's discards shuffle back into their deck, last of all, so the
+## cards played to patch up come back too (open question #85). Exhausted cards stay.
+static func return_discards(run: HutRun) -> void:
+    for h in run.party.heroes:
+        var n: int = run.party.return_discards(h, run.rng)
+        if n > 0:
+            run.log.record("discards_return", "%s shuffles %d discard%s back into the deck." % [h.name, n, "" if n == 1 else "s"], {"hero": h.hero_id, "count": n})
 
 ## RULES §8 After a won battle: bandage every hero (Down heroes too), patch up, loot and XP.
 static func after_win(run: HutRun, battle: Battle, rewards: bool) -> void:

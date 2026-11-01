@@ -11,13 +11,14 @@ extends RunDecisionProvider
 ## - Traps: spot, dodge and disarm (Normal traps only) when someone of the right Type can roll.
 ## - The Black Cat below Hut 8.
 ## - Wound discards: the card with the lowest skill value; flips and placements: the first offered.
-## - Next action: rest when worn down (camp, or walk out without the rations); otherwise explore;
-##   else leave. Worn down: a hero sitting out, a hero with 3 or more Wounds, the fighters' average
-##   deck below 8, or less than a quarter of the party's armor left ("armor gone means leave").
+## - Next action: rest when worn down (camp, or return to town without the rations; with no campsite
+##   known, explore on); otherwise explore; else return to town. Worn down: a hero sitting out, a hero
+##   with 3 or more Wounds, 8 or more Exhausted cards, or less than a quarter of the party's armor left.
 
 const KEEP_GOING_DECK := 8.0
 const CAT_HUT_LIMIT := 8
 const REST_WOUNDS := 3
+const REST_EXHAUSTED := 8
 ## Give up on a lock after this many failures, or once the Hut track is this high.
 const MAX_LOCK_FAILURES := 3
 const RETRY_HUT_LIMIT := 8
@@ -29,11 +30,11 @@ func decide(request: RunRequest, run: HutRun) -> int:
     match request.kind:
         RunRequest.ACTION:
             var options: Array = request.options
-            if worn_down(run):
-                return options.find(HutRun.ACT_CAMP) if options.has(HutRun.ACT_CAMP) else options.find(HutRun.ACT_LEAVE)
-            if options.has(HutRun.ACT_EXPLORE):
-                return options.find(HutRun.ACT_EXPLORE)
-            return options.find(HutRun.ACT_LEAVE)
+            if worn_down(run) or not options.has(HutRun.ACT_EXPLORE):
+                for act in [HutRun.ACT_CAMP, HutRun.ACT_RETURN]:
+                    if options.has(act) and (act != HutRun.ACT_CAMP or options.has(HutRun.ACT_EXPLORE)):
+                        return options.find(act)
+            return maxi(0, options.find(HutRun.ACT_EXPLORE))
         RunRequest.FORMATION:
             return maxi(0, request.options.find(formation_name if not formation_name.is_empty() else "default"))
         RunRequest.DOORWAY, RunRequest.CAMPSITE:
@@ -65,14 +66,14 @@ static func worn_down(run: HutRun) -> bool:
     var fighters: Array[HeroState] = run.party.fighters()
     if fighters.size() < run.party.heroes.size():
         return true
-    var deck: int = 0
+    var exhausted: int = 0
     var slots: int = 0
     for h in fighters:
-        deck += h.deck.size()
+        exhausted += h.exhausted.size()
         slots += h.armor_slots
         if h.wound_count() >= REST_WOUNDS:
             return true
-    return float(deck) / fighters.size() < KEEP_GOING_DECK or run.party.armor_left() * 4 < slots
+    return exhausted >= REST_EXHAUSTED or run.party.armor_left() * 4 < slots
 
 static func _shortest_walk(walks: Array) -> int:
     var best: int = 0

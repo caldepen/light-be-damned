@@ -5,8 +5,8 @@ extends RefCounted
 ## (PartyState), the Hut deck, the components, rations, XP and the loot count. It enters and
 ## resolves rooms through the room effect handlers (a room's printed Whim, its own effects, then
 ## its type's: a Hut card), the wandering check on entering a room, walking, camping, the Hut
-## waking at 10 and throwing the party out, and the run loop (`play`): explore, camp or walk out,
-## until the party leaves, wipes or reaches the boss.
+## waking at 10 and throwing the party out (when the track is on), and the run loop (`play`):
+## explore, camp, or return to town from a campsite, until the party returns, wipes or reaches the boss.
 ##
 ## Battles go through `fight_runner` (func(run, encounter, rewards) -> FIGHT_*), by default RunFight:
 ## the party's own heroes in the run's `formation`, `battle_decisions` choosing for them, `dm_mode`
@@ -26,10 +26,12 @@ const ROOM_EVICTED := "evicted"   # a moon woke the Hut: the new room is never e
 ## What the party does next (RunRequest.ACTION).
 const ACT_EXPLORE := "explore"
 const ACT_CAMP := "camp"
-const ACT_LEAVE := "leave"   # walk out through the Front Door
+const ACT_RETURN := "return" # return to town from a campsite (the run ends well)
+const ACT_LEAVE := "leave"   # out through the Front Door: only when stranded or thrown out
 
 ## How a run ended (`result`).
-const RUN_LEFT := "left"
+const RUN_RETURNED := "returned"   # to town from a campsite
+const RUN_LEFT := "left"           # out through the Front Door (stranded, or thrown out by the Hut)
 const RUN_WIPE := "wipe"
 const RUN_BOSS := "boss reached"
 const RUN_STALLED := "stalled"   # the step cap in play(); a safety net for simulations
@@ -81,6 +83,7 @@ func _init(data_in: Dictionary, seed_value: int, decisions_in: RunDecisionProvid
     party = PartyState.create(data, rng)
     explorer = HutExplorer.new(module, rng, seed_value, log)
     explorer.hut_listener = _on_hut_track
+    explorer.hut_enabled = bool(rules.get("hut_track_enabled", true))
     explorer.chooser = _choose_placement
     hut_deck = HutDeck.new(module.get("hut_deck", []), rng)
     rations = int(rules.get("run", {}).get("rations", 8))
@@ -363,7 +366,7 @@ func _choose_signature(hero: HeroState) -> void:
                 return
 
 func _wandering_flip(hero: HeroState, at_most: int, encounter: String, purpose: String, tile: PlacedTile) -> void:
-    var card: Card = party.flip(hero)
+    var card: Card = party.flip(hero, rng)
     var value: int = int(card.def.get("skill", 0))
     var monsters: bool = value <= at_most
     log.record("wandering_check", "%s flips %s (%d) in the %s (%s): %s." % [hero.name, card.name, value, _name(tile), purpose, "wandering monsters!" if monsters else "all quiet"],
@@ -417,7 +420,7 @@ func explore_step() -> String:
 
 # ------------------------------------------------------------------ the run loop
 
-## Play the run from where it stands until the party walks out, wipes or reaches the boss: each
+## Play the run from where it stands until the party returns to town, wipes or reaches the boss: each
 ## step the party picks an action (RunRequest.ACTION). `max_steps` stops a simulation that never
 ## ends (RUN_STALLED). Returns `result`.
 func play(max_steps: int = 300) -> String:
@@ -436,17 +439,22 @@ func play(max_steps: int = 300) -> String:
             take_action(String(ask(RunRequest.ACTION, null, actions())))
     return result
 
-## What the party can do now. Leaving is always possible, and the only thing once the Hut has
-## thrown the party out; exploring until the bag is empty or the Hut closes in (ruling #50);
-## camping in an explored campsite with enough rations.
+## What the party can do now (RULES §8 Returning to town). Exploring until the bag is empty or the
+## Hut closes in (ruling #50); at a campsite it can reach (a Bedchamber, or a component room whose
+## guardians are beaten): camp, with enough rations, or return to town. The Front Door is no exit:
+## the party walks out of it only when stranded (#90) or thrown out by the Hut (when the track is on).
 func actions() -> Array:
     var list: Array = []
-    if not evicted:
-        if can_explore:
-            list.append(ACT_EXPLORE)
-        if not campsites().is_empty():
-            list.append(ACT_CAMP)
-    list.append(ACT_LEAVE)
+    if evicted:
+        return [ACT_LEAVE]
+    if can_explore:
+        list.append(ACT_EXPLORE)
+    if not campsites().is_empty():
+        list.append(ACT_CAMP)
+    if not usable_campsites().is_empty():
+        list.append(ACT_RETURN)
+    if list.is_empty():
+        list.append(ACT_LEAVE)
     return list
 
 func take_action(action: String) -> void:
@@ -454,29 +462,56 @@ func take_action(action: String) -> void:
         ACT_EXPLORE:
             explore_step()
         ACT_CAMP:
-            var sites: Array[PlacedTile] = campsites()
-            var walks: Array = sites.map(func(t: PlacedTile) -> int: return explorer.map.route(explorer.party_tile, t).size())
-            var site: PlacedTile = ask(RunRequest.CAMPSITE, null, sites, {"walk": walks})
+            var site: PlacedTile = _ask_campsite(campsites(), "camp")
             var why: String = camp(site)
             if not why.is_empty():
                 log.record("cant_camp", "The party can't camp there: %s." % why, {"tile": site.uid})
+        ACT_RETURN:
+            var site: PlacedTile = _ask_campsite(usable_campsites(), "return")
+            var why: String = return_to_town(site)
+            if not why.is_empty():
+                log.record("cant_return", "The party can't return to town from there: %s." % why, {"tile": site.uid})
         ACT_LEAVE:
             leave()
 
-## Explored campsites the party can walk to and afford to camp in.
-func campsites() -> Array[PlacedTile]:
+func _ask_campsite(sites: Array[PlacedTile], purpose: String) -> PlacedTile:
+    var walks: Array = sites.map(func(t: PlacedTile) -> int: return explorer.map.route(explorer.party_tile, t).size())
+    return ask(RunRequest.CAMPSITE, null, sites, {"walk": walks, "purpose": purpose})
+
+## Explored campsites the party can walk to: Bedchambers, and component rooms once resolved (their
+## guardians beaten, or none because the party already held the component, #88).
+func usable_campsites() -> Array[PlacedTile]:
     var result_list: Array[PlacedTile] = []
-    var cost: int = int(rules.get("camping", {}).get("rations_per_hero", 1)) * party.heroes.size()
-    if rations < cost or evicted:
+    if evicted:
         return result_list
     for t in explorer.map.tiles:
-        if t.explored and is_campsite(t) and (t == explorer.party_tile or not explorer.map.route(explorer.party_tile, t).is_empty()):
+        if t.explored and bool(t.room_state.get("resolved", false)) and is_campsite(t) and (t == explorer.party_tile or not explorer.map.route(explorer.party_tile, t).is_empty()):
             result_list.append(t)
     return result_list
 
-## Walk back to the Front Door and out (RULES §8 Leaving, §9): free, unless the Hut has thrown the
-## party out, when every tile on the way gets the wandering check. The run ends well and the party
-## gains its walking-out XP.
+## Usable campsites the party can afford to camp in.
+func campsites() -> Array[PlacedTile]:
+    var cost: int = int(rules.get("camping", {}).get("rations_per_hero", 1)) * party.heroes.size()
+    if rations < cost:
+        return [] as Array[PlacedTile]
+    return usable_campsites()
+
+## Walk to a campsite (wandering checks, #89) and return to town (RULES §8 Returning to town, §9):
+## the run ends well, the party keeps its finds and gains its XP. Returns "" or why not.
+func return_to_town(tile: PlacedTile) -> String:
+    if not usable_campsites().has(tile):
+        return "not a campsite the party can use"
+    var walked: String = walk(tile, "return")
+    if not walked.is_empty() or wiped:
+        return walked
+    log.record("return_to_town", "The party returns to town from the %s." % _name(tile), {"tile": tile.uid})
+    gain_xp(int(rules.get("run", {}).get("xp_for_walking_out", 2)), "returned to town")
+    _finish(RUN_RETURNED)
+    return ""
+
+## Out through the Front Door: when the Hut has thrown the party out (the old rule, kept behind
+## hut_track_enabled; wandering checks all the way, then the XP), or when the party is stranded
+## with no campsite to reach and nothing to explore (#90: free, no XP). Finds are kept.
 func leave() -> void:
     var why: String = walk(explorer.front_door, "evicted") if evicted else explorer.walk_to(explorer.front_door)
     if wiped:
@@ -484,10 +519,12 @@ func leave() -> void:
     if not why.is_empty():
         log.record("cant_leave", "The party can't reach the Front Door: %s." % why, {})
         return
-    log.record("leave", "The party walks out through the Front Door.", {})
-    gain_xp(int(rules.get("run", {}).get("xp_for_walking_out", 2)), "walked out")
+    if evicted:
+        log.record("leave", "Thrown out, the party walks out through the Front Door.", {})
+        gain_xp(int(rules.get("run", {}).get("xp_for_walking_out", 2)), "walked out")
+    else:
+        log.record("leave", "Stranded with no campsite to reach, the party walks out through the Front Door.", {"stranded": true})
     _finish(RUN_LEFT)
-
 ## Components the party holds after the run: those found this run are lost on a wipe.
 func components_after() -> Array[String]:
     var kept: Array[String] = []
@@ -501,6 +538,6 @@ func _components_text(ids: Array[String]) -> String:
 
 func _finish(how: String) -> void:
     result = how
-    var kept: String = "kept" if how == RUN_LEFT else ("lost" if how == RUN_WIPE else "not yet counted")
+    var kept: String = "kept" if how in [RUN_RETURNED, RUN_LEFT] else ("lost" if how == RUN_WIPE else "not yet counted")
     log.record("run_end", "== Run over: %s. Hut track %d, rations %d, XP %d, loot %d (%s), components found %s, held now %s ==" % [how, explorer.hut_track, rations, xp, loot_drawn, kept, _components_text(found), _components_text(components_after())],
         {"result": how, "hut_track": explorer.hut_track, "rations": rations, "xp": xp, "loot": loot_drawn, "found": found.duplicate(), "components": components_after()})

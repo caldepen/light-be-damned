@@ -4,9 +4,11 @@ extends RunDecisionProvider
 ## The party's exploring choices (Milestone 4.5), behind the same RunDecisionProvider interface a
 ## human player will use. Heuristics, using only what the party can see at the table (the map, its
 ## own heroes, and the Hut deck's discards for counting what is left):
-## - Next action: rest when worn down, judged against the chance that the next Hut card is a monster
-##   (camp if rations allow and the Hut track leaves room to explore afterwards, else walk out);
-##   otherwise explore; walk out when nothing is left to explore.
+## - Next action: rest when worn down (Wounds, armor damage judged against the chance that the next
+##   Hut card is a monster, Exhausted cards; not deck size, since discards come back after battles):
+##   head for the nearest known campsite and camp if rations allow and there is more to explore,
+##   else return to town from it; with no campsite known yet, keep exploring to find one. Return to
+##   town when nothing is left to explore.
 ## - Doorways and campsites: the fewest tiles to walk; among doorways, the one with most free space
 ##   around it.
 ## - Placements: the one that opens most new doorways, then the closest to the Front Door.
@@ -15,8 +17,9 @@ extends RunDecisionProvider
 ##   hero, or when the trap would reach the victim's hand.
 ## - Formation: `formation_name` if set (the batch runner's --formation), else "default".
 
-const KEEP_GOING_DECK := 8.0
 const REST_WOUNDS := 3
+## Rest once the party has this many Exhausted cards (about two per hero).
+const REST_EXHAUSTED := 8
 ## Rest when the party's armor left falls below ARMOR_REST + ARMOR_PER_MONSTER x (chance of a monster).
 const ARMOR_REST := 0.2
 const ARMOR_PER_MONSTER := 0.3
@@ -65,29 +68,32 @@ func decide(request: RunRequest, run: HutRun) -> int:
     return 0
 
 func _action(options: Array, run: HutRun) -> int:
-    var leave: int = options.find(HutRun.ACT_LEAVE)
-    if not options.has(HutRun.ACT_EXPLORE):
-        return leave
+    var explore: int = options.find(HutRun.ACT_EXPLORE)
+    var camp: int = options.find(HutRun.ACT_CAMP)
+    var go_home: int = options.find(HutRun.ACT_RETURN)
+    if explore < 0:
+        return go_home if go_home >= 0 else 0
     if needs_rest(run):
-        if options.has(HutRun.ACT_CAMP) and _room(run) >= CAMP_ROOM:
-            return options.find(HutRun.ACT_CAMP)
-        return leave
-    return options.find(HutRun.ACT_EXPLORE)
+        if camp >= 0 and _room(run) >= CAMP_ROOM:
+            return camp
+        if go_home >= 0:
+            return go_home
+    return explore
 
-## Worn down: a hero sitting out, a hero with 3 or more Wounds, the fighters' average deck below 8,
-## or too little armor left for the chance of a monster behind the next door.
+## Worn down: a hero sitting out, a hero with 3 or more Wounds, 8 or more Exhausted cards, or too
+## little armor left for the chance of a monster behind the next door.
 static func needs_rest(run: HutRun) -> bool:
     var fighters: Array[HeroState] = run.party.fighters()
     if fighters.size() < run.party.heroes.size():
         return true
-    var deck: int = 0
+    var exhausted: int = 0
     var slots: int = 0
     for h in fighters:
-        deck += h.deck.size()
+        exhausted += h.exhausted.size()
         slots += h.armor_slots
         if h.wound_count() >= REST_WOUNDS:
             return true
-    if float(deck) / fighters.size() < KEEP_GOING_DECK:
+    if exhausted >= REST_EXHAUSTED:
         return true
     return float(run.party.armor_left()) / maxf(1.0, slots) < ARMOR_REST + ARMOR_PER_MONSTER * monster_chance(run)
 

@@ -146,7 +146,7 @@ func _rooms_batch(data: Dictionary, options: Dictionary) -> void:
             rooms += 1 if t.explored and t != run.explorer.front_door else 0
         sums["rooms"] += rooms
         sums["xp"] += run.xp
-        sums["loot"] += run.loot_drawn if run.result == HutRun.RUN_LEFT else 0
+        sums["loot"] += run.loot_drawn if run.result in [HutRun.RUN_RETURNED, HutRun.RUN_LEFT] else 0
         sums["hut"] += run.explorer.hut_track
         sums["rations"] += run.rations
         sums["found"] += run.found.size()

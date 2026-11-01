@@ -102,8 +102,11 @@
   },
   "_leader_order_doc": "The hero leading the party: an unspotted trap springs on the first standing hero in this order (ruling #55); the wandering check on entering a room is flipped by the first who can flip (open question #78)",
   "leader_order": ["fighter", "thief", "cleric", "wizard"],
+  "_hut_track_doc": "false switches the Hut track off (no moons, no rises from rolls, campfires, stirs or Whims, no eviction); the module's hut_track data and the engine code stay for when it comes back (RULES §10)",
+  "hut_track_enabled": false,
   "run": {
     "rations": 8,
+    "_xp_doc": "XP for returning to town from a campsite at the end of a run",
     "xp_for_walking_out": 2
   },
   "loot": {

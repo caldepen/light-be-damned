@@ -10,6 +10,7 @@
   "hut_track": {
     "start": 0,
     "max": 10,
+    "_enabled_doc": "Switched off by rules.json hut_track_enabled (2026-11-01)",
     "_rises_doc": "+1 for each moon tile placed, failed skill roll, campfire and 'nothing fits' stir (once per exploration), and as The Black Cat and Bubbling Cauldron say",
     "evicts_at": 10
   },
@@ -74,8 +75,7 @@
     {"id": "bone_closet", "name": "Bone Closet", "type": "room", "qty": 1, "moon_qty": 1, "cells": [[0,0]], "doors": [{"cell": [0,0], "side": "S"}],
      "features": {"pool": [{"id": "bone_pile", "weight": 3}]}},
     {"id": "kitchen", "name": "Kitchen", "type": "component", "qty": 1, "moon_qty": 0, "cells": [[0,0]], "doors": [{"cell": [0,0], "side": "S"}],
-     "campsite": true,
-     "text": "Guardians: 5 goblins (the cooks), while the party lacks the Kitchen component. Always a campsite. Gain 1 ration on the first visit each run",
+     "text": "Guardians: 5 goblins (the cooks), while the party lacks the Kitchen component. Gain 1 ration on the first visit each run. A campsite once the guardians are beaten",
      "effects": [{"op": "component", "component": "kitchen", "guardians": "the cooks", "encounter": "standard", "otherwise": [{"op": "draw_hut_card"}]}, {"op": "gain_ration", "amount": 1}],
      "features": {"pool": [{"id": "stove", "weight": 2}, {"id": "hanging_herbs", "weight": 1}]}},
 
@@ -107,7 +107,7 @@
     "corridor": {"name": "Corridor", "text": "Nothing happens", "features": {"slots_per_cell": 1, "chance": 0.3, "pool": [{"id": "torch_bracket", "weight": 1}, {"id": "cobweb", "weight": 1}]}},
     "room": {"name": "Room", "text": "Its Whim, if it has one, then a Hut card", "effects": [{"op": "draw_hut_card"}],
       "features": {"slots_per_cell": 1, "chance": 0.6, "pool": [{"id": "cobweb", "weight": 1}, {"id": "rubble", "weight": 1}, {"id": "cracked_floor", "weight": 1}]}},
-    "component": {"name": "Component room", "text": "Guardians while the party lacks its component; then a Hut card",
+    "component": {"name": "Component room", "text": "Guardians while the party lacks its component, otherwise a Hut card. A campsite once the guardians are beaten", "campsite": true,
       "features": {"slots_per_cell": 1, "chance": 0.8, "pool": [{"id": "claw_marks", "weight": 1}]}},
     "bedchamber": {"name": "Bedchamber", "text": "A campsite", "campsite": true,
       "features": {"slots_per_cell": 1, "chance": 0.8, "pool": [{"id": "bed", "weight": 2}, {"id": "old_bedroll", "weight": 1}]}},

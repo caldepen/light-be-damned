@@ -105,7 +105,7 @@ All game content lives in `data/*.json`. Code interprets it; it never hard-codes
 - Bag totals are checked on load against `bag_size` (26) and `bag_moons` (11).
 - `whim` (optional): the Hut Whim printed on the room, `{"id", "name", "text", "effects"}`. It resolves the first time the party enters the room in a run, before the room's own effects. Whim ids are unique, and there must be `whim_count` (12) of them.
 - `effects` (optional): the room's own effects, resolved on the first entry after its Whim and before its room type's effects (the component rooms).
-- `campsite` (optional): the party may camp here once it is explored, whatever its type (the Kitchen).
+- `campsite` (optional): the party may camp here once it is explored, whatever its type (none use it now: the component room type is a campsite).
 - **Special tiles** start outside the bag. They use `moon` (true/false) instead of `qty`/`moon_qty`, and may have:
   - `fixed_at`: the map square of the anchor (Front Door, `[0, 0]`).
   - `ignores_doorway_matching`: placed at the chosen doorway if it fits there, else against any wall of an explored room where it fits; the Hut makes the door (Inner Study).
@@ -117,7 +117,7 @@ All game content lives in `data/*.json`. Code interprets it; it never hard-codes
 Keyed by tile `type`. Fields: `name`, `text` (printed rule), and any of:
 
 - `effects`: resolved on the first entry each run, after the tile's Whim and the tile's own effects (`room`: draw a Hut card; `inner_study`: the boss).
-- `campsite`: the party may camp in tiles of this type once explored (Bedchambers). `wandering_check: false` would skip the campfire's wandering-monster flip (no room does now).
+- `campsite`: the party may camp in, or return to town from, tiles of this type once explored and resolved (Bedchambers; component rooms once their guardians are beaten). `wandering_check: false` would skip the campfire's wandering-monster flip (no room does now).
 - `exit`: the way out (Front Door).
 - `features`: decorations for tiles of this type (see Map features).
 
@@ -189,7 +189,8 @@ Used in Hut cards, Whims, tiles' `effects` and room types' `effects`. Each op ha
 - `entering`: `wandering_on_skill_at_most` (the wandering check whenever the party enters a tile and no fight happened there: monsters on this skill value or lower; default 1), `encounter`.
 - `leader_order`: the hero leading the party: an unspotted trap springs on the first standing hero in this order; the wandering check on entering a room is flipped by the first who can flip.
 - `skill_rolls`: off-Type penalty, minimum, teamwork threshold, difficulty targets, `failure_hut_track`, `xp_for_hard_or_better`.
-- `run`: `rations`, `xp_for_walking_out`.
+- `run`: `rations`, `xp_for_walking_out` (the XP for returning to town from a campsite).
+- `hut_track_enabled`: false switches the Hut track off: no moons, no rises, no eviction (the module's `hut_track` data stays).
 - `formations`: named formations `{hero_id: [row, lane]}` the party chooses from when a run starts (`RunRequest.FORMATION`). `default` must equal `default_formation`; `back_row` puts three heroes in the back row and the Fighter in the middle. Each hero needs their own square.
 - Module `hut_track`: `start`, `max`, `evicts_at` (the Hut wakes and throws the party out).
 

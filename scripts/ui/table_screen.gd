@@ -404,7 +404,7 @@ func _refresh_run(session: RunSession) -> void:
     _map.show_run(run.explorer.map, run.explorer.party_tile, run_request)
     var evict: int = int(run.module.get("hut_track", {}).get("evicts_at", 10))
     _map.set_hint("The Hut has thrown the party out: walk to the Front Door." if run.evicted and run.result.is_empty() else "")
-    _map_status.refresh(run.explorer.hut_track, evict, {evict: "out"}, run.rations, run.party.heroes)
+    _map_status.refresh(run.explorer.hut_track if run.explorer.hut_enabled else -1, evict, {evict: "out"}, run.rations, run.party.heroes)
     _party_summary.refresh(run.party.heroes)
     _battlefield.refresh(battle, request)
     if battle != null:
@@ -423,7 +423,7 @@ func _refresh_run(session: RunSession) -> void:
     _hand.refresh(hand_hero, request)
     _hand_area.set_title(_hand.title_text())
     _update_hand_peek(request)
-    _battle_area.set_title(_turn_text(battle, request) if battle != null else "Exploring  ·  Hut track %d" % run.explorer.hut_track)
+    _battle_area.set_title(_turn_text(battle, request) if battle != null else "Exploring  ·  rations %d" % run.rations)
     if request != null:
         _choice.show_decision(request, _selected_card(request))
     elif run_request != null:

@@ -19,6 +19,8 @@ var cosmetic_rng: SeededRng
 var log: EventLog
 var chooser: Callable = func(_kind: String, _options: Array) -> int: return 0
 var hut_track: int = 0
+## rules.json hut_track_enabled: when false the track never moves (no moons, no rises, no eviction).
+var hut_enabled: bool = true
 var front_door: PlacedTile
 var party_tile: PlacedTile
 ## Called after every change of the Hut track with (before, after): the run wakes the Hut here.
@@ -173,6 +175,8 @@ func farthest_options(entry: Dictionary) -> Array[TilePlacement]:
 ## The Hut track rises (moons, failed rolls, campfires, a stir, some Whims); the listener wakes the
 ## Hut at the top.
 func raise_hut(amount: int, reason: String) -> void:
+    if not hut_enabled:
+        return
     var hut: Dictionary = module.get("hut_track", {})
     var before: int = hut_track
     hut_track = clampi(hut_track + amount, 0, int(hut.get("max", 10)))

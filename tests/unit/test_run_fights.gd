@@ -95,7 +95,9 @@ func test_a_battle_starts_from_the_party_s_carried_state():
     assert_eq(at_start["cleric"]["discard"], 4, "the discard pile carried in")
     assert_eq(at_start["cleric"]["exhausted"], 1, "Exhausted cards carried in")
     assert_true(run.last_battle.heroes.has(fighter), "the party's own heroes fight")
-    assert_gte(cleric.discard.size() + cleric.exhausted.size(), 5, "and the piles carry out again")
+    assert_true(cleric.discard.is_empty(), "after the battle the discards shuffle back into the deck")
+    assert_gte(cleric.exhausted.size(), 1, "Exhausted cards stay Exhausted")
+    assert_eq(cleric.wound_count(), 0, "bandaging took the Wound")
 
 func test_battle_effects_end_with_each_battle():
     var fighter: HeroState = _hero("fighter")
@@ -239,11 +241,33 @@ func test_a_formation_needs_every_hero_on_a_different_square_of_the_board():
 
 # ------------------------------------------------------------------ the run loop
 
-func test_walking_out_ends_the_run_with_the_walking_out_xp():
-    provider.then(RunRequest.ACTION, HutRun.ACT_LEAVE)
-    assert_eq(run.play(), HutRun.RUN_LEFT)
+func test_returning_to_town_from_a_campsite_ends_the_run_with_its_xp():
+    var bed: PlacedTile = run.explorer.map.add(TilePlacement.make(_entry("small_bedchamber"), 1, Vector2i(-1, 0), null, {}))
+    bed.explored = true
+    bed.room_state["resolved"] = true
+    provider.then(RunRequest.ACTION, HutRun.ACT_RETURN)
+    assert_eq(run.play(), HutRun.RUN_RETURNED)
     assert_eq(run.xp, 2)
     assert_true(run.log.has_type("run_end"))
+
+func test_after_every_battle_discards_shuffle_back_exhausted_cards_and_wounds_stay():
+    var wizard: HeroState = _hero("wizard")
+    for i in range(3):
+        wizard.discard.append(wizard.deck.pop_back())
+    wizard.exhausted.append(wizard.deck.pop_back())
+    var total: int = wizard.deck.size() + wizard.hand.size() + wizard.discard.size() + wizard.exhausted.size()
+    run.fight("bones_stir", false)
+    assert_true(wizard.discard.is_empty())
+    assert_gte(wizard.exhausted.size(), 1)
+    assert_eq(wizard.deck.size() + wizard.hand.size() + wizard.exhausted.size(), total, "nothing lost")
+    assert_true(run.log.has_type("discards_return"))
+
+func test_discards_come_back_when_the_enemies_withdraw_too():
+    run.rules["battle"]["round_cap"] = 1
+    var thief: HeroState = _hero("thief")
+    thief.discard.append(thief.deck.pop_back())
+    assert_eq(run.fight("tough", true), HutRun.FIGHT_WITHDREW)
+    assert_true(thief.discard.is_empty())
 
 func test_a_wipe_ends_the_run_and_its_finds_are_lost():
     run.fight_runner = func(_r: HutRun, _e: String, _rw: bool) -> String: return HutRun.FIGHT_WIPE
@@ -257,8 +281,9 @@ func test_camping_is_offered_only_in_an_explored_campsite_with_enough_rations():
     assert_false(run.actions().has(HutRun.ACT_CAMP))
     var kitchen: PlacedTile = run.explorer.map.add(TilePlacement.make(_entry("kitchen"), 0, Vector2i(0, 1), null, {}))
     kitchen.explored = true
+    kitchen.room_state["resolved"] = true
     if run.explorer.map.connected(kitchen, run.explorer.front_door):
-        assert_true(run.actions().has(HutRun.ACT_CAMP), "the Kitchen is always a campsite")
+        assert_true(run.actions().has(HutRun.ACT_CAMP), "a component room is a campsite once its guardians are beaten")
         run.rations = 3
         assert_false(run.actions().has(HutRun.ACT_CAMP), "4 heroes need 4 rations")
     else:

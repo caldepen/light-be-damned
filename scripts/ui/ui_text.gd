@@ -169,7 +169,7 @@ static func turn_summary(battle: Battle, end_entry: Dictionary) -> String:
 
 # ------------------------------------------------------------------ runs
 
-const ACTION_LABELS := {"explore": "Explore", "camp": "Camp", "leave": "Walk out"}
+const ACTION_LABELS := {"explore": "Explore", "camp": "Camp", "return": "Return to town", "leave": "Walk out the Front Door"}
 
 static func run_option_label(request: RunRequest, option: Variant, index: int) -> String:
     var walks: Array = request.details.get("walk", [])
@@ -204,7 +204,7 @@ static func run_prompt(request: RunRequest) -> String:
     var roll: String = "%s %d" % [String(d.get("type", "")).capitalize(), int(d.get("target", 0))]
     match request.kind:
         RunRequest.ACTION:
-            return "What next? Explore a new room, camp in a campsite you have found, or walk out through the Front Door."
+            return "What next? Explore a new room, or go to a campsite you have found to camp (rations, a full reset) or return to town."
         RunRequest.DOORWAY:
             var peek: String = ""
             if not String(d.get("peeked", "")).is_empty():
@@ -213,7 +213,7 @@ static func run_prompt(request: RunRequest) -> String:
         RunRequest.PLACEMENT:
             return "The tile fits more than one way: click where it goes on the map."
         RunRequest.CAMPSITE:
-            return "Choose a campsite: click it on the map."
+            return "Choose the campsite to %s: click it on the map." % ("return to town from" if String(d.get("purpose", "")) == "return" else "camp in")
         RunRequest.FORMATION:
             return "Choose the party's formation for this run's battles."
         RunRequest.ROLLER:
@@ -240,6 +240,6 @@ static func run_prompt(request: RunRequest) -> String:
 
 ## The end of a run, for the prompt.
 static func run_over_text(run: HutRun) -> String:
-    var how: String = {HutRun.RUN_LEFT: "the party walked out", HutRun.RUN_WIPE: "the party was wiped out",
+    var how: String = {HutRun.RUN_RETURNED: "the party returned to town", HutRun.RUN_LEFT: "the party walked out through the Front Door", HutRun.RUN_WIPE: "the party was wiped out",
         HutRun.RUN_BOSS: "the party reached the witch (the boss comes in Milestone 6)"}.get(run.result, run.result)
     return "Run over: %s. XP %d, loot %d, components found %d. Press Restart for another run." % [how, run.xp, run.loot_drawn, run.found.size()]
