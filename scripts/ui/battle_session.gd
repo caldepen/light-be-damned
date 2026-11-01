@@ -20,7 +20,7 @@ var _mutex := Mutex.new()  # guards everything below
 var _ai_heroes: bool = false
 var _auto_continue: bool = false
 var _pause_kind: String = ""
-var _request: DecisionRequest = null
+var _request: RefCounted = null  # a DecisionRequest, or a RunRequest in a RunSession
 var _pause_entry: Dictionary = {}
 var _answer: int = -1
 var _answered: bool = false
@@ -56,7 +56,7 @@ func pause_kind() -> String:
 
 func pending_request() -> DecisionRequest:
     _mutex.lock()
-    var r: DecisionRequest = _request if not _answered else null
+    var r: DecisionRequest = _request as DecisionRequest if not _answered else null
     _mutex.unlock()
     return r
 
@@ -119,8 +119,7 @@ func _run(data: Dictionary, encounter: Array, seed_value: int, dm_mode: String) 
 
 ## Called by HumanDecisionProvider. Returns an option index, or -1 to let the AI decide.
 func ask_human(request: DecisionRequest, b: Battle) -> int:
-    if battle == null:
-        battle = b  # signature choices are asked while the battle is still being set up
+    battle = b  # signature choices are asked while the battle is still being set up; a run has many battles
     _mutex.lock()
     var use_ai: bool = _ai_heroes or _aborting
     _mutex.unlock()
@@ -137,7 +136,7 @@ func _on_event(entry: Dictionary) -> void:
     if follow:
         _pause(PAUSE_CONTINUE, null, entry)
 
-func _pause(kind: String, request: DecisionRequest, entry: Dictionary) -> int:
+func _pause(kind: String, request: RefCounted, entry: Dictionary) -> int:
     _mutex.lock()
     if _aborting:
         _mutex.unlock()
@@ -158,7 +157,7 @@ func _pause(kind: String, request: DecisionRequest, entry: Dictionary) -> int:
         var done: bool = _answered or _aborting
         if kind == PAUSE_CONTINUE and _auto_continue and waited >= auto_delay_ms:
             done = true
-        if kind == PAUSE_DECISION and _ai_heroes:
+        if kind != PAUSE_CONTINUE and _ai_heroes:
             done = true  # switched to AI while waiting: the AI answers this one
         _mutex.unlock()
         if done:

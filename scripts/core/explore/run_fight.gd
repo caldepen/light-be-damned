@@ -30,7 +30,9 @@ static func play(run: HutRun, encounter_name: String, rewards: bool) -> String:
     battle.log.listeners.append(run.forward_event)
     BattleSetup.add_heroes(battle, fighters, run.formation)
     BattleSetup.add_encounter(battle, encounter)
+    run.current_battle = battle
     var result: String = battle.run()
+    run.current_battle = null
     run.last_battle = battle
     for h in run.party.heroes:
         run.party.clear_battle_state(h)

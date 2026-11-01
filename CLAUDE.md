@@ -75,13 +75,13 @@ Godot 4.7.2 with GUT 9.7.0 (`addons/gut`). Use the console exe for headless runs
 & "C:\Program Files\Godot4_7_2\Godot_v4.7.2-stable_win64_console.exe" --headless --path . --script tools/run_map.gd '--' --rooms --batch 300 --components 3
 ```
 
-The playtest table (`scenes/table.tscn`, the main scene; single battles until exploration lands): press F5 in the editor, or run the editor exe without `--headless`:
+The playtest table (`scenes/table.tscn`, the main scene; a whole run by default, or a single battle from the top bar): press F5 in the editor, or run the editor exe without `--headless`:
 
 ```powershell
 & "C:\Program Files\Godot4_7_2\Godot_v4.7.2-stable_win64.exe" --path .
 ```
 
-Screenshots of the table at chosen window sizes (needs a window, so the editor exe without `--headless`; writes `<prefix>_<size>_start.png` and `_mid.png`; options `--preset tall|wide`, `--phase exploring`, `--dock bottom_full|bottom_boards|left|right`; uses its own layout file, not the player's):
+Screenshots of the table at chosen window sizes (needs a window, so the editor exe without `--headless`; writes `<prefix>_<size>_start.png` and `_mid.png`; options `--preset tall|wide`, `--phase exploring` (single battles), `--dock bottom_full|bottom_boards|left|right`, `--mode run|battle` (default run), `--answer N` (answer the first N choices before the first shot), `--play SECONDS`; uses its own layout file, not the player's):
 
 ```powershell
 & "C:\Program Files\Godot4_7_2\Godot_v4.7.2-stable_win64.exe" --path . --script tools/screenshot_table.gd '--' C:/temp/shot --preset wide 1600x940 1280x720
@@ -89,7 +89,7 @@ Screenshots of the table at chosen window sizes (needs a window, so the editor e
 
 The table's layout (dividers, collapsed panels, hand dock, battlefield orientation, preset, phase mode) is saved to `user://layout.cfg` (`LayoutSettings`) and restored on launch; delete it or press Reset layout to start over.
 
-The scene runs the engine on a worker thread (`scripts/ui/battle_session.gd`) that pauses for each human decision (`HumanDecisionProvider`) and after enemy turns; the scene reads state only while it is paused.
+The scene runs the engine on a worker thread (`scripts/ui/battle_session.gd`; `run_session.gd` for a whole run) that pauses for each human decision (`HumanDecisionProvider`, `HumanRunDecisionProvider`) and after enemy turns; the scene reads state only while it is paused.
 
 `--dm` also works on single battles. A batch of 500 for every encounter takes about 3.5 minutes with the tactical AI (about 40 seconds with `--ai simple`); pass encounter names to run fewer.
 
@@ -193,6 +193,11 @@ The `witch` encounter is left out: her Bone Storm extra turn is built (ruling #4
   - Back-row formation (Fighter middle centre; Thief, Wizard, Cleric back row) vs default, battle batch, 500 seeds, standard DM: goblins Down 12.0% vs 12.4%, 5.34 vs 5.87 Wounds; ogre + goblins Down 37.2% vs 24.0% (8.76 vs 8.74 Wounds, 5.29 vs 4.88 rounds); skeletons Down 3.0% vs 0.8%. Over 300 runs: left 89.7% / wipe 10.0% vs 90.3% / 9.7%. The back row costs more Downs against the ogre and gains a little against goblin throws; the default stays the AI's choice.
   - New encounter `baths_guardians` (3 skeletons, 2 goblins), standard DM: 100% wins, Down 0.8%, 2.25 Wounds. 347 GUT tests.
 - 2026-10-31 rule change: the wandering check on entering a room replaces the walking check. Whenever the party enters a tile and no fight happened there (a first visit after its Whim / Hut card / guardians, or any tile walked through; corridors, campsites, Whim rooms, the Front Door), the leading hero flips; at or below `rules.json` `entering.wandering_on_skill_at_most` (default 1) 3 goblins attack, no rewards. Leaving stays free except after eviction; a moon-evicted tile and the Inner Study get none. `HutRun.entry_check`, `fights_fought`; fight and check `source`/`purpose` "entering". #46, #62, #74, #79 reworded. `run_map --wandering N`. 100 runs, ExplorationAi, threshold 1: left 94%, wipe 6%, 7.0 entry checks and 1.9 wandering fights per run, 5.9 rooms. 357 GUT tests.
+- 4.6 done: the map UI and runs on the table.
+  - `RunSession` (extends `BattleSession`) plays `HutRun.play()` on the worker thread, pausing for run choices (`HumanRunDecisionProvider`, ExplorationAi when "AI plays heroes" is on) and battle choices; `HutRun.current_battle` is the fight in progress. The top bar picks Run (default) or Single battle, and components held.
+  - `TableScreen._refresh_run`: the exploring layout between fights and the battle layout during them (`set_phase`), the Hut track (eviction mark), rations and party armor, piles between fights (`PilesView.refresh_party`), the run's log (`LogView.refresh_log`), run prompts and option buttons (`ChoicePanel.show_run_decision`, `UiText.run_prompt` / `run_option_label` / `run_over_text`).
+  - `MapView.show_run`: tiles ink in when placed, redraw when a Whim turns or swaps them, disappear when collapsed, pale when never entered; features (`MapFeatureLayer`); wall tokens, the party marker and the pending choice's doorways, placement previews and campsites, clickable (`MapOverlayLayer.option_at`, `option_chosen`). Camera: follows (fit the whole map, keep the party's room in view, zoom toward the previews while placing) until a drag or the wheel, then "Centre on party" brings it back.
+  - Screenshots: `tools/screenshot_table.gd` takes `--mode`, `--answer N`, `--play`. 366 GUT tests (map view sync, options, clicks, camera; the run session against the engine).
   - Open questions #71-74 (decided 2026-10-30). Over 1000 seeds the safety nets never fired; the whole bag gives maps of about 12 × 15 squares. Whims, the Hut waking, rooms and the party walking come in 4.3/4.4. Rotation: r quarter turns clockwise about the anchor, y up. The map has no fixed board (changed 2026-10-28): the Front Door is at [0,0] and coordinates can go negative; nothing fits / break-through / closed in stay as a rarely used safety net. Map UI (4.6): zoom to fit the whole map while keeping the party's room in view, optional drag pan and wheel zoom, a centre-on-party button, zoom toward the chosen doorway when placing; the 4.1 map panel hosts a SubViewport with a Camera2D for this. Art direction: an inked map on graph paper. The map view has separate layers, bottom to top: paper/grid, tiles, features, annotations (reserved, empty, UI only), overlay (doorway highlights, party marker, previews). Tile placement goes through an "ink in" hook (a short fade until Milestone 7). Decorations come from optional `features` on room types and tiles (DATA_SCHEMA "Map features"); placeholders until Milestone 7.
 
 **Known follow-ups**
@@ -201,7 +206,7 @@ The `witch` encounter is left out: her Bone Storm extra turn is built (ruling #4
 - Digital UI: show the party's total armor prominently and warn when most of it is damaged ("armor gone means leave").
 - As designed, not a bug: the goblin Shortbow targets the *lowest*-Provoke hero (its card overrides §6), and ties at 0 go to the bottom of the start stack, so early on it usually hits the Wizard.
 - The tactical AI doesn't foresee where a card moves its hero (Backstab, Charge and Twin Daggers step into enemy reach) and treats a kill as not changing who the enemies hit. These are candidates if the AI needs to get stronger still.
-- The table scene redraws when the engine pauses instead of animating from events. Apart from the map view's layers, the board orientation mapping, layout settings and collapsible panels (`test_map_view`, `test_board_orientation`, `test_layout_settings`, `test_collapsible_panel`) it has no automated tests; check it with `tools/screenshot_table.gd` (see Commands). Hover-to-open on the hand is only checked by hand.
+- The table scene redraws when the engine pauses instead of animating from events. Apart from the map view (layers, run sync, options, camera), the run session, the board orientation mapping, layout settings and collapsible panels (`test_map_view`, `test_board_orientation`, `test_layout_settings`, `test_collapsible_panel`) it has no automated tests; check it with `tools/screenshot_table.gd` (see Commands). Hover-to-open on the hand is only checked by hand.
 
 ## Milestones
 

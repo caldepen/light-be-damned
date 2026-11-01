@@ -51,6 +51,8 @@ var dm_mode: String = Battle.DM_STANDARD
 ## Where each hero stands at the start of every battle: {hero_id: [row, lane]} (set_formation).
 var formation: Dictionary = {}
 var last_battle: Battle = null
+## The battle being fought right now (RunFight sets it), null between fights: the table shows the boards.
+var current_battle: Battle = null
 ## Components the party holds: from earlier runs, and `found` this run (lost on a wipe).
 var components: Array[String] = []
 var found: Array[String] = []

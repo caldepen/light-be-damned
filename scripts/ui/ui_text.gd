@@ -166,3 +166,80 @@ static func turn_summary(battle: Battle, end_entry: Dictionary) -> String:
         head += "  Flipped: %s." % ", ".join(flipped)
         head += "  Played: %s." % played if not played.is_empty() else "  Nothing played."
     return head + "\n" + "\n".join(lines)
+
+# ------------------------------------------------------------------ runs
+
+const ACTION_LABELS := {"explore": "Explore", "camp": "Camp", "leave": "Walk out"}
+
+static func run_option_label(request: RunRequest, option: Variant, index: int) -> String:
+    var walks: Array = request.details.get("walk", [])
+    var walk: String = ""
+    if index < walks.size() and int(walks[index]) > 0:
+        walk = " (walk %d)" % int(walks[index])
+    if option is MapDoorway:
+        return (option as MapDoorway).describe() + walk
+    if option is TilePlacement:
+        var p: TilePlacement = option
+        return "%d: %s" % [index + 1, p.describe()]
+    if option is PlacedTile:
+        return String((option as PlacedTile).def.get("name", "?")) + walk
+    if option is HeroState:
+        var h: HeroState = option
+        return "%s (%d in deck)" % [h.name, h.deck.size()]
+    if option is Card:
+        return (option as Card).name
+    if option is bool:
+        return "Yes" if option else "No"
+    if option is String:
+        if request.kind == RunRequest.ACTION:
+            return String(ACTION_LABELS.get(option, String(option).capitalize()))
+        return String(option).replace("_", " ").capitalize()
+    if option is Dictionary:
+        return String((option as Dictionary).get("name", (option as Dictionary).get("id", "?")))
+    return str(option)
+
+static func run_prompt(request: RunRequest) -> String:
+    var d: Dictionary = request.details
+    var who: String = request.hero.name if request.hero != null else "The party"
+    var roll: String = "%s %d" % [String(d.get("type", "")).capitalize(), int(d.get("target", 0))]
+    match request.kind:
+        RunRequest.ACTION:
+            return "What next? Explore a new room, camp in a campsite you have found, or walk out through the Front Door."
+        RunRequest.DOORWAY:
+            var peek: String = ""
+            if not String(d.get("peeked", "")).is_empty():
+                peek = " Through the keyhole: %s." % String(d["peeked"]).replace("_", " ").capitalize()
+            return "Choose a doorway to explore: click one on the map. A number is how many rooms you walk through (a wandering check in each)." + peek
+        RunRequest.PLACEMENT:
+            return "The tile fits more than one way: click where it goes on the map."
+        RunRequest.CAMPSITE:
+            return "Choose a campsite: click it on the map."
+        RunRequest.FORMATION:
+            return "Choose the party's formation for this run's battles."
+        RunRequest.ROLLER:
+            return "Who rolls %s (%s)? Another Type rolls at -2." % [roll, String(d.get("purpose", ""))]
+        RunRequest.ATTEMPT:
+            return "Try to open it (%s)? A failure raises the Hut track." % roll
+        RunRequest.RETRY:
+            return "It didn't open. Try again (%s)?" % roll
+        RunRequest.SPOT_TRAP:
+            return "Search for traps (Wits %d)? A failure raises the Hut track." % int(d.get("target", 0))
+        RunRequest.DISARM:
+            return "You spotted a trap. Disarm it (Agility %d) for its salvage, or step around it?" % int(d.get("target", 0))
+        RunRequest.DODGE:
+            return "%s: the trap springs. Dodge (Agility %d)?" % [who, int(d.get("target", 0))]
+        RunRequest.ACCEPT:
+            return String(d.get("prompt", "Accept?"))
+        RunRequest.WOUND_DISCARD:
+            return "%s takes a Wound: choose a card to discard." % who
+        RunRequest.FLIPPER:
+            return "Who flips for the campfire's wandering check?"
+        RunRequest.SIGNATURE:
+            return "%s: choose a signature option." % who
+    return "%s: choose (%s)." % [who, request.kind]
+
+## The end of a run, for the prompt.
+static func run_over_text(run: HutRun) -> String:
+    var how: String = {HutRun.RUN_LEFT: "the party walked out", HutRun.RUN_WIPE: "the party was wiped out",
+        HutRun.RUN_BOSS: "the party reached the witch (the boss comes in Milestone 6)"}.get(run.result, run.result)
+    return "Run over: %s. XP %d, loot %d, components found %d. Press Restart for another run." % [how, run.xp, run.loot_drawn, run.found.size()]

@@ -11,8 +11,11 @@ var doors: Array[Dictionary] = []   # {"cell": Vector2i, "side": String} in map 
 var label: String = ""
 var moon: bool = false
 var palette: Dictionary = {}        # MapPaper theme colours, passed in by MapView
+## A tile the party hasn't entered (one placed as the Hut woke): drawn pale.
+var faded: bool = false
 
-func setup(tile_cells: Array[Vector2i], tile_doors: Array[Dictionary], tile_label: String, has_moon: bool, colors: Dictionary) -> void:
+func setup(tile_cells: Array[Vector2i], tile_doors: Array[Dictionary], tile_label: String, has_moon: bool, colors: Dictionary, is_faded: bool = false) -> void:
+    faded = is_faded
     cells = tile_cells
     doors = tile_doors
     label = tile_label
@@ -27,6 +30,9 @@ static func square_rect(cell: Vector2i) -> Rect2:
 func _draw() -> void:
     var ink: Color = palette.get("ink", Color.BLACK)
     var fill: Color = palette.get("room_fill", Color(1, 1, 1, 0.8))
+    if faded:
+        fill.a *= 0.4
+        ink = ink.lerp(Color.TRANSPARENT, 0.5)
     var bounds := Rect2()
     for i in range(cells.size()):
         var r: Rect2 = square_rect(cells[i])
@@ -38,8 +44,14 @@ func _draw() -> void:
                 continue
             _edge(c, side, ink, _has_door(c, side))
     var font: Font = ThemeDB.fallback_font
-    draw_string(font, bounds.position + Vector2(4, bounds.size.y * 0.5 + 5), label, HORIZONTAL_ALIGNMENT_CENTER,
-        bounds.size.x - 8, 12, ink)
+    # The name sits in the tile's box, or in its first square when the tile isn't a rectangle.
+    if not is_equal_approx(bounds.get_area(), cells.size() * MapView.SQUARE * MapView.SQUARE):
+        bounds = square_rect(cells[0])
+    # Up to two lines, smaller type until the name fits.
+    var font_size: int = 12
+    while font_size > 8 and font.get_multiline_string_size(label, HORIZONTAL_ALIGNMENT_CENTER, bounds.size.x - 8, font_size, 2).x > bounds.size.x - 8:
+        font_size -= 1
+    draw_multiline_string(font, bounds.position + Vector2(4, 16), label, HORIZONTAL_ALIGNMENT_CENTER, bounds.size.x - 8, font_size, 2, ink)
     if moon:
         draw_circle(bounds.position + Vector2(bounds.size.x - 12, 12), 6.0, palette.get("moon", ink))
 

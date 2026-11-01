@@ -16,10 +16,16 @@ func _init() -> void:
     add_child(_box)
 
 func refresh(battle: Battle) -> void:
-    if battle == null:
-        return
+    if battle != null:
+        _show(battle.heroes, battle.enemy_decks)
+
+## The party's piles between fights (no enemy decks).
+func refresh_party(heroes: Array[HeroState]) -> void:
+    _show(heroes, {})
+
+func _show(heroes: Array[HeroState], enemy_decks: Dictionary) -> void:
     var keys: Dictionary = {}
-    for h in battle.heroes:
+    for h in heroes:
         var key: String = "hero:" + h.id
         keys[key] = true
         var piles: Array = _row(key, 3)
@@ -28,10 +34,10 @@ func refresh(battle: Battle) -> void:
         (piles[0] as DeckPile).show_pile("Deck", h.deck.size())
         (piles[1] as DeckPile).show_pile("Discard", h.discard.size(), _card_names(h.discard))
         (piles[2] as DeckPile).show_pile("Exhausted", h.exhausted.size(), _card_names(h.exhausted))
-    for enemy_type in battle.enemy_decks:
+    for enemy_type in enemy_decks:
         var key: String = "enemy:" + String(enemy_type)
         keys[key] = true
-        var deck: EnemyDeck = battle.enemy_decks[enemy_type]
+        var deck: EnemyDeck = enemy_decks[enemy_type]
         var piles: Array = _row(key, 2)
         _set_name(key, "%s deck" % String(enemy_type).capitalize(), Color(0.95, 0.85, 0.75))
         (piles[0] as DeckPile).show_pile("Deck", deck.draw_pile.size())

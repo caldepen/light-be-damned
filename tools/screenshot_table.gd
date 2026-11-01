@@ -5,7 +5,9 @@ extends SceneTree
 ## the editor exe without --headless:
 ##   Godot_v4.7.2-stable_win64.exe --path . --script tools/screenshot_table.gd -- OUT_PREFIX [options] [WIDTHxHEIGHT ...]
 ## Options: --preset tall|wide (layout preset), --phase exploring (the exploring layout),
-##          --dock bottom_full|bottom_boards|left|right (hand dock).
+##          --dock bottom_full|bottom_boards|left|right (hand dock), --mode run|battle (default run),
+##          --play SECONDS (how long the AI plays before the second shot, default 0.7),
+##          --answer N (answer the first N choices with their first option before the first shot).
 ## Writes OUT_PREFIX_<size>_start.png (the first decision) and OUT_PREFIX_<size>_mid.png (a few
 ## turns in) for each size; default size 1600x940. Uses its own layout file, never the player's.
 
@@ -22,6 +24,9 @@ func _run() -> void:
     var preset: String = LayoutSettings.PRESET_TALL
     var phase: String = LayoutSettings.PHASE_BATTLE
     var dock: String = ""
+    var mode: String = ControlsBar.MODE_RUN
+    var play_seconds: float = PLAY_SECONDS
+    var answers: int = 0
     var sizes: Array[Vector2i] = []
     var i: int = 1
     while i < args.size():
@@ -35,6 +40,15 @@ func _run() -> void:
             "--dock":
                 dock = args[i + 1]
                 i += 1
+            "--mode":
+                mode = args[i + 1]
+                i += 1
+            "--answer":
+                answers = int(args[i + 1])
+                i += 1
+            "--play":
+                play_seconds = float(args[i + 1])
+                i += 1
             _:
                 var parts: PackedStringArray = args[i].split("x")
                 sizes.append(Vector2i(int(parts[0]), int(parts[1])))
@@ -47,16 +61,23 @@ func _run() -> void:
         var table: TableScreen = load("res://scenes/table.tscn").instantiate()
         table.layout_path = LAYOUT_PATH
         root.add_child(table)
+        if mode != ControlsBar.MODE_RUN:
+            table._controls.set_mode(mode)
+            table._restart()
         table.apply_preset(preset)
         if not dock.is_empty():
             table._on_layout_chosen(LayoutMenu.ACTION_DOCK, dock)
-        table.set_phase(phase)
+        if mode != ControlsBar.MODE_RUN:
+            table.set_phase(phase)
         await create_timer(SETTLE_SECONDS).timeout
+        for n in range(answers):
+            table._answer(0)
+            await create_timer(0.4).timeout
         _save("%s_%dx%d_start.png" % [prefix, window_size.x, window_size.y])
         table._session.auto_delay_ms = 60
         table._session.set_auto_continue(true)
         table._session.set_ai_heroes(true)
-        await create_timer(PLAY_SECONDS).timeout
+        await create_timer(play_seconds).timeout
         table._session.set_ai_heroes(false)
         await create_timer(0.5).timeout
         _save("%s_%dx%d_mid.png" % [prefix, window_size.x, window_size.y])

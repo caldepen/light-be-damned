@@ -2,10 +2,12 @@ class_name TableScreen
 extends Control
 
 ## The playtest table (Milestone 4 layout, placeholder visuals). Presentation only: it owns a
-## BattleSession, redraws every view whenever the session's worker thread pauses, and sends the
-## person's choices back as option indexes. It never changes game state itself.
+## RunSession (a whole run, 4.6) or a BattleSession (a single battle), redraws every view whenever
+## the session's worker thread pauses, and sends the person's choices back as option indexes. It
+## never changes game state itself. In a run the layout switches between exploring and battle as
+## fights start and end, and doorways, placements and campsites are chosen on the map.
 ##
-##   top bar:  seed, encounter, DM, restart, AI toggles, the Layout menu and Reset layout
+##   top bar:  run or single battle, seed, components, encounter, DM, restart, AI toggles, the Layout menu and Reset layout
 ##   map:      Hut track / rations / party armor, then the map (dimmed during a battle)
 ##   battle:   DM board, player board (front rows facing), Provoke strip (BattlefieldView, tall or wide)
 ##   side:     decks, discards and Exhausted cards; enemy decks; the event log (collapsible)
@@ -124,6 +126,7 @@ func _ready() -> void:
     _choice.option_chosen.connect(_answer)
     _choice.play_pressed.connect(_play_selected)
     _choice.continue_pressed.connect(func() -> void: _answer(0))
+    _map.option_chosen.connect(_answer_map)
 
     _layout = LayoutSettings.load_from(layout_path)
     _build_layout()
@@ -336,15 +339,29 @@ func _restart() -> void:
     _last_hand_hero = null
     _shown_serial = -1
     _map.clear_map()
-    _map.set_hint("Single battle: the map comes with exploration.")
-    _session = BattleSession.new()
+    var run_mode: bool = _controls.mode() == ControlsBar.MODE_RUN
+    _session = RunSession.new() if run_mode else BattleSession.new()
     _session.set_ai_heroes(_controls.ai_heroes())
     _session.set_auto_continue(_controls.auto_continue())
     _choice.show_message("Starting...")
-    _session.start(_data, _data["encounters"][_controls.encounter_name()], _controls.seed_value(), _controls.dm_mode())
+    if run_mode:
+        var held: Array = []
+        for c in _data["module_witch_hut"]["components"]:
+            if held.size() < _controls.components():
+                held.append(String(c["id"]))
+        _map.set_hint("")
+        set_phase(LayoutSettings.PHASE_EXPLORING)
+        (_session as RunSession).start_run(_data, _controls.seed_value(), _controls.dm_mode(), held)
+    else:
+        _map.set_hint("Single battle: choose Run in the top bar to explore.")
+        set_phase(LayoutSettings.PHASE_BATTLE)
+        _session.start(_data, _data["encounters"][_controls.encounter_name()], _controls.seed_value(), _controls.dm_mode())
 
-## Redraw every view from the paused battle. Called with the session's state lock held.
+## Redraw every view from the paused battle or run. Called with the session's state lock held.
 func _refresh() -> void:
+    if _session is RunSession:
+        _refresh_run(_session as RunSession)
+        return
     var battle: Battle = _session.battle
     var kind: String = _session.pause_kind()
     var request: DecisionRequest = _session.pending_request() if kind == BattleSession.PAUSE_DECISION else null
@@ -372,6 +389,55 @@ func _refresh() -> void:
         _choice.show_message("Battle over: %s after %d rounds. Press Restart for another." % [
             UiText.result_text(battle.result), battle.round_number])
 
+## Redraw from the paused run: the map with the pending choice's options, the Hut track, rations
+## and armor, the boards while a fight is on (the layout switches phase with it), the piles, the
+## run's log (battles included) and the prompt.
+func _refresh_run(session: RunSession) -> void:
+    var run: HutRun = session.run
+    if run == null:
+        return
+    var kind: String = session.pause_kind()
+    var request: DecisionRequest = session.pending_request() if kind == BattleSession.PAUSE_DECISION else null
+    var run_request: RunRequest = session.pending_run_request() if kind == RunSession.PAUSE_RUN else null
+    var battle: Battle = run.current_battle
+    set_phase(LayoutSettings.PHASE_BATTLE if battle != null else LayoutSettings.PHASE_EXPLORING)
+    _map.show_run(run.explorer.map, run.explorer.party_tile, run_request)
+    var evict: int = int(run.module.get("hut_track", {}).get("evicts_at", 10))
+    _map.set_hint("The Hut has thrown the party out: walk to the Front Door." if run.evicted and run.result.is_empty() else "")
+    _map_status.refresh(run.explorer.hut_track, evict, {evict: "out"}, run.rations, run.party.heroes)
+    _party_summary.refresh(run.party.heroes)
+    _battlefield.refresh(battle, request)
+    if battle != null:
+        _piles.refresh(battle)
+    else:
+        _piles.refresh_party(run.party.heroes)
+    _log.log_view.refresh_log(run.log)
+    var hand_hero: HeroState = _last_hand_hero
+    if request != null and request.hero != null:
+        hand_hero = request.hero
+    elif run_request != null and run_request.hero != null:
+        hand_hero = run_request.hero
+    elif battle != null and battle.active_figure is HeroState:
+        hand_hero = battle.active_figure
+    _last_hand_hero = hand_hero
+    _hand.refresh(hand_hero, request)
+    _hand_area.set_title(_hand.title_text())
+    _update_hand_peek(request)
+    _battle_area.set_title(_turn_text(battle, request) if battle != null else "Exploring  ·  Hut track %d" % run.explorer.hut_track)
+    if request != null:
+        _choice.show_decision(request, _selected_card(request))
+    elif run_request != null:
+        _choice.show_run_decision(run_request)
+    elif kind == BattleSession.PAUSE_CONTINUE and battle != null:
+        _choice.show_continue(UiText.turn_summary(battle, _session.pause_entry()))
+    elif _session.is_finished():
+        _choice.show_message(UiText.run_over_text(run))
+
+## A click on the map's highlighted doorway, preview or campsite answers the pending run choice.
+func _answer_map(index: int) -> void:
+    var session := _session as RunSession
+    if session != null and session.pending_run_request() != null:
+        _answer(index)
 ## A collapsed hand pops open while a hero must choose a card from it (unless that is turned off),
 ## and closes again once the choice is made.
 func _update_hand_peek(request: DecisionRequest) -> void:

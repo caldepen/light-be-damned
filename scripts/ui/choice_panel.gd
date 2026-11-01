@@ -2,7 +2,7 @@ class_name ChoicePanel
 extends VBoxContainer
 
 ## The prompt for the pending request: Play / Flip / Pass on a hero's turn, a button per option
-## for every other request (the board and hand offer the same options by clicking), and the
+## for every other request (battle or run) (the board and hand offer the same options by clicking), and the
 ## turn summary with Continue after an enemy turn.
 
 signal option_chosen(index: int)
@@ -64,6 +64,17 @@ func show_decision(request: DecisionRequest, selected: Card) -> void:
     for i in range(request.options.size()):
         var b := Button.new()
         b.text = UiText.option_label(request, request.options[i])
+        var index: int = i
+        b.pressed.connect(func() -> void: option_chosen.emit(index))
+        _options.add_child(b)
+
+## A run choice: a button per option (doorways, placements and campsites can also be clicked on the map).
+func show_run_decision(request: RunRequest) -> void:
+    _clear()
+    _prompt.text = UiText.run_prompt(request)
+    for i in range(request.options.size()):
+        var b := Button.new()
+        b.text = UiText.run_option_label(request, request.options[i], i)
         var index: int = i
         b.pressed.connect(func() -> void: option_chosen.emit(index))
         _options.add_child(b)

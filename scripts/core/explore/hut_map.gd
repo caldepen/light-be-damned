@@ -64,6 +64,14 @@ func close_doorway(cell: Vector2i, side: String, dry_run: bool = false) -> Strin
         _walls[TileGeometry.door_key(cell, side)] = true
     return ""
 
+## Every wall token on the map: [{"cell": Vector2i, "side": String}] (for drawing).
+func wall_tokens() -> Array[Dictionary]:
+    var result: Array[Dictionary] = []
+    for key in _walls:
+        var parts: PackedStringArray = String(key).split(",")
+        result.append({"cell": Vector2i(int(parts[0]), int(parts[1])), "side": parts[2]})
+    return result
+
 func is_walled(cell: Vector2i, side: String) -> bool:
     return _walls.has(TileGeometry.door_key(cell, side))
 
